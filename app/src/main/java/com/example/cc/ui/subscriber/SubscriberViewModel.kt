@@ -31,12 +31,31 @@ class SubscriberViewModel : BaseViewModel() {
         }
     }
 
+    fun initializeMqtt(context: Context) {
+        mqttClient = MqttClient(context)
+        connectToMqtt()
+    }
+    
+    private fun connectToMqtt() {
+        viewModelScope.launch {
+            try {
+                _connectionStatus.value = "Connecting..."
+                val connected = mqttClient?.connect() ?: false
+                if (connected) {
+                    _connectionStatus.value = "Connected"
+                    // Subscribe to emergency alerts
+                    mqttClient?.subscribe(MqttTopics.ALERT_BROADCAST)
+                    mqttClient?.subscribe(MqttTopics.EMERGENCY_ALERTS + "/+")
+                } else {
+                    _connectionStatus.value = "Connection Failed"
+                }
+            } catch (e: Exception) {
+                _connectionStatus.value = "Error: ${e.message}"
+            }
+        }
+    }
+    
     fun setConnectionStatus(status: String) {
         _connectionStatus.value = status
-    }
-
-    init {
-        // TODO: Implement MQTT connection
-        _connectionStatus.value = "MQTT not implemented yet"
     }
 } 

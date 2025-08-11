@@ -48,6 +48,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     override fun setupViews() {
         setupToolbar()
         setupAlertHistoryList()
+        viewModel.initializeMqtt(this)
     }
     
     override fun setupObservers() {
