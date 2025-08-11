@@ -8,11 +8,11 @@ import com.example.cc.ui.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import com.example.cc.di.AppModule
 
-class MainViewModel @Inject constructor(
-    private val userRepository: UserRepository
-) : BaseViewModel() {
+class MainViewModel : BaseViewModel() {
+    
+    private val userRepository: UserRepository = AppModule.userRepository
     
     private val _selectedRole = MutableStateFlow<UserRole?>(null)
     val selectedRole: StateFlow<UserRole?> = _selectedRole
