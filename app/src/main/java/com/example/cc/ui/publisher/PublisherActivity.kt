@@ -13,6 +13,8 @@ import android.os.Looper
 import android.view.View
 import android.content.Intent
 import com.example.cc.util.MqttService
+import androidx.lifecycle.Observer
+import com.example.cc.util.MqttService.ConnectionState
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
@@ -50,6 +52,17 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 showToast(message)
             }
         }
+
+        // Observe connection state from service
+        MqttService.connectionState.observe(this, Observer { state ->
+            val statusText = when (state) {
+                ConnectionState.CONNECTING -> "Connecting..."
+                ConnectionState.CONNECTED -> "Connected"
+                ConnectionState.DISCONNECTED -> "Disconnected"
+                else -> state.toString()
+            }
+            binding.tvStatus.text = "Status: $statusText"
+        })
     }
     
     private fun setupToolbar() {
