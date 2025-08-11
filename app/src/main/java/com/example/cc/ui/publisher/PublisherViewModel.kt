@@ -1,7 +1,8 @@
 package com.example.cc.ui.publisher
 
 import com.example.cc.ui.base.BaseViewModel
-
+import android.content.Context
+import com.example.cc.util.MqttClient
 import com.example.cc.util.MqttTopics
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -10,6 +11,12 @@ import com.example.cc.util.EmergencyAlertMessage
 import com.example.cc.util.ResponseAckMessage
 
 class PublisherViewModel : BaseViewModel() {
+    
+    private var mqttClient: MqttClient? = null
+    
+    fun initializeMqtt(context: Context) {
+        mqttClient = MqttClient(context)
+    }
     
     fun sendEmergencyAlert() {
         launchWithLoading {

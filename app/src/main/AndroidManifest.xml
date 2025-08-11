@@ -38,6 +38,10 @@
             android:exported="false"
             android:theme="@style/Theme.CC" />
 
+        <service
+            android:name=".util.MqttService"
+            android:exported="false" />
+
     </application>
 
 </manifest>
