@@ -82,4 +82,6 @@ dependencies {
     // MQTT - Eclipse Paho Android Service
     implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    // JSON serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
