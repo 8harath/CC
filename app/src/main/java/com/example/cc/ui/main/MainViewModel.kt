@@ -40,7 +40,7 @@ class MainViewModel : BaseViewModel() {
         // In a real app, you'd load from SharedPreferences or similar
         // For now, we'll just check if there's a user in the database
         viewModelScope.launch {
-            val users = userRepository.getAllUsers().collect { userList ->
+            userRepository.getAllUsers().collect { userList ->
                 if (userList.isNotEmpty()) {
                     _currentUser.value = userList.first()
                     _selectedRole.value = userList.first().role

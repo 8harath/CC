@@ -4,11 +4,7 @@ import com.example.cc.data.dao.IncidentDao
 import com.example.cc.data.model.Incident
 import com.example.cc.data.model.IncidentStatus
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
-import javax.inject.Singleton
-
-@Singleton
-class IncidentRepository @Inject constructor(
+class IncidentRepository(
     private val incidentDao: IncidentDao
 ) {
     fun getAllIncidents(): Flow<List<Incident>> = incidentDao.getAllIncidents()
