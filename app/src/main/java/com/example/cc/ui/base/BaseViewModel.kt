@@ -16,6 +16,9 @@ abstract class BaseViewModel : ViewModel() {
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage: SharedFlow<String> = _errorMessage
     
+    private val _successMessage = MutableSharedFlow<String>()
+    val successMessage: SharedFlow<String> = _successMessage
+    
     protected fun showLoading() {
         _isLoading.value = true
     }
@@ -27,6 +30,12 @@ abstract class BaseViewModel : ViewModel() {
     protected fun showError(message: String) {
         viewModelScope.launch {
             _errorMessage.emit(message)
+        }
+    }
+    
+    protected fun showSuccess(message: String) {
+        viewModelScope.launch {
+            _successMessage.emit(message)
         }
     }
     

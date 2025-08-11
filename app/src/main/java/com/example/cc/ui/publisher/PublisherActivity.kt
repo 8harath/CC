@@ -31,6 +31,12 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 showToast(error)
             }
         }
+        
+        lifecycleScope.launch {
+            viewModel.successMessage.collect { message ->
+                showToast(message)
+            }
+        }
     }
     
     private fun setupToolbar() {

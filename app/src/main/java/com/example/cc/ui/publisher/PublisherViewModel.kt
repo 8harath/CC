@@ -7,7 +7,7 @@ class PublisherViewModel : BaseViewModel() {
         launchWithLoading {
             // TODO: Implement MQTT emergency alert sending
             // For Phase 1, just show a success message
-            showToast("Emergency alert sent! (MQTT not implemented yet)")
+            showSuccess("Emergency alert sent! (MQTT not implemented yet)")
         }
     }
 } 
