@@ -1,9 +1,7 @@
 package com.example.cc.ui.publisher
 
 import com.example.cc.ui.base.BaseViewModel
-import javax.inject.Inject
-
-class PublisherViewModel @Inject constructor() : BaseViewModel() {
+class PublisherViewModel : BaseViewModel() {
     
     fun sendEmergencyAlert() {
         launchWithLoading {
