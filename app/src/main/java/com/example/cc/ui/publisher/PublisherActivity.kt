@@ -21,6 +21,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     override fun setupViews() {
         setupToolbar()
         setupEmergencyButton()
+        viewModel.initializeMqtt(this)
     }
     
     override fun setupObservers() {

@@ -46,10 +46,35 @@ class PublisherViewModel : BaseViewModel() {
                 )
                 val json = Json.encodeToString(message)
                 val topic = MqttTopics.alertIncident(incidentId)
-                // TODO: Implement proper MQTT service integration
-                // For now, just log the message
-                android.util.Log.d("PublisherViewModel", "Would publish to $topic: $json")
-                showSuccess("Emergency alert sent!")
+                
+                // Try to publish via MQTT if available
+                mqttClient?.let { client ->
+                    if (client.isConnected()) {
+                        val success = client.publish(topic, json)
+                        if (success) {
+                            showSuccess("Emergency alert sent!")
+                        } else {
+                            showError("Failed to send alert via MQTT")
+                        }
+                    } else {
+                        // Try to connect and then publish
+                        val connected = client.connect()
+                        if (connected) {
+                            val success = client.publish(topic, json)
+                            if (success) {
+                                showSuccess("Emergency alert sent!")
+                            } else {
+                                showError("Failed to send alert via MQTT")
+                            }
+                        } else {
+                            showError("Failed to connect to MQTT broker")
+                        }
+                    }
+                } ?: run {
+                    // Fallback: just log the message
+                    android.util.Log.d("PublisherViewModel", "Would publish to $topic: $json")
+                    showSuccess("Emergency alert prepared (MQTT not initialized)")
+                }
             } catch (e: Exception) {
                 showError("Failed to send alert: ${e.message}")
             }
