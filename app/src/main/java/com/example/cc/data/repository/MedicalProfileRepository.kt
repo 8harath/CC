@@ -2,11 +2,7 @@ package com.example.cc.data.repository
 
 import com.example.cc.data.dao.MedicalProfileDao
 import com.example.cc.data.model.MedicalProfile
-import javax.inject.Inject
-import javax.inject.Singleton
-
-@Singleton
-class MedicalProfileRepository @Inject constructor(
+class MedicalProfileRepository(
     private val medicalProfileDao: MedicalProfileDao
 ) {
     suspend fun getMedicalProfileByUserId(userId: Long): MedicalProfile? = 
