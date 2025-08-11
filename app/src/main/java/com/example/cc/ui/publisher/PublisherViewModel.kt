@@ -9,6 +9,8 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 import com.example.cc.util.EmergencyAlertMessage
 import com.example.cc.util.ResponseAckMessage
+import android.content.Intent
+import com.example.cc.util.MqttService
 
 class PublisherViewModel : BaseViewModel() {
     
@@ -46,35 +48,18 @@ class PublisherViewModel : BaseViewModel() {
                 )
                 val json = Json.encodeToString(message)
                 val topic = MqttTopics.alertIncident(incidentId)
-                
-                // Try to publish via MQTT if available
-                mqttClient?.let { client ->
-                    if (client.isConnected()) {
-                        val success = client.publish(topic, json)
-                        if (success) {
-                            showSuccess("Emergency alert sent!")
-                        } else {
-                            showError("Failed to send alert via MQTT")
-                        }
-                    } else {
-                        // Try to connect and then publish
-                        val connected = client.connect()
-                        if (connected) {
-                            val success = client.publish(topic, json)
-                            if (success) {
-                                showSuccess("Emergency alert sent!")
-                            } else {
-                                showError("Failed to send alert via MQTT")
-                            }
-                        } else {
-                            showError("Failed to connect to MQTT broker")
-                        }
-                    }
-                } ?: run {
-                    // Fallback: just log the message
-                    android.util.Log.d("PublisherViewModel", "Would publish to $topic: $json")
-                    showSuccess("Emergency alert prepared (MQTT not initialized)")
+
+                // Prefer publishing via background service to leverage retry queue
+                val ctx = getApplicationContext()
+                val publishIntent = Intent(ctx, MqttService::class.java).apply {
+                    action = MqttService.ACTION_PUBLISH
+                    putExtra(MqttService.EXTRA_TOPIC, topic)
+                    putExtra(MqttService.EXTRA_PAYLOAD, json)
+                    putExtra(MqttService.EXTRA_QOS, 1)
+                    putExtra(MqttService.EXTRA_RETAINED, false)
                 }
+                ctx.startService(publishIntent)
+                showSuccess("Emergency alert sent!")
             } catch (e: Exception) {
                 showError("Failed to send alert: ${e.message}")
             }

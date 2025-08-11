@@ -21,6 +21,11 @@ class MqttService : Service() {
     enum class ConnectionState { CONNECTING, CONNECTED, DISCONNECTED }
     companion object {
         val connectionState = MutableLiveData(ConnectionState.DISCONNECTED)
+        const val ACTION_PUBLISH = "com.example.cc.mqtt.ACTION_PUBLISH"
+        const val EXTRA_TOPIC = "extra_topic"
+        const val EXTRA_PAYLOAD = "extra_payload"
+        const val EXTRA_QOS = "extra_qos"
+        const val EXTRA_RETAINED = "extra_retained"
     }
     private lateinit var mqttClient: MqttAndroidClient
     private val TAG = "MqttService"
@@ -192,17 +197,30 @@ class MqttService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.let {
-            val role = it.getStringExtra("role")
-            val incidentId = it.getStringExtra("incidentId")
-            if (!role.isNullOrEmpty()) {
-                pendingRole = role
-                pendingIncidentId = incidentId
-                if (mqttClient.isConnected) {
-                    Log.i(TAG, "Received start with role=$role, subscribing immediately")
-                    subscribeForRole(role, incidentId)
-                } else {
-                    Log.i(TAG, "Received start with role=$role, will subscribe after connect")
+        intent?.let { inIntent ->
+            when (inIntent.action) {
+                ACTION_PUBLISH -> {
+                    val topic = inIntent.getStringExtra(EXTRA_TOPIC)
+                    val payload = inIntent.getStringExtra(EXTRA_PAYLOAD)
+                    val qos = inIntent.getIntExtra(EXTRA_QOS, 1)
+                    val retained = inIntent.getBooleanExtra(EXTRA_RETAINED, false)
+                    if (!topic.isNullOrEmpty() && payload != null) {
+                        publish(topic, payload, qos, retained)
+                    }
+                }
+                else -> {
+                    val role = inIntent.getStringExtra("role")
+                    val incidentId = inIntent.getStringExtra("incidentId")
+                    if (!role.isNullOrEmpty()) {
+                        pendingRole = role
+                        pendingIncidentId = incidentId
+                        if (mqttClient.isConnected) {
+                            Log.i(TAG, "Received start with role=$role, subscribing immediately")
+                            subscribeForRole(role, incidentId)
+                        } else {
+                            Log.i(TAG, "Received start with role=$role, will subscribe after connect")
+                        }
+                    }
                 }
             }
         }
