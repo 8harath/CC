@@ -1,12 +1,13 @@
 package com.example.cc.util
 
 object MqttConfig {
-    const val BROKER_URL = "tcp://192.168.1.100:1883" // Replace with your Mosquitto IP if needed
+    // For testing, you can use a public MQTT broker
+    const val BROKER_URL = "tcp://test.mosquitto.org:1883" // Public test broker
     const val CLIENT_ID_PREFIX = "android_client_"
-    const val USERNAME = "android_user" // If authentication is enabled
-    const val PASSWORD = "android_pass" // If authentication is enabled
+    const val USERNAME = "" // No authentication for public broker
+    const val PASSWORD = "" // No authentication for public broker
     const val CONNECTION_TIMEOUT = 10 // seconds
     const val KEEP_ALIVE_INTERVAL = 20 // seconds
-    // For SSL/TLS, use: "ssl://192.168.1.100:8883" and configure Mosquitto accordingly
-    const val BROKER_URL_SSL = "ssl://192.168.1.100:8883" // Example for secure connection
+    // For SSL/TLS, use: "ssl://test.mosquitto.org:8883"
+    const val BROKER_URL_SSL = "ssl://test.mosquitto.org:8883" // Secure public broker
 }
