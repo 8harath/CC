@@ -140,6 +140,7 @@ class MqttClient(private val context: Context) {
                     Log.i(TAG, "Disconnected from MQTT broker")
                 }
             }
+            mqttClient = null
         } catch (e: Exception) {
             Log.e(TAG, "Error disconnecting: ${e.message}")
         }
