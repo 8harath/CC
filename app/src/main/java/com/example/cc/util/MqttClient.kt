@@ -39,7 +39,7 @@ class MqttClient(private val context: Context) {
                     continuation.resume(false)
                     return@withContext false
                 }
-                mqttClient?.setCallback(object : MqttCallback {
+                client.setCallback(object : MqttCallback {
                     override fun connectionLost(cause: Throwable?) {
                         Log.w(TAG, "MQTT connection lost: ${cause?.message}")
                     }
@@ -56,7 +56,7 @@ class MqttClient(private val context: Context) {
                     }
                 })
                 
-                mqttClient?.connect(options, null, object : IMqttActionListener {
+                client.connect(options, null, object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
                         Log.i(TAG, "Connected to MQTT broker")
                         continuation.resume(true)
@@ -76,13 +76,14 @@ class MqttClient(private val context: Context) {
     
     suspend fun publish(topic: String, payload: String, qos: Int = 1): Boolean = withContext(Dispatchers.IO) {
         try {
-            if (mqttClient?.isConnected == true) {
+            val client = mqttClient ?: return false
+            if (client.isConnected) {
                 val message = MqttMessage(payload.toByteArray()).apply {
                     this.qos = qos
                 }
                 
                 return suspendCoroutine { continuation ->
-                    mqttClient?.publish(topic, message, null, object : IMqttActionListener {
+                    client.publish(topic, message, null, object : IMqttActionListener {
                         override fun onSuccess(asyncActionToken: IMqttToken?) {
                             Log.d(TAG, "Message published to $topic")
                             continuation.resume(true)
