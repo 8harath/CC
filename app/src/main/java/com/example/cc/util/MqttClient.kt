@@ -32,6 +32,23 @@ class MqttClient(private val context: Context) {
             
             // Use suspendCoroutine to properly handle the async connection
             kotlinx.coroutines.suspendCoroutine<Boolean> { continuation ->
+                mqttClient?.setCallback(object : MqttCallback {
+                    override fun connectionLost(cause: Throwable?) {
+                        Log.w(TAG, "MQTT connection lost: ${cause?.message}")
+                    }
+                    
+                    override fun messageArrived(topic: String?, message: MqttMessage?) {
+                        Log.d(TAG, "Message arrived: $topic -> ${message?.toString()}")
+                        message?.let { msg ->
+                            onMessageReceived?.invoke(topic ?: "", String(msg.payload))
+                        }
+                    }
+                    
+                    override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                        Log.d(TAG, "Delivery complete: ${token?.message}")
+                    }
+                })
+                
                 mqttClient?.connect(options, null, object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
                         Log.i(TAG, "Connected to MQTT broker")

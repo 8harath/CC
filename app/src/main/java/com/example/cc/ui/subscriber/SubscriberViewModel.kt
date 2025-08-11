@@ -33,6 +33,11 @@ class SubscriberViewModel : BaseViewModel() {
 
     fun initializeMqtt(context: Context) {
         mqttClient = MqttClient(context)
+        mqttClient?.onMessageReceived = { topic, message ->
+            if (topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                onEmergencyAlertReceived(message)
+            }
+        }
         connectToMqtt()
     }
     
