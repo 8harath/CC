@@ -1,7 +1,7 @@
 package com.example.cc.ui.subscriber
 
 import com.example.cc.ui.base.BaseViewModel
-import com.example.cc.util.MqttMessageSchemas
+import com.example.cc.util.EmergencyAlertMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,12 +14,12 @@ class SubscriberViewModel : BaseViewModel() {
     private val _connectionStatus = MutableStateFlow("Disconnected")
     val connectionStatus: StateFlow<String> = _connectionStatus
     
-    private val _alertHistory = MutableStateFlow<List<MqttMessageSchemas.EmergencyAlertMessage>>(emptyList())
-    val alertHistory: StateFlow<List<MqttMessageSchemas.EmergencyAlertMessage>> = _alertHistory.asStateFlow()
+    private val _alertHistory = MutableStateFlow<List<EmergencyAlertMessage>>(emptyList())
+    val alertHistory: StateFlow<List<EmergencyAlertMessage>> = _alertHistory.asStateFlow()
 
     fun onEmergencyAlertReceived(json: String) {
         try {
-            val alert = Json.decodeFromString<MqttMessageSchemas.EmergencyAlertMessage>(json)
+            val alert = Json.decodeFromString<EmergencyAlertMessage>(json)
             _alertHistory.update { it + alert }
         } catch (e: Exception) {
             // Optionally log or show error

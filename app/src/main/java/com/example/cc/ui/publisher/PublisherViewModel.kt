@@ -7,6 +7,8 @@ import com.example.cc.util.MqttTopics
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
+import com.example.cc.util.EmergencyAlertMessage
+import com.example.cc.util.ResponseAckMessage
 
 class PublisherViewModel : BaseViewModel() {
     
@@ -21,13 +23,13 @@ class PublisherViewModel : BaseViewModel() {
                 val longitude = Random.nextDouble(10.0, 50.0)
                 val timestamp = System.currentTimeMillis()
                 val severity = "HIGH"
-                val medicalInfo = MqttMessageSchemas.EmergencyAlertMessage.MedicalInfo(
+                val medicalInfo = EmergencyAlertMessage.MedicalInfo(
                     bloodType = "O+",
                     allergies = listOf("penicillin"),
                     medications = listOf("insulin")
                 )
-                val location = MqttMessageSchemas.EmergencyAlertMessage.Location(latitude, longitude)
-                val message = MqttMessageSchemas.EmergencyAlertMessage(
+                val location = EmergencyAlertMessage.Location(latitude, longitude)
+                val message = EmergencyAlertMessage(
                     incidentId = incidentId,
                     victimId = victimId,
                     victimName = victimName,

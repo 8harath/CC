@@ -9,11 +9,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cc.R
-import com.example.cc.util.MqttMessageSchemas
+import com.example.cc.util.EmergencyAlertMessage
 import java.text.SimpleDateFormat
 import java.util.*
 
-class AlertHistoryAdapter : ListAdapter<MqttMessageSchemas.EmergencyAlertMessage, AlertHistoryAdapter.AlertViewHolder>(DIFF) {
+class AlertHistoryAdapter : ListAdapter<EmergencyAlertMessage, AlertHistoryAdapter.AlertViewHolder>(DIFF) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlertViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_alert_card, parent, false)
         return AlertViewHolder(view)
@@ -27,7 +27,7 @@ class AlertHistoryAdapter : ListAdapter<MqttMessageSchemas.EmergencyAlertMessage
         private val tvTime: TextView = itemView.findViewById(R.id.tvTime)
         private val tvSeverity: TextView = itemView.findViewById(R.id.tvSeverity)
         private val tvLocation: TextView = itemView.findViewById(R.id.tvLocation)
-        fun bind(alert: MqttMessageSchemas.EmergencyAlertMessage) {
+        fun bind(alert: EmergencyAlertMessage) {
             tvName.text = alert.victimName
             tvSeverity.text = "Severity: ${alert.severity}"
             tvLocation.text = "Lat: %.4f, Lng: %.4f".format(alert.location.latitude, alert.location.longitude)
@@ -36,10 +36,10 @@ class AlertHistoryAdapter : ListAdapter<MqttMessageSchemas.EmergencyAlertMessage
         }
     }
     companion object {
-        val DIFF = object : DiffUtil.ItemCallback<MqttMessageSchemas.EmergencyAlertMessage>() {
-            override fun areItemsTheSame(oldItem: MqttMessageSchemas.EmergencyAlertMessage, newItem: MqttMessageSchemas.EmergencyAlertMessage): Boolean =
+        val DIFF = object : DiffUtil.ItemCallback<EmergencyAlertMessage>() {
+            override fun areItemsTheSame(oldItem: EmergencyAlertMessage, newItem: EmergencyAlertMessage): Boolean =
                 oldItem.incidentId == newItem.incidentId
-            override fun areContentsTheSame(oldItem: MqttMessageSchemas.EmergencyAlertMessage, newItem: MqttMessageSchemas.EmergencyAlertMessage): Boolean =
+            override fun areContentsTheSame(oldItem: EmergencyAlertMessage, newItem: EmergencyAlertMessage): Boolean =
                 oldItem == newItem
         }
     }

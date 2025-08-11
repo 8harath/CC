@@ -51,7 +51,6 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     }
     
     override fun setupObservers() {
-        super.setupObservers()
         lifecycleScope.launch {
             viewModel.isLoading.collect { isLoading ->
                 // Handle loading state

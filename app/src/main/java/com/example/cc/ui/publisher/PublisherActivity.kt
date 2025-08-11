@@ -24,7 +24,6 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     }
     
     override fun setupObservers() {
-        super.setupObservers()
         lifecycleScope.launch {
             viewModel.isLoading.collect { isLoading ->
                 binding.btnEmergency.isEnabled = !isLoading
