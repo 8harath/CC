@@ -107,7 +107,8 @@ class MqttClient(private val context: Context) {
     
     suspend fun subscribe(topic: String, qos: Int = 1): Boolean = withContext(Dispatchers.IO) {
         try {
-            if (mqttClient?.isConnected == true) {
+            val client = mqttClient ?: return false
+            if (client.isConnected) {
                 return suspendCoroutine { continuation ->
                     mqttClient?.subscribe(topic, qos, null, object : IMqttActionListener {
                         override fun onSuccess(asyncActionToken: IMqttToken?) {
