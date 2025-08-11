@@ -25,6 +25,9 @@ class MqttService : Service() {
     private lateinit var mqttClient: MqttAndroidClient
     private val TAG = "MqttService"
 
+    private var pendingRole: String? = null
+    private var pendingIncidentId: String? = null
+
     private val networkReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (isNetworkAvailable()) {
@@ -156,8 +159,10 @@ class MqttService : Service() {
                 Log.i(TAG, "Connected to MQTT broker!")
                 connectionState.postValue(ConnectionState.CONNECTED)
                 retryQueuedMessages()
-                // Example: subscribe for a role (replace with actual role/incidentId from app logic)
-                // subscribeForRole("SUBSCRIBER")
+                // If we have a pending role from the last start command, subscribe now
+                pendingRole?.let { role ->
+                    subscribeForRole(role, pendingIncidentId)
+                }
             }
             override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                 Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
@@ -187,6 +192,20 @@ class MqttService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        intent?.let {
+            val role = it.getStringExtra("role")
+            val incidentId = it.getStringExtra("incidentId")
+            if (!role.isNullOrEmpty()) {
+                pendingRole = role
+                pendingIncidentId = incidentId
+                if (mqttClient.isConnected) {
+                    Log.i(TAG, "Received start with role=$role, subscribing immediately")
+                    subscribeForRole(role, incidentId)
+                } else {
+                    Log.i(TAG, "Received start with role=$role, will subscribe after connect")
+                }
+            }
+        }
         // Service will be restarted if killed
         return START_STICKY
     }

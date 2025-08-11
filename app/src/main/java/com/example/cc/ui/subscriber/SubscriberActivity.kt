@@ -19,6 +19,11 @@ import com.example.cc.R
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.os.Bundle
+import android.content.ComponentName
+import android.content.ServiceConnection
+import android.os.IBinder
+import android.content.ContextWrapper
+import com.example.cc.util.MqttService
 
 class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
@@ -36,6 +41,11 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
+        // Start MQTT service with role for dynamic subscriptions
+        val serviceIntent = Intent(this, MqttService::class.java).apply {
+            putExtra("role", "SUBSCRIBER")
+        }
+        startService(serviceIntent)
     }
 
     override fun onDestroy() {

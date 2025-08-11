@@ -6,7 +6,8 @@ import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.suspendCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class MqttClient(private val context: Context) {
     
@@ -20,48 +21,44 @@ class MqttClient(private val context: Context) {
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis()
             val brokerUrl = MqttConfig.BROKER_URL
             mqttClient = MqttAndroidClient(context, brokerUrl, clientId)
-            
+
             val options = MqttConnectOptions().apply {
                 isAutomaticReconnect = true
                 isCleanSession = true
                 connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
                 keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
-                // Only set username/password if they're not empty
                 if (MqttConfig.USERNAME.isNotEmpty()) {
                     userName = MqttConfig.USERNAME
                     password = MqttConfig.PASSWORD.toCharArray()
                 }
             }
-            
-            // Use suspendCoroutine to properly handle the async connection
-            kotlinx.coroutines.suspendCoroutine<Boolean> { continuation ->
-                val client = mqttClient ?: run {
-                    continuation.resume(false)
-                    return@withContext false
+
+            val client = mqttClient ?: return@withContext false
+
+            client.setCallback(object : MqttCallback {
+                override fun connectionLost(cause: Throwable?) {
+                    Log.w(TAG, "MQTT connection lost: ${cause?.message}")
                 }
-                client.setCallback(object : MqttCallback {
-                    override fun connectionLost(cause: Throwable?) {
-                        Log.w(TAG, "MQTT connection lost: ${cause?.message}")
+
+                override fun messageArrived(topic: String?, message: MqttMessage?) {
+                    Log.d(TAG, "Message arrived: $topic -> ${message?.toString()}")
+                    message?.let { msg ->
+                        onMessageReceived?.invoke(topic ?: "", String(msg.payload))
                     }
-                    
-                    override fun messageArrived(topic: String?, message: MqttMessage?) {
-                        Log.d(TAG, "Message arrived: $topic -> ${message?.toString()}")
-                        message?.let { msg ->
-                            onMessageReceived?.invoke(topic ?: "", String(msg.payload))
-                        }
-                    }
-                    
-                    override fun deliveryComplete(token: IMqttDeliveryToken?) {
-                        Log.d(TAG, "Delivery complete: ${token?.message}")
-                    }
-                })
-                
+                }
+
+                override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                    Log.d(TAG, "Delivery complete: ${token?.message}")
+                }
+            })
+
+            suspendCoroutine { continuation ->
                 client.connect(options, null, object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
                         Log.i(TAG, "Connected to MQTT broker")
                         continuation.resume(true)
                     }
-                    
+
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                         Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
                         continuation.resume(false)

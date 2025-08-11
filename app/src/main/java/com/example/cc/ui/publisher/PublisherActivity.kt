@@ -11,6 +11,8 @@ import com.airbnb.lottie.LottieAnimationView
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.content.Intent
+import com.example.cc.util.MqttService
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
@@ -22,6 +24,11 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         setupToolbar()
         setupEmergencyButton()
         viewModel.initializeMqtt(this)
+        // Start MQTT service to manage background connection and topic subscriptions for publisher if needed
+        val serviceIntent = Intent(this, MqttService::class.java).apply {
+            putExtra("role", "PUBLISHER")
+        }
+        startService(serviceIntent)
     }
     
     override fun setupObservers() {
