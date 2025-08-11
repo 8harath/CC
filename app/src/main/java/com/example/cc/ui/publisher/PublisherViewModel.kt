@@ -2,7 +2,6 @@ package com.example.cc.ui.publisher
 
 import com.example.cc.ui.base.BaseViewModel
 import com.example.cc.util.MqttService
-import com.example.cc.util.MqttMessageSchemas
 import com.example.cc.util.MqttTopics
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
