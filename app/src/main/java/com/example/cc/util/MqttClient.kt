@@ -13,6 +13,8 @@ class MqttClient(private val context: Context) {
     private var mqttClient: MqttAndroidClient? = null
     private val TAG = "MqttClient"
     
+    var onMessageReceived: ((String, String) -> Unit)? = null
+    
     suspend fun connect(): Boolean = withContext(Dispatchers.IO) {
         try {
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis()
