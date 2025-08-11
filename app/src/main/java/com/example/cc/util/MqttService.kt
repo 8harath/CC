@@ -128,6 +128,12 @@ class MqttService : Service() {
             }
             override fun messageArrived(topic: String?, message: MqttMessage?) {
                 Log.d(TAG, "Message arrived: $topic -> ${message.toString()}")
+                // Broadcast emergency alert if topic matches
+                if (topic != null && topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                    val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                    intent.putExtra("alert_json", message.toString())
+                    sendBroadcast(intent)
+                }
             }
             override fun deliveryComplete(token: IMqttDeliveryToken?) {
                 Log.d(TAG, "Delivery complete: ${token?.message}")

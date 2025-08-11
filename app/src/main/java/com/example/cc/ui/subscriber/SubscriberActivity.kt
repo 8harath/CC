@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import android.os.Build
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -16,12 +18,30 @@ import com.example.cc.R
 import com.example.cc.util.MqttMessageSchemas
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import android.os.Bundle
 
 class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
     private val viewModel: SubscriberViewModel by viewModels()
     
     private lateinit var alertAdapter: AlertHistoryAdapter
+    
+    private val emergencyAlertReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val json = intent?.getStringExtra("alert_json") ?: return
+            onMqttEmergencyAlert(json)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver(emergencyAlertReceiver)
+        super.onDestroy()
+    }
     
     override fun getViewBinding(): ActivitySubscriberBinding = ActivitySubscriberBinding.inflate(layoutInflater)
     
