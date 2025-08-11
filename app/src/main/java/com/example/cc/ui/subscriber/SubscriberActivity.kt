@@ -24,6 +24,8 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.content.ContextWrapper
 import com.example.cc.util.MqttService
+import androidx.lifecycle.Observer
+import com.example.cc.util.MqttService.ConnectionState
 
 class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
@@ -85,6 +87,17 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
                 alertAdapter.submitList(alerts)
             }
         }
+
+        // Listen to service connection state
+        MqttService.connectionState.observe(this, Observer { state ->
+            val statusText = when (state) {
+                ConnectionState.CONNECTING -> "Connecting..."
+                ConnectionState.CONNECTED -> "Connected"
+                ConnectionState.DISCONNECTED -> "Disconnected"
+                else -> state.toString()
+            }
+            updateConnectionStatus(statusText)
+        })
     }
     
     private fun setupToolbar() {
