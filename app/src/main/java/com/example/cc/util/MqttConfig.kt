@@ -7,4 +7,6 @@ object MqttConfig {
     const val PASSWORD = "android_pass" // If authentication is enabled
     const val CONNECTION_TIMEOUT = 10 // seconds
     const val KEEP_ALIVE_INTERVAL = 20 // seconds
+    // For SSL/TLS, use: "ssl://192.168.1.100:8883" and configure Mosquitto accordingly
+    const val BROKER_URL_SSL = "ssl://192.168.1.100:8883" // Example for secure connection
 }

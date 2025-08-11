@@ -39,12 +39,21 @@ class MqttService : Service() {
     override fun onCreate() {
         super.onCreate()
         val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis()
-        mqttClient = MqttAndroidClient(applicationContext, MqttConfig.BROKER_URL, clientId)
+        val brokerUrl = MqttConfig.BROKER_URL // Change to BROKER_URL_SSL for SSL/TLS
+        mqttClient = MqttAndroidClient(applicationContext, brokerUrl, clientId)
         registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         connect()
     }
 
+    private fun isValidTopic(topic: String): Boolean {
+        return topic.startsWith("emergency/")
+    }
+
     fun publish(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
+        if (!isValidTopic(topic)) {
+            Log.e(TAG, "Invalid topic: $topic")
+            return
+        }
         val message = MqttMessage(payload.toByteArray()).apply {
             this.qos = qos
             this.isRetained = retained
@@ -71,8 +80,9 @@ class MqttService : Service() {
     }
 
     fun subscribeToTopics(topics: List<String>) {
+        val validTopics = topics.filter { isValidTopic(it) }
         if (mqttClient.isConnected) {
-            topics.forEach { topic ->
+            validTopics.forEach { topic ->
                 try {
                     mqttClient.subscribe(topic, 1, null, object : IMqttActionListener {
                         override fun onSuccess(asyncActionToken: IMqttToken?) {
@@ -120,6 +130,8 @@ class MqttService : Service() {
             keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
             userName = MqttConfig.USERNAME
             password = MqttConfig.PASSWORD.toCharArray()
+            // For SSL/TLS, you can set socketFactory here if using custom certificates
+            // Example: socketFactory = ...
         }
         mqttClient.setCallback(object : MqttCallback {
             override fun connectionLost(cause: Throwable?) {
