@@ -135,8 +135,10 @@ class MqttClient(private val context: Context) {
     fun disconnect() {
         try {
             mqttClient?.let { client ->
-                client.disconnect()
-                Log.i(TAG, "Disconnected from MQTT broker")
+                if (client.isConnected) {
+                    client.disconnect()
+                    Log.i(TAG, "Disconnected from MQTT broker")
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error disconnecting: ${e.message}")
