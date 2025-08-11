@@ -27,9 +27,20 @@ class MqttClient(private val context: Context) {
                 password = MqttConfig.PASSWORD.toCharArray()
             }
             
-            mqttClient?.connect(options)
-            Log.i(TAG, "Connected to MQTT broker")
-            true
+            // Use suspendCoroutine to properly handle the async connection
+            kotlinx.coroutines.suspendCoroutine<Boolean> { continuation ->
+                mqttClient?.connect(options, null, object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        Log.i(TAG, "Connected to MQTT broker")
+                        continuation.resume(true)
+                    }
+                    
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                        Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
+                        continuation.resume(false)
+                    }
+                })
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to connect to MQTT broker: ${e.message}")
             false
