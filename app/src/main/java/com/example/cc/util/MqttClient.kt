@@ -26,8 +26,11 @@ class MqttClient(private val context: Context) {
                 isCleanSession = true
                 connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
                 keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
-                userName = MqttConfig.USERNAME
-                password = MqttConfig.PASSWORD.toCharArray()
+                // Only set username/password if they're not empty
+                if (MqttConfig.USERNAME.isNotEmpty()) {
+                    userName = MqttConfig.USERNAME
+                    password = MqttConfig.PASSWORD.toCharArray()
+                }
             }
             
             // Use suspendCoroutine to properly handle the async connection
