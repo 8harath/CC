@@ -1,9 +1,9 @@
-# Car Crash Detection MQTT System - Phase 1
+# Car Crash Detection MQTT System - Phase 2
 
 ## Overview
 This Android application serves as a dual-mode communication interface for a car crash detection system using MQTT protocol. The app operates in Publisher mode (crash victims) and Subscriber mode (emergency responders).
 
-## Phase 1 Implementation Status ✅
+## Phase 2 Implementation Status ✅
 
 ### ✅ Completed Features
 - **Project Structure**: MVVM architecture with Repository pattern
@@ -67,8 +67,8 @@ This Android application serves as a dual-mode communication interface for a car
 1. **Role Selection**: Choose between "Crash Victim" or "Emergency Responder"
 2. **Name Input**: Enter your name when prompted
 3. **Mode-Specific Interface**: 
-   - **Publisher Mode**: Large SOS button for emergency alerts
-   - **Subscriber Mode**: Status display showing "MQTT not implemented yet"
+   - **Publisher Mode**: Large SOS button; broadcasts emergency over MQTT
+   - **Subscriber Mode**: Live connection status and alert list
 
 ## Project Structure
 
@@ -170,14 +170,14 @@ app/src/main/java/com/example/cc/
 
 ## Configuration
 
-### MQTT Broker Settings (Future)
-The app is prepared for MQTT integration with these default settings:
-- **Broker**: localhost (your laptop)
-- **Port**: 1883 (default Mosquitto port)
-- **Topics**: 
-  - `emergency/alerts` (for emergency broadcasts)
-  - `emergency/status` (for status updates)
-  - `emergency/response` (for responder acknowledgments)
+### MQTT Broker Settings
+Default broker is configured in `MqttConfig`:
+- `BROKER_URL = "tcp://test.mosquitto.org:1883"` (public test broker)
+- To use your local Mosquitto, set `BROKER_URL = "tcp://YOUR_LAPTOP_IP:1883"`
+- Topics:
+  - `emergency/alerts/*`
+  - `emergency/status/*`
+  - `emergency/response/*`
 
 ### Permissions
 The app requests these permissions:
@@ -194,5 +194,5 @@ For issues or questions:
 
 ---
 
-**Phase 1 Status**: ✅ Complete and Ready for Testing
-**Next Phase**: MQTT Communication Core (Phase 2) 
+**Phase 2 Status**: ✅ Complete and Ready for Testing
+**Next Phase**: Publisher/Subscriber feature expansion (Phase 3/4)
