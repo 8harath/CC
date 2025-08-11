@@ -1,3 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CC</string>
+    <string name="app_name">Car Crash Detection</string>
+    <string name="app_title">Car Crash Detection</string>
+    <string name="app_subtitle">MQTT-based Emergency Response System</string>
+    
+    <!-- Role Selection -->
+    <string name="select_role">Select Your Role</string>
+    <string name="publisher_role">Crash Victim</string>
+    <string name="publisher_description">Send emergency alerts when involved in a crash</string>
+    <string name="subscriber_role">Emergency Responder</string>
+    <string name="subscriber_description">Receive and respond to emergency alerts</string>
+    <string name="continue_text">Continue</string>
+    
+    <!-- Navigation -->
+    <string name="home">Home</string>
+    <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
+    
+    <!-- Common -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="loading">Loading...</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="network_error">Network error</string>
+    <string name="try_again">Try Again</string>
 </resources>
