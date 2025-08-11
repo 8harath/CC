@@ -6,6 +6,7 @@ import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCoroutine
 
 class MqttClient(private val context: Context) {
     
@@ -53,9 +54,20 @@ class MqttClient(private val context: Context) {
                 val message = MqttMessage(payload.toByteArray()).apply {
                     this.qos = qos
                 }
-                mqttClient?.publish(topic, message)
-                Log.d(TAG, "Message published to $topic")
-                true
+                
+                return suspendCoroutine { continuation ->
+                    mqttClient?.publish(topic, message, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.d(TAG, "Message published to $topic")
+                            continuation.resume(true)
+                        }
+                        
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to publish message: ${exception?.message}")
+                            continuation.resume(false)
+                        }
+                    })
+                }
             } else {
                 Log.w(TAG, "Not connected to MQTT broker")
                 false
@@ -69,9 +81,19 @@ class MqttClient(private val context: Context) {
     suspend fun subscribe(topic: String, qos: Int = 1): Boolean = withContext(Dispatchers.IO) {
         try {
             if (mqttClient?.isConnected == true) {
-                mqttClient?.subscribe(topic, qos)
-                Log.d(TAG, "Subscribed to $topic")
-                true
+                return suspendCoroutine { continuation ->
+                    mqttClient?.subscribe(topic, qos, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.d(TAG, "Subscribed to $topic")
+                            continuation.resume(true)
+                        }
+                        
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to topic: ${exception?.message}")
+                            continuation.resume(false)
+                        }
+                    })
+                }
             } else {
                 Log.w(TAG, "Not connected to MQTT broker")
                 false
