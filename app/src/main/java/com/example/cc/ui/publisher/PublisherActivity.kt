@@ -7,6 +7,10 @@ import com.example.cc.R
 import com.example.cc.databinding.ActivityPublisherBinding
 import com.example.cc.ui.base.BaseActivity
 import kotlinx.coroutines.launch
+import com.airbnb.lottie.LottieAnimationView
+import android.os.Handler
+import android.os.Looper
+import android.view.View
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
@@ -20,6 +24,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     }
     
     override fun setupObservers() {
+        super.setupObservers()
         lifecycleScope.launch {
             viewModel.isLoading.collect { isLoading ->
                 binding.btnEmergency.isEnabled = !isLoading
@@ -34,6 +39,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         
         lifecycleScope.launch {
             viewModel.successMessage.collect { message ->
+                showAnimatedConfirmation()
                 showToast(message)
             }
         }
@@ -49,6 +55,15 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         binding.btnEmergency.setOnClickListener {
             viewModel.sendEmergencyAlert()
         }
+    }
+    
+    private fun showAnimatedConfirmation() {
+        val lottie = binding.lottieCheckmark
+        lottie.visibility = View.VISIBLE
+        lottie.playAnimation()
+        Handler(Looper.getMainLooper()).postDelayed({
+            lottie.visibility = View.GONE
+        }, 1800)
     }
     
     override fun onSupportNavigateUp(): Boolean {

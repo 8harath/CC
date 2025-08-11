@@ -84,4 +84,6 @@ dependencies {
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
     // JSON serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    // Lottie for animations
+    implementation("com.airbnb.android:lottie:6.4.0")
 }
