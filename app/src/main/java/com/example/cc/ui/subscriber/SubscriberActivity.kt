@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cc.databinding.ActivitySubscriberBinding
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.R
-import com.example.cc.util.MqttMessageSchemas
+
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.os.Bundle
