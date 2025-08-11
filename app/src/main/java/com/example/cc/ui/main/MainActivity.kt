@@ -10,6 +10,7 @@ import com.example.cc.databinding.ActivityMainBinding
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.ui.publisher.PublisherActivity
 import com.example.cc.ui.subscriber.SubscriberActivity
+import com.example.cc.util.DatabaseTest
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupRoleSelection()
         setupContinueButton()
         loadCurrentUser()
+        
+        // Test database functionality
+        DatabaseTest.testDatabase(this)
     }
     
     override fun setupObservers() {
