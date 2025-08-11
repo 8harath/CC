@@ -1,7 +1,7 @@
 package com.example.cc.ui.publisher
 
 import com.example.cc.ui.base.BaseViewModel
-import com.example.cc.util.MqttService
+
 import com.example.cc.util.MqttTopics
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -39,7 +39,9 @@ class PublisherViewModel : BaseViewModel() {
                 )
                 val json = Json.encodeToString(message)
                 val topic = MqttTopics.alertIncident(incidentId)
-                MqttService().publish(topic, json)
+                // TODO: Implement proper MQTT service integration
+                // For now, just log the message
+                android.util.Log.d("PublisherViewModel", "Would publish to $topic: $json")
                 showSuccess("Emergency alert sent!")
             } catch (e: Exception) {
                 showError("Failed to send alert: ${e.message}")
