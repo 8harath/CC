@@ -29,6 +29,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
     
     private var mqttClient: MqttClient? = null
     private var esp32Manager: Esp32Manager? = null
+    private var gpsService: GpsService? = null
     
     // State properties
     private val _isLoading = MutableStateFlow(false)
