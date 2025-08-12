@@ -46,6 +46,25 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = false
+            // Exclude problematic native libraries that don't support 16 KB page sizes
+            excludes += listOf(
+                "**/libimage_processing_util_jni.so",
+                "**/libimage_processing_util_jni.so"
+            )
+        }
+        // Additional packaging options for 16 KB compatibility
+        resources {
+            excludes += listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+                "META-INF/*.kotlin_module"
+            )
         }
     }
     
@@ -66,6 +85,26 @@ android {
             enableSplit = true
         }
     }
+    
+    // Enable R8 full mode for better optimization and 16 KB compatibility
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
