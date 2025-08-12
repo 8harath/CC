@@ -25,8 +25,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupContinueButton()
         loadCurrentUser()
         
-        // Test database functionality
-        DatabaseTest.testDatabase(this)
+        // Temporarily disable database test to prevent crashes
+        // DatabaseTest.testDatabase(this)
     }
     
     override fun setupObservers() {

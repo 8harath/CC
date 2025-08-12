@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
     id("kotlin-parcelize")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -11,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.cc"
-        minSdk = 24
+        minSdk = 33
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -78,4 +79,25 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // MQTT - Eclipse Paho Android Service
+    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    // JSON serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    // Lottie for animations
+    implementation("com.airbnb.android:lottie:6.4.0")
+    
+    // Bluetooth and WiFi Direct for ESP32 integration
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.bluetooth:bluetooth:1.0.0-alpha01")
+    
+    // Location services for GPS integration
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+    
+    // Camera and image processing for medical profile photos
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
 }
