@@ -6,19 +6,19 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.cc.R
 import com.example.cc.data.model.UserRole
-import com.example.cc.databinding.ActivityMainBinding
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.ui.publisher.PublisherActivity
 import com.example.cc.ui.subscriber.SubscriberActivity
 import com.example.cc.util.DatabaseTest
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import android.view.View
 
-class MainActivity : BaseActivity<ActivityMainBinding>() {
+class MainActivity : BaseActivity<View>() {
     
     private val viewModel: MainViewModel by viewModels()
     
-    override fun getViewBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
+    override fun getViewBinding(): View = layoutInflater.inflate(R.layout.activity_main, null)
     
     override fun setupViews() {
         setupRoleSelection()
@@ -32,7 +32,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun setupObservers() {
         lifecycleScope.launch {
             viewModel.selectedRole.collect { role ->
-                binding.btnContinue.isEnabled = role != null
+                findViewById<com.google.android.material.button.MaterialButton>(R.id.btnContinue).isEnabled = role != null
             }
         }
         
@@ -46,7 +46,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         
         lifecycleScope.launch {
             viewModel.isLoading.collect { isLoading ->
-                binding.btnContinue.isEnabled = !isLoading && viewModel.selectedRole.value != null
+                findViewById<com.google.android.material.button.MaterialButton>(R.id.btnContinue).isEnabled = !isLoading && viewModel.selectedRole.value != null
             }
         }
         
@@ -58,19 +58,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
     
     private fun setupRoleSelection() {
-        binding.cardPublisher.setOnClickListener {
+        findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPublisher).setOnClickListener {
             viewModel.selectRole(UserRole.PUBLISHER)
             updateCardSelection()
         }
         
-        binding.cardSubscriber.setOnClickListener {
+        findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSubscriber).setOnClickListener {
             viewModel.selectRole(UserRole.SUBSCRIBER)
             updateCardSelection()
         }
     }
     
     private fun setupContinueButton() {
-        binding.btnContinue.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnContinue).setOnClickListener {
             val selectedRole = viewModel.selectedRole.value
             if (selectedRole != null) {
                 showNameInputDialog(selectedRole)
@@ -82,18 +82,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val selectedRole = viewModel.selectedRole.value
         
         // Reset card styles
-        binding.cardPublisher.strokeWidth = 0
-        binding.cardSubscriber.strokeWidth = 0
+        findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPublisher).strokeWidth = 0
+        findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSubscriber).strokeWidth = 0
         
         // Apply selection style
         when (selectedRole) {
             UserRole.PUBLISHER -> {
-                binding.cardPublisher.strokeWidth = 4
-                binding.cardPublisher.strokeColor = getColor(R.color.publisher_primary)
+                findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPublisher).strokeWidth = 4
+                findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPublisher).strokeColor = getColor(R.color.publisher_primary)
             }
             UserRole.SUBSCRIBER -> {
-                binding.cardSubscriber.strokeWidth = 4
-                binding.cardSubscriber.strokeColor = getColor(R.color.subscriber_primary)
+                findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSubscriber).strokeWidth = 4
+                findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSubscriber).strokeColor = getColor(R.color.subscriber_primary)
             }
             null -> { /* No selection */ }
         }
