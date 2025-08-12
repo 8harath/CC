@@ -33,7 +33,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -54,7 +55,6 @@ android {
             useLegacyPackaging = false
             // Exclude problematic native libraries that don't support 16 KB page sizes
             excludes += listOf(
-                "**/libimage_processing_util_jni.so",
                 "**/libimage_processing_util_jni.so"
             )
         }
@@ -89,25 +89,6 @@ android {
         }
         abi {
             enableSplit = true
-        }
-    }
-    
-    // Enable R8 full mode for better optimization and 16 KB compatibility
-    buildTypes {
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-        debug {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
     
