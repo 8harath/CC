@@ -294,11 +294,12 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         when (requestCode) {
             PermissionManager.getPermissionRequestCode() -> {
                 if (grantResults.isNotEmpty() && grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }) {
-                    // Permissions granted, proceed with ESP32 operations
-                    showToast("Permissions granted! You can now use ESP32 features.")
+                    // Permissions granted, proceed with ESP32 operations and GPS
+                    showToast("Permissions granted! You can now use ESP32 features and GPS.")
+                    viewModel.startGpsUpdates()
                 } else {
                     // Permissions denied
-                    showToast("Permissions required for ESP32 communication")
+                    showToast("Permissions required for ESP32 communication and GPS")
                 }
             }
             PermissionManager.getPermissionRequestCode() + 1 -> {
