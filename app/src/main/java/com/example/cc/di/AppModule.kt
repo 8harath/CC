@@ -12,7 +12,11 @@ import com.example.cc.data.repository.UserRepository
 object AppModule {
     
     private val database: AppDatabase by lazy {
-        AppDatabase.getDatabase(CarCrashDetectionApp.instance)
+        try {
+            AppDatabase.getDatabase(CarCrashDetectionApp.instance)
+        } catch (e: Exception) {
+            throw IllegalStateException("Failed to initialize database: ${e.message}")
+        }
     }
     
     val userDao: UserDao by lazy { database.userDao() }

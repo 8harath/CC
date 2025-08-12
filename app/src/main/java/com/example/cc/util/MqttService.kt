@@ -47,14 +47,14 @@ class MqttService : Service() {
     override fun onCreate() {
         super.onCreate()
         try {
-            val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis()
-            val brokerUrl = MqttConfig.BROKER_URL // Change to BROKER_URL_SSL for SSL/TLS
-            mqttClient = MqttAndroidClient(applicationContext, brokerUrl, clientId)
-            registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-            // Don't connect immediately to avoid blocking the app startup
-            // connect() will be called when needed
+            // Temporarily disable MQTT to prevent crashes
+            Log.i(TAG, "MQTT service created - MQTT disabled for stability")
+            connectionState.postValue(ConnectionState.DISCONNECTED)
+            // Don't initialize MQTT client for now
+            // mqttClient = MqttAndroidClient(applicationContext, brokerUrl, clientId)
+            // registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         } catch (e: Exception) {
-            Log.e(TAG, "Error initializing MQTT service: ${e.message}")
+            Log.e(TAG, "Error in MQTT service onCreate: ${e.message}")
             connectionState.postValue(ConnectionState.DISCONNECTED)
         }
     }
@@ -64,6 +64,12 @@ class MqttService : Service() {
     }
 
     fun publish(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
+        // Temporarily disable MQTT publishing
+        Log.i(TAG, "MQTT publishing disabled - would publish to $topic: $payload")
+        return
+        
+        // Original publish code commented out
+        /*
         if (!isValidTopic(topic)) {
             Log.e(TAG, "Invalid topic: $topic")
             return
@@ -91,9 +97,16 @@ class MqttService : Service() {
             Log.w(TAG, "Not connected, enqueuing message for $topic")
             MqttMessageQueue.enqueue(topic, message)
         }
+        */
     }
 
     fun subscribeToTopics(topics: List<String>) {
+        // Temporarily disable MQTT subscription
+        Log.i(TAG, "MQTT subscription disabled - would subscribe to: $topics")
+        return
+        
+        // Original subscription code commented out
+        /*
         val validTopics = topics.filter { isValidTopic(it) }
         if (mqttClient.isConnected) {
             validTopics.forEach { topic ->
@@ -113,6 +126,7 @@ class MqttService : Service() {
         } else {
             Log.w(TAG, "Not connected, cannot subscribe now.")
         }
+        */
     }
 
     // Example: Call this after connecting, with the correct role and incidentId
@@ -137,6 +151,13 @@ class MqttService : Service() {
 
     private fun connect() {
         try {
+            // Temporarily disable MQTT connection
+            Log.i(TAG, "MQTT connection disabled for stability")
+            connectionState.postValue(ConnectionState.DISCONNECTED)
+            return
+            
+            // Original MQTT connection code commented out
+            /*
             if (mqttClient == null) {
                 Log.e(TAG, "MQTT client not initialized")
                 connectionState.postValue(ConnectionState.DISCONNECTED)
@@ -153,8 +174,6 @@ class MqttService : Service() {
                     userName = MqttConfig.USERNAME
                     password = MqttConfig.PASSWORD.toCharArray()
                 }
-                // For SSL/TLS, you can set socketFactory here if using custom certificates
-                // Example: socketFactory = ...
             }
             
             mqttClient.setCallback(object : MqttCallback {
@@ -164,7 +183,6 @@ class MqttService : Service() {
                 }
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
                     Log.d(TAG, "Message arrived: $topic -> ${message.toString()}")
-                    // Broadcast emergency alert if topic matches
                     if (topic != null && topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
                         val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
                         intent.putExtra("alert_json", message.toString())
@@ -181,7 +199,6 @@ class MqttService : Service() {
                     Log.i(TAG, "Connected to MQTT broker!")
                     connectionState.postValue(ConnectionState.CONNECTED)
                     retryQueuedMessages()
-                    // If we have a pending role from the last start command, subscribe now
                     pendingRole?.let { role ->
                         subscribeForRole(role, pendingIncidentId)
                     }
@@ -191,6 +208,7 @@ class MqttService : Service() {
                     connectionState.postValue(ConnectionState.DISCONNECTED)
                 }
             })
+            */
         } catch (e: Exception) {
             Log.e(TAG, "Exception during MQTT connection: ${e.message}")
             connectionState.postValue(ConnectionState.DISCONNECTED)
@@ -252,13 +270,15 @@ class MqttService : Service() {
     }
 
     override fun onDestroy() {
-        unregisterReceiver(networkReceiver)
-        try {
-            mqttClient.unregisterResources()
-            mqttClient.disconnect()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error disconnecting MQTT: ${e.message}")
-        }
+        // Temporarily disable MQTT cleanup
+        Log.i(TAG, "MQTT service destroyed - cleanup disabled")
+        // unregisterReceiver(networkReceiver)
+        // try {
+        //     mqttClient.unregisterResources()
+        //     mqttClient.disconnect()
+        // } catch (e: Exception) {
+        //     Log.e(TAG, "Error disconnecting MQTT: ${e.message}")
+        // }
         super.onDestroy()
     }
 

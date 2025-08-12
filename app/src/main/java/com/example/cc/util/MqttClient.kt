@@ -17,6 +17,12 @@ class MqttClient(private val context: Context) {
     var onMessageReceived: ((String, String) -> Unit)? = null
     
     suspend fun connect(): Boolean = withContext(Dispatchers.IO) {
+        // Temporarily disable MQTT connection
+        Log.i(TAG, "MqttClient connect disabled for stability")
+        return@withContext false
+        
+        // Original connection code commented out
+        /*
         try {
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis()
             val brokerUrl = MqttConfig.BROKER_URL
@@ -69,6 +75,7 @@ class MqttClient(private val context: Context) {
             Log.e(TAG, "Failed to connect to MQTT broker: ${e.message}")
             false
         }
+        */
     }
     
     suspend fun publish(topic: String, payload: String, qos: Int = 1): Boolean = withContext(Dispatchers.IO) {
