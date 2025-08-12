@@ -302,10 +302,11 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 val victimId = "user_1"
                 val victimName = _medicalProfile.value?.fullName ?: "Unknown"
                 
-                // Use ESP32 GPS data if available, otherwise use simulated data
+                // Use real GPS data if available, then ESP32 GPS data, otherwise use simulated data
+                val gpsLocation = _currentLocation.value
                 val sensorData = _sensorData.value
-                val latitude = sensorData?.latitude ?: Random.nextDouble(10.0, 50.0)
-                val longitude = sensorData?.longitude ?: Random.nextDouble(10.0, 50.0)
+                val latitude = gpsLocation?.latitude ?: sensorData?.latitude ?: Random.nextDouble(10.0, 50.0)
+                val longitude = gpsLocation?.longitude ?: sensorData?.longitude ?: Random.nextDouble(10.0, 50.0)
                 
                 val timestamp = System.currentTimeMillis()
                 val severity = if (sensorData?.impactForce ?: 0f > 10.0f) "CRITICAL" else "HIGH"
@@ -360,5 +361,6 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
     override fun onCleared() {
         super.onCleared()
         esp32Manager?.cleanup()
+        gpsService?.cleanup()
     }
 } 

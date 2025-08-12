@@ -34,6 +34,11 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         setupEmergencyModeButtons()
         viewModel.initializeMqtt(this)
         
+        // Start GPS updates if permissions are granted
+        if (PermissionManager.hasRequiredPermissions(this)) {
+            viewModel.startGpsUpdates()
+        }
+        
         // Start MQTT service to manage background connection and topic subscriptions for publisher if needed
         try {
             val serviceIntent = Intent(this, MqttService::class.java).apply {
