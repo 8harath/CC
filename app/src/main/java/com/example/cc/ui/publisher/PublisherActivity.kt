@@ -42,14 +42,16 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         
         lifecycleScope.launch {
             viewModel.errorMessage.collect { error ->
-                showToast(error)
+                error?.let { showToast(it) }
             }
         }
         
         lifecycleScope.launch {
             viewModel.successMessage.collect { message ->
-                showAnimatedConfirmation()
-                showToast(message)
+                message?.let { 
+                    showAnimatedConfirmation()
+                    showToast(it)
+                }
             }
         }
 

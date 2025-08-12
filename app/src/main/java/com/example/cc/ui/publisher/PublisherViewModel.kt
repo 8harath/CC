@@ -14,11 +14,24 @@ import com.example.cc.util.MqttService
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PublisherViewModel(application: Application) : AndroidViewModel(application) {
     
     private var mqttClient: MqttClient? = null
+    
+    // State properties
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    
+    private val _successMessage = MutableStateFlow<String?>(null)
+    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
     
     fun initializeMqtt(context: Context) {
         mqttClient = MqttClient(context)
@@ -28,6 +41,9 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
         // Use viewModelScope for coroutines
         viewModelScope.launch {
             try {
+                _isLoading.value = true
+                _errorMessage.value = null
+                
                 // TODO: Replace with real user/incident/medical profile/ESP location
                 val incidentId = "incident_${System.currentTimeMillis()}"
                 val victimId = "user_1"
@@ -64,9 +80,13 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                     putExtra(MqttService.EXTRA_RETAINED, false)
                 }
                 ctx.startService(publishIntent)
-                // Note: Success/error handling would need to be implemented separately
+                
+                _successMessage.value = "Emergency alert sent successfully!"
+                
             } catch (e: Exception) {
-                // Handle error
+                _errorMessage.value = "Failed to send emergency alert: ${e.message}"
+            } finally {
+                _isLoading.value = false
             }
         }
     }
