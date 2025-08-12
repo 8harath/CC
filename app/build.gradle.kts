@@ -28,6 +28,25 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    
+    // Configure native library handling for 16 KB page size compatibility
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+    
+    // Enable 16 KB page size compatibility
+    ndk {
+        abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
