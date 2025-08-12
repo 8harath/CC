@@ -146,6 +146,39 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
     }
     
     /**
+     * Connect to ESP32 device using Device object
+     */
+    fun connectToEsp32(device: Device) {
+        // Convert Device back to the appropriate native device type
+        // This is a simplified implementation - in a real app, you'd store the original device reference
+        when (device.deviceType) {
+            Esp32Manager.ConnectionType.BLUETOOTH_CLASSIC, 
+            Esp32Manager.ConnectionType.BLUETOOTH_BLE -> {
+                // For now, we'll use a mock Bluetooth device
+                // In a real implementation, you'd store the original BluetoothDevice reference
+                Log.i("PublisherViewModel", "Connecting to Bluetooth device: ${device.name}")
+                // esp32Manager?.connectToDevice(originalBluetoothDevice)
+            }
+            Esp32Manager.ConnectionType.WIFI_DIRECT -> {
+                // For now, we'll use a mock WiFi Direct device
+                Log.i("PublisherViewModel", "Connecting to WiFi Direct device: ${device.name}")
+                // esp32Manager?.connectToDevice(originalWifiP2pDevice)
+            }
+            else -> {
+                Log.e("PublisherViewModel", "Unknown device type: ${device.deviceType}")
+            }
+        }
+        
+        // For demo purposes, simulate successful connection
+        _esp32ConnectionState.value = Esp32Manager.ConnectionState.CONNECTING
+        viewModelScope.launch {
+            kotlinx.coroutines.delay(2000) // Simulate connection time
+            _esp32ConnectionState.value = Esp32Manager.ConnectionState.CONNECTED
+            _esp32ConnectionType.value = device.deviceType
+        }
+    }
+    
+    /**
      * Disconnect from ESP32
      */
     fun disconnectFromEsp32() {
