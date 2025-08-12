@@ -48,6 +48,19 @@ android {
     ndk {
         abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
     }
+    
+    // Additional configuration for 16 KB page size compatibility
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = false
+        }
+        abi {
+            enableSplit = true
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
