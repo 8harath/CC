@@ -49,6 +49,11 @@ android {
         }
     }
     
+    // Disable native library extraction for 16 KB page size compatibility
+    androidResources {
+        noCompress += listOf("so")
+    }
+    
     // Additional configuration for 16 KB page size compatibility
     bundle {
         language {
