@@ -146,6 +146,12 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 binding.tvEmergencyCountdown.text = "Auto-send in: ${countdown}s"
             }
         }
+        
+        lifecycleScope.launch {
+            viewModel.gpsStatus.collect { status ->
+                binding.tvGpsStatus.text = status
+            }
+        }
     }
     
     private fun setupToolbar() {
