@@ -144,7 +144,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
             gpsService?.currentLocation?.collect { location ->
                 _currentLocation.value = location
                 _gpsStatus.value = if (location != null) {
-                    "GPS: ${location.latitude:.6f}, ${location.longitude:.6f}"
+                    "GPS: ${String.format("%.6f", location.latitude)}, ${String.format("%.6f", location.longitude)}"
                 } else {
                     "GPS: Not available"
                 }

@@ -231,8 +231,8 @@ class Esp32Manager(context: Context) {
     fun getSensorDataStatus(): String {
         val data = getCurrentSensorData()
         return if (data != null) {
-            "Acc: (${data.accelerometerX:.1f}, ${data.accelerometerY:.1f}, ${data.accelerometerZ:.1f}) " +
-            "Impact: ${data.impactForce:.1f}g"
+            "Acc: (${String.format("%.1f", data.accelerometerX)}, ${String.format("%.1f", data.accelerometerY)}, ${String.format("%.1f", data.accelerometerZ)}) " +
+            "Impact: ${String.format("%.1f", data.impactForce)}g"
         } else {
             "No sensor data"
         }

@@ -113,8 +113,8 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         lifecycleScope.launch {
             viewModel.sensorData.collect { data ->
                 val sensorText = if (data != null) {
-                    "Acc: (${data.accelerometerX:.1f}, ${data.accelerometerY:.1f}, ${data.accelerometerZ:.1f}) " +
-                    "Impact: ${data.impactForce:.1f}g"
+                    "Acc: (${String.format("%.1f", data.accelerometerX)}, ${String.format("%.1f", data.accelerometerY)}, ${String.format("%.1f", data.accelerometerZ)}) " +
+                    "Impact: ${String.format("%.1f", data.impactForce)}g"
                 } else {
                     "No sensor data"
                 }
