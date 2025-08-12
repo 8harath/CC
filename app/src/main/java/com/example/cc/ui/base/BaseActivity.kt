@@ -3,16 +3,16 @@ package com.example.cc.ui.base
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewbinding.ViewBinding
+import android.view.View
 
-abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
+abstract class BaseActivity<VB : View> : AppCompatActivity() {
     
     protected lateinit var binding: VB
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = getViewBinding()
-        setContentView(binding.root)
+        setContentView(binding)
         
         setupViews()
         setupObservers()
