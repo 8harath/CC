@@ -15,6 +15,7 @@ import android.content.Intent
 import com.example.cc.util.MqttService
 import androidx.lifecycle.Observer
 import com.example.cc.util.MqttService.ConnectionState
+import com.example.cc.util.Esp32Manager
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
@@ -25,7 +26,11 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     override fun setupViews() {
         setupToolbar()
         setupEmergencyButton()
+        setupEsp32Buttons()
+        setupMedicalProfileButton()
+        setupEmergencyModeButtons()
         viewModel.initializeMqtt(this)
+        
         // Start MQTT service to manage background connection and topic subscriptions for publisher if needed
         try {
             val serviceIntent = Intent(this, MqttService::class.java).apply {
@@ -68,8 +73,71 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 ConnectionState.DISCONNECTED -> "Disconnected"
                 else -> state.toString()
             }
-            binding.tvStatus.text = "Status: $statusText"
+            binding.tvStatus.text = "MQTT: $statusText"
         })
+        
+        // Observe ESP32 states
+        lifecycleScope.launch {
+            viewModel.esp32ConnectionState.collect { state ->
+                val esp32Status = when (state) {
+                    Esp32Manager.ConnectionState.DISCONNECTED -> "Not Connected"
+                    Esp32Manager.ConnectionState.DISCOVERING -> "Discovering..."
+                    Esp32Manager.ConnectionState.CONNECTING -> "Connecting..."
+                    Esp32Manager.ConnectionState.CONNECTED -> "Connected"
+                    Esp32Manager.ConnectionState.ERROR -> "Error"
+                }
+                binding.tvEsp32Status.text = "ESP32: $esp32Status"
+            }
+        }
+        
+        lifecycleScope.launch {
+            viewModel.esp32ConnectionType.collect { type ->
+                val connectionType = when (type) {
+                    Esp32Manager.ConnectionType.NONE -> ""
+                    Esp32Manager.ConnectionType.BLUETOOTH_CLASSIC -> " (Bluetooth Classic)"
+                    Esp32Manager.ConnectionType.BLUETOOTH_BLE -> " (Bluetooth BLE)"
+                    Esp32Manager.ConnectionType.WIFI_DIRECT -> " (WiFi Direct)"
+                }
+                binding.tvEsp32Status.text = binding.tvEsp32Status.text.toString() + connectionType
+            }
+        }
+        
+        lifecycleScope.launch {
+            viewModel.sensorData.collect { data ->
+                val sensorText = if (data != null) {
+                    "Acc: (${data.accelerometerX:.1f}, ${data.accelerometerY:.1f}, ${data.accelerometerZ:.1f}) " +
+                    "Impact: ${data.impactForce:.1f}g"
+                } else {
+                    "No sensor data"
+                }
+                binding.tvSensorData.text = "Sensor Data: $sensorText"
+            }
+        }
+        
+        // Observe medical profile
+        lifecycleScope.launch {
+            viewModel.medicalProfile.collect { profile ->
+                val profileText = if (profile != null) {
+                    "${profile.fullName} - ${profile.bloodType} - ${profile.medicalConditions ?: "No conditions"}"
+                } else {
+                    "No medical profile loaded"
+                }
+                binding.tvMedicalProfile.text = profileText
+            }
+        }
+        
+        // Observe emergency mode
+        lifecycleScope.launch {
+            viewModel.isEmergencyMode.collect { isEmergency ->
+                binding.cardEmergencyMode.visibility = if (isEmergency) View.VISIBLE else View.GONE
+            }
+        }
+        
+        lifecycleScope.launch {
+            viewModel.emergencyCountdown.collect { countdown ->
+                binding.tvEmergencyCountdown.text = "Auto-send in: ${countdown}s"
+            }
+        }
     }
     
     private fun setupToolbar() {
@@ -80,6 +148,37 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
     private fun setupEmergencyButton() {
         binding.btnEmergency.setOnClickListener {
+            viewModel.startEmergencyMode()
+        }
+    }
+    
+    private fun setupEsp32Buttons() {
+        binding.btnDiscoverEsp32.setOnClickListener {
+            viewModel.startEsp32Discovery()
+        }
+        
+        binding.btnConnectEsp32.setOnClickListener {
+            // TODO: Show device selection dialog
+            showToast("Device selection not implemented yet")
+        }
+        
+        binding.btnDisconnectEsp32.setOnClickListener {
+            viewModel.disconnectFromEsp32()
+        }
+    }
+    
+    private fun setupMedicalProfileButton() {
+        binding.btnLoadProfile.setOnClickListener {
+            viewModel.loadMedicalProfile()
+        }
+    }
+    
+    private fun setupEmergencyModeButtons() {
+        binding.btnCancelEmergency.setOnClickListener {
+            viewModel.cancelEmergencyMode()
+        }
+        
+        binding.btnSendNow.setOnClickListener {
             viewModel.sendEmergencyAlert()
         }
     }

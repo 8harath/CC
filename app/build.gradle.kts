@@ -87,4 +87,17 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     // Lottie for animations
     implementation("com.airbnb.android:lottie:6.4.0")
+    
+    // Bluetooth and WiFi Direct for ESP32 integration
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.bluetooth:bluetooth:1.0.0-alpha01")
+    
+    // Location services for GPS integration
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+    
+    // Camera and image processing for medical profile photos
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
 }

@@ -23,7 +23,8 @@ data class Location(
 data class MedicalInfo(
         val bloodType: String,
         val allergies: List<String> = emptyList(),
-        val medications: List<String> = emptyList()
+        val medications: List<String> = emptyList(),
+        val conditions: List<String> = emptyList()
     )
 }
 
