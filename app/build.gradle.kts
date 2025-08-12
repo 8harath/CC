@@ -49,11 +49,6 @@ android {
         }
     }
     
-    // Enable 16 KB page size compatibility
-    ndk {
-        abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
-    }
-    
     // Additional configuration for 16 KB page size compatibility
     bundle {
         language {
