@@ -63,7 +63,9 @@ class MedicalProfileEditorViewModel(application: Application) : AndroidViewModel
         
         // If this is marked as primary, unmark others
         if (contact.isPrimary) {
-            currentContacts.forEach { it.copy(isPrimary = false) }
+            currentContacts.forEachIndexed { index, existingContact ->
+                currentContacts[index] = existingContact.copy(isPrimary = false)
+            }
         }
         
         currentContacts.add(contact)
