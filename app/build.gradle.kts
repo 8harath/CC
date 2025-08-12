@@ -23,6 +23,12 @@ android {
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
         }
+        
+        // Explicit 16 KB page size compatibility
+        manifestPlaceholders["android:extractNativeLibs"] = "false"
+        
+        // Additional build config for 16 KB compatibility
+        buildConfigField("boolean", "ENABLE_16KB_PAGE_SIZE", "true")
     }
 
     buildTypes {
@@ -172,8 +178,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.1.0")
     
     // Camera and image processing for medical profile photos
-    implementation("androidx.camera:camera-core:1.4.0-alpha04")
-    implementation("androidx.camera:camera-camera2:1.4.0-alpha04")
-    implementation("androidx.camera:camera-lifecycle:1.4.0-alpha04")
-    implementation("androidx.camera:camera-view:1.4.0-alpha04")
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
 }
