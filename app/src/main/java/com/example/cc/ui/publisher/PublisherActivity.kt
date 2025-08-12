@@ -214,7 +214,6 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         val deviceAdapter = DeviceAdapter(mutableListOf()) { device ->
             // Handle device selection
             viewModel.connectToEsp32(device)
-            dialog.dismiss()
         }
         
         recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)

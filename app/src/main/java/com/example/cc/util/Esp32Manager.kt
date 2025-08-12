@@ -60,11 +60,6 @@ class Esp32Manager(context: Context) {
     }
     
     init {
-        // Observe sensor data from both services
-        combinedSensorData.collect { data ->
-            _sensorData.value = data
-        }
-        
         // Observe connection states
         observeConnectionStates()
     }
