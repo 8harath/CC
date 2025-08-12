@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.example.cc.util.Esp32Manager
 import com.example.cc.util.Esp32BluetoothService
+import com.example.cc.util.GpsService
 import com.example.cc.data.model.MedicalProfile
 import com.example.cc.data.model.EmergencyContact
 import com.example.cc.ui.publisher.Device
@@ -133,6 +134,44 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 _discoveredDevices.value = deviceList
             }
         }
+    }
+    
+    /**
+     * Initialize GPS monitoring
+     */
+    private fun initializeGpsMonitoring() {
+        viewModelScope.launch {
+            gpsService?.currentLocation?.collect { location ->
+                _currentLocation.value = location
+                _gpsStatus.value = if (location != null) {
+                    "GPS: ${location.latitude:.6f}, ${location.longitude:.6f}"
+                } else {
+                    "GPS: Not available"
+                }
+            }
+        }
+        
+        viewModelScope.launch {
+            gpsService?.isGpsEnabled?.collect { isEnabled ->
+                if (!isEnabled) {
+                    _gpsStatus.value = "GPS: Disabled"
+                }
+            }
+        }
+    }
+    
+    /**
+     * Start GPS location updates
+     */
+    fun startGpsUpdates() {
+        gpsService?.startLocationUpdates()
+    }
+    
+    /**
+     * Stop GPS location updates
+     */
+    fun stopGpsUpdates() {
+        gpsService?.stopLocationUpdates()
     }
     
     /**
