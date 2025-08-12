@@ -44,10 +44,15 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         super.onCreate(savedInstanceState)
         registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
         // Start MQTT service with role for dynamic subscriptions
-        val serviceIntent = Intent(this, MqttService::class.java).apply {
-            putExtra("role", "SUBSCRIBER")
+        try {
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                putExtra("role", "SUBSCRIBER")
+            }
+            startService(serviceIntent)
+        } catch (e: Exception) {
+            // Log error but don't crash the app
+            android.util.Log.e("SubscriberActivity", "Failed to start MQTT service: ${e.message}")
         }
-        startService(serviceIntent)
     }
 
     override fun onDestroy() {
@@ -149,7 +154,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     }
     
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        finish()
         return true
     }
 } 

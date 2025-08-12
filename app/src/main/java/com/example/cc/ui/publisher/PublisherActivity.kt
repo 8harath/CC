@@ -27,10 +27,15 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         setupEmergencyButton()
         viewModel.initializeMqtt(this)
         // Start MQTT service to manage background connection and topic subscriptions for publisher if needed
-        val serviceIntent = Intent(this, MqttService::class.java).apply {
-            putExtra("role", "PUBLISHER")
+        try {
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                putExtra("role", "PUBLISHER")
+            }
+            startService(serviceIntent)
+        } catch (e: Exception) {
+            // Log error but don't crash the app
+            android.util.Log.e("PublisherActivity", "Failed to start MQTT service: ${e.message}")
         }
-        startService(serviceIntent)
     }
     
     override fun setupObservers() {
@@ -89,7 +94,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     }
     
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        finish()
         return true
     }
 } 

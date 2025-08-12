@@ -17,10 +17,13 @@ object MqttMessageQueue {
     fun retryAll(publishFunc: (String, MqttMessage) -> Boolean) {
         val failed = mutableListOf<Pair<String, MqttMessage>>()
         while (queue.isNotEmpty()) {
-            val (topic, message) = queue.poll()
-            val success = publishFunc(topic, message)
-            if (!success) {
-                failed.add(topic to message)
+            val item = queue.poll()
+            if (item != null) {
+                val (topic, message) = item
+                val success = publishFunc(topic, message)
+                if (!success) {
+                    failed.add(topic to message)
+                }
             }
         }
         // Re-enqueue failed messages

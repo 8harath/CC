@@ -46,11 +46,17 @@ class MqttService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis()
-        val brokerUrl = MqttConfig.BROKER_URL // Change to BROKER_URL_SSL for SSL/TLS
-        mqttClient = MqttAndroidClient(applicationContext, brokerUrl, clientId)
-        registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-        connect()
+        try {
+            val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis()
+            val brokerUrl = MqttConfig.BROKER_URL // Change to BROKER_URL_SSL for SSL/TLS
+            mqttClient = MqttAndroidClient(applicationContext, brokerUrl, clientId)
+            registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+            // Don't connect immediately to avoid blocking the app startup
+            // connect() will be called when needed
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing MQTT service: ${e.message}")
+            connectionState.postValue(ConnectionState.DISCONNECTED)
+        }
     }
 
     private fun isValidTopic(topic: String): Boolean {
@@ -130,50 +136,65 @@ class MqttService : Service() {
     }
 
     private fun connect() {
-        connectionState.postValue(ConnectionState.CONNECTING)
-        val options = MqttConnectOptions().apply {
-            isAutomaticReconnect = true
-            isCleanSession = true
-            connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
-            keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
-            userName = MqttConfig.USERNAME
-            password = MqttConfig.PASSWORD.toCharArray()
-            // For SSL/TLS, you can set socketFactory here if using custom certificates
-            // Example: socketFactory = ...
+        try {
+            if (mqttClient == null) {
+                Log.e(TAG, "MQTT client not initialized")
+                connectionState.postValue(ConnectionState.DISCONNECTED)
+                return
+            }
+            
+            connectionState.postValue(ConnectionState.CONNECTING)
+            val options = MqttConnectOptions().apply {
+                isAutomaticReconnect = true
+                isCleanSession = true
+                connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
+                keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
+                if (MqttConfig.USERNAME.isNotEmpty()) {
+                    userName = MqttConfig.USERNAME
+                    password = MqttConfig.PASSWORD.toCharArray()
+                }
+                // For SSL/TLS, you can set socketFactory here if using custom certificates
+                // Example: socketFactory = ...
+            }
+            
+            mqttClient.setCallback(object : MqttCallback {
+                override fun connectionLost(cause: Throwable?) {
+                    Log.w(TAG, "MQTT connection lost: ${cause?.message}")
+                    connectionState.postValue(ConnectionState.DISCONNECTED)
+                }
+                override fun messageArrived(topic: String?, message: MqttMessage?) {
+                    Log.d(TAG, "Message arrived: $topic -> ${message.toString()}")
+                    // Broadcast emergency alert if topic matches
+                    if (topic != null && topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                        val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                        intent.putExtra("alert_json", message.toString())
+                        sendBroadcast(intent)
+                    }
+                }
+                override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                    Log.d(TAG, "Delivery complete: ${token?.message}")
+                }
+            })
+            
+            mqttClient.connect(options, null, object : IMqttActionListener {
+                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    Log.i(TAG, "Connected to MQTT broker!")
+                    connectionState.postValue(ConnectionState.CONNECTED)
+                    retryQueuedMessages()
+                    // If we have a pending role from the last start command, subscribe now
+                    pendingRole?.let { role ->
+                        subscribeForRole(role, pendingIncidentId)
+                    }
+                }
+                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
+                    connectionState.postValue(ConnectionState.DISCONNECTED)
+                }
+            })
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception during MQTT connection: ${e.message}")
+            connectionState.postValue(ConnectionState.DISCONNECTED)
         }
-        mqttClient.setCallback(object : MqttCallback {
-            override fun connectionLost(cause: Throwable?) {
-                Log.w(TAG, "MQTT connection lost: ${cause?.message}")
-                connectionState.postValue(ConnectionState.DISCONNECTED)
-            }
-            override fun messageArrived(topic: String?, message: MqttMessage?) {
-                Log.d(TAG, "Message arrived: $topic -> ${message.toString()}")
-                // Broadcast emergency alert if topic matches
-                if (topic != null && topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
-                    val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                    intent.putExtra("alert_json", message.toString())
-                    sendBroadcast(intent)
-                }
-            }
-            override fun deliveryComplete(token: IMqttDeliveryToken?) {
-                Log.d(TAG, "Delivery complete: ${token?.message}")
-            }
-        })
-        mqttClient.connect(options, null, object : IMqttActionListener {
-            override fun onSuccess(asyncActionToken: IMqttToken?) {
-                Log.i(TAG, "Connected to MQTT broker!")
-                connectionState.postValue(ConnectionState.CONNECTED)
-                retryQueuedMessages()
-                // If we have a pending role from the last start command, subscribe now
-                pendingRole?.let { role ->
-                    subscribeForRole(role, pendingIncidentId)
-                }
-            }
-            override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
-                connectionState.postValue(ConnectionState.DISCONNECTED)
-            }
-        })
     }
 
     private fun isNetworkAvailable(): Boolean {
@@ -214,11 +235,13 @@ class MqttService : Service() {
                     if (!role.isNullOrEmpty()) {
                         pendingRole = role
                         pendingIncidentId = incidentId
-                        if (mqttClient.isConnected) {
+                        // Try to connect if not already connected
+                        if (!mqttClient.isConnected) {
+                            Log.i(TAG, "Received start with role=$role, attempting to connect")
+                            connect()
+                        } else {
                             Log.i(TAG, "Received start with role=$role, subscribing immediately")
                             subscribeForRole(role, incidentId)
-                        } else {
-                            Log.i(TAG, "Received start with role=$role, will subscribe after connect")
                         }
                     }
                 }
