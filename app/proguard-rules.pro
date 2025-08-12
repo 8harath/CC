@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# 16 KB page size compatibility rules
+-keep class androidx.camera.** { *; }
+-keep class com.google.android.gms.** { *; }
+
+# Preserve native method names
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
