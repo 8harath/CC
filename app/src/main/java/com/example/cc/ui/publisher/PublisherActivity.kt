@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.cc.R
-import com.example.cc.databinding.ActivityPublisherBinding
 import com.example.cc.ui.base.BaseActivity
 import kotlinx.coroutines.launch
 import com.airbnb.lottie.LottieAnimationView
@@ -20,11 +19,11 @@ import com.example.cc.util.PermissionManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.example.cc.ui.publisher.DeviceAdapter
 
-class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
+class PublisherActivity : BaseActivity<View>() {
     
     private val viewModel: PublisherViewModel by viewModels()
     
-    override fun getViewBinding(): ActivityPublisherBinding = ActivityPublisherBinding.inflate(layoutInflater)
+    override fun getViewBinding(): View = layoutInflater.inflate(R.layout.activity_publisher, null)
     
     override fun setupViews() {
         setupToolbar()
@@ -54,7 +53,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     override fun setupObservers() {
         lifecycleScope.launch {
             viewModel.isLoading.collect { isLoading ->
-                binding.btnEmergency.isEnabled = !isLoading
+                findViewById<com.google.android.material.button.MaterialButton>(R.id.btnEmergency).isEnabled = !isLoading
             }
         }
         
@@ -81,7 +80,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 ConnectionState.DISCONNECTED -> "Disconnected"
                 else -> state.toString()
             }
-            binding.tvStatus.text = "MQTT: $statusText"
+            findViewById<android.widget.TextView>(R.id.tvStatus).text = "MQTT: $statusText"
         })
         
         // Observe ESP32 states
@@ -94,7 +93,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                     Esp32Manager.ConnectionState.CONNECTED -> "Connected"
                     Esp32Manager.ConnectionState.ERROR -> "Error"
                 }
-                binding.tvEsp32Status.text = "ESP32: $esp32Status"
+                findViewById<android.widget.TextView>(R.id.tvEsp32Status).text = "ESP32: $esp32Status"
             }
         }
         
@@ -106,7 +105,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                     Esp32Manager.ConnectionType.BLUETOOTH_BLE -> " (Bluetooth BLE)"
                     Esp32Manager.ConnectionType.WIFI_DIRECT -> " (WiFi Direct)"
                 }
-                binding.tvEsp32Status.text = binding.tvEsp32Status.text.toString() + connectionType
+                findViewById<android.widget.TextView>(R.id.tvEsp32Status).text = findViewById<android.widget.TextView>(R.id.tvEsp32Status).text.toString() + connectionType
             }
         }
         
@@ -118,7 +117,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 } else {
                     "No sensor data"
                 }
-                binding.tvSensorData.text = "Sensor Data: $sensorText"
+                findViewById<android.widget.TextView>(R.id.tvSensorData).text = "Sensor Data: $sensorText"
             }
         }
         
@@ -130,44 +129,44 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 } else {
                     "No medical profile loaded"
                 }
-                binding.tvMedicalProfile.text = profileText
+                findViewById<android.widget.TextView>(R.id.tvMedicalProfile).text = profileText
             }
         }
         
         // Observe emergency mode
         lifecycleScope.launch {
             viewModel.isEmergencyMode.collect { isEmergency ->
-                binding.cardEmergencyMode.visibility = if (isEmergency) View.VISIBLE else View.GONE
+                findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardEmergencyMode).visibility = if (isEmergency) View.VISIBLE else View.GONE
             }
         }
         
         lifecycleScope.launch {
             viewModel.emergencyCountdown.collect { countdown ->
-                binding.tvEmergencyCountdown.text = "Auto-send in: ${countdown}s"
+                findViewById<android.widget.TextView>(R.id.tvEmergencyCountdown).text = "Auto-send in: ${countdown}s"
             }
         }
         
         lifecycleScope.launch {
             viewModel.gpsStatus.collect { status ->
-                binding.tvGpsStatus.text = status
+                findViewById<android.widget.TextView>(R.id.tvGpsStatus).text = status
             }
         }
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Crash Victim Mode"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
     
     private fun setupEmergencyButton() {
-        binding.btnEmergency.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnEmergency).setOnClickListener {
             viewModel.startEmergencyMode()
         }
     }
     
     private fun setupEsp32Buttons() {
-        binding.btnDiscoverEsp32.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDiscoverEsp32).setOnClickListener {
             if (PermissionManager.hasRequiredPermissions(this)) {
                 viewModel.startEsp32Discovery()
             } else {
@@ -175,7 +174,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             }
         }
         
-        binding.btnConnectEsp32.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnConnectEsp32).setOnClickListener {
             if (PermissionManager.hasRequiredPermissions(this)) {
                 showDeviceSelectionDialog()
             } else {
@@ -183,23 +182,23 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             }
         }
         
-        binding.btnDisconnectEsp32.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDisconnectEsp32).setOnClickListener {
             viewModel.disconnectFromEsp32()
         }
     }
     
     private fun setupMedicalProfileButton() {
-        binding.btnLoadProfile.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnLoadProfile).setOnClickListener {
             viewModel.loadMedicalProfile()
         }
     }
     
     private fun setupEmergencyModeButtons() {
-        binding.btnCancelEmergency.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancelEmergency).setOnClickListener {
             viewModel.cancelEmergencyMode()
         }
         
-        binding.btnSendNow.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSendNow).setOnClickListener {
             viewModel.sendEmergencyAlert()
         }
     }
@@ -270,7 +269,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     }
     
     private fun showAnimatedConfirmation() {
-        val lottie = binding.lottieCheckmark
+        val lottie = findViewById<LottieAnimationView>(R.id.lottieCheckmark)
         lottie.visibility = View.VISIBLE
         lottie.playAnimation()
         Handler(Looper.getMainLooper()).postDelayed({

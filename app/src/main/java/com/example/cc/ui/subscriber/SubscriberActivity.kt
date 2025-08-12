@@ -12,7 +12,6 @@ import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.cc.databinding.ActivitySubscriberBinding
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.R
 
@@ -26,8 +25,9 @@ import android.content.ContextWrapper
 import com.example.cc.util.MqttService
 import androidx.lifecycle.Observer
 import com.example.cc.util.MqttService.ConnectionState
+import android.view.View
 
-class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
+class SubscriberActivity : BaseActivity<View>() {
     
     private val viewModel: SubscriberViewModel by viewModels()
     
@@ -60,7 +60,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         super.onDestroy()
     }
     
-    override fun getViewBinding(): ActivitySubscriberBinding = ActivitySubscriberBinding.inflate(layoutInflater)
+    override fun getViewBinding(): View = layoutInflater.inflate(R.layout.activity_subscriber, null)
     
     override fun setupViews() {
         setupToolbar()
@@ -106,14 +106,14 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Emergency Responder Mode"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
     
     private fun setupAlertHistoryList() {
         alertAdapter = AlertHistoryAdapter()
-        binding.recyclerViewAlerts.apply {
+        findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recyclerViewAlerts).apply {
             layoutManager = LinearLayoutManager(this@SubscriberActivity)
             adapter = alertAdapter
         }
@@ -124,7 +124,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     }
     
     private fun updateConnectionStatus(status: String) {
-        binding.tvStatus.text = "Status: $status"
+        findViewById<android.widget.TextView>(R.id.tvStatus).text = "Status: $status"
     }
 
     // Call this when an MQTT message is received
