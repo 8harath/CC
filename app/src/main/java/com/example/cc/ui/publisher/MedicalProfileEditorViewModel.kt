@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.cc.data.model.EmergencyContact
 import com.example.cc.data.model.MedicalProfile
 import com.example.cc.data.repository.MedicalProfileRepository
+import com.example.cc.CarCrashDetectionApp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
