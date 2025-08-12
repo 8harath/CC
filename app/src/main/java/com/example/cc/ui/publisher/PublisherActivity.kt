@@ -16,6 +16,8 @@ import com.example.cc.util.MqttService
 import androidx.lifecycle.Observer
 import com.example.cc.util.MqttService.ConnectionState
 import com.example.cc.util.Esp32Manager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.cc.ui.publisher.DeviceAdapter
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
@@ -190,6 +192,72 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         }
     }
     
+    private fun showDeviceSelectionDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_device_selection, null)
+        val recyclerView = dialogView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvDevices)
+        val statusText = dialogView.findViewById<android.widget.TextView>(R.id.tvDiscoveryStatus)
+        val refreshButton = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnRefresh)
+        val cancelButton = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+        
+        val deviceAdapter = DeviceAdapter(mutableListOf()) { device ->
+            // Handle device selection
+            viewModel.connectToEsp32(device)
+            dialog.dismiss()
+        }
+        
+        recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
+        recyclerView.adapter = deviceAdapter
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+        
+        // Start device discovery
+        viewModel.startEsp32Discovery()
+        statusText.text = "Discovering ESP32 devices..."
+        
+        // Observe discovered devices
+        lifecycleScope.launch {
+            viewModel.discoveredDevices.collect { devices ->
+                deviceAdapter.updateDevices(devices)
+                statusText.text = if (devices.isEmpty()) {
+                    "No devices found. Make sure ESP32 is powered on and discoverable."
+                } else {
+                    "${devices.size} device(s) found"
+                }
+            }
+        }
+        
+        // Observe connection state
+        lifecycleScope.launch {
+            viewModel.esp32ConnectionState.collect { state ->
+                when (state) {
+                    Esp32Manager.ConnectionState.CONNECTED -> {
+                        dialog.dismiss()
+                        showToast("Connected to ESP32 device!")
+                    }
+                    Esp32Manager.ConnectionState.ERROR -> {
+                        showToast("Failed to connect to ESP32 device")
+                    }
+                    else -> { /* Other states handled elsewhere */ }
+                }
+            }
+        }
+        
+        refreshButton.setOnClickListener {
+            viewModel.startEsp32Discovery()
+            statusText.text = "Discovering ESP32 devices..."
+        }
+        
+        cancelButton.setOnClickListener {
+            viewModel.stopEsp32Discovery()
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+    
     private fun showAnimatedConfirmation() {
         val lottie = binding.lottieCheckmark
         lottie.visibility = View.VISIBLE
@@ -202,5 +270,33 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        when (requestCode) {
+            PermissionManager.getPermissionRequestCode() -> {
+                if (grantResults.isNotEmpty() && grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }) {
+                    // Permissions granted, proceed with ESP32 operations
+                    showToast("Permissions granted! You can now use ESP32 features.")
+                } else {
+                    // Permissions denied
+                    showToast("Permissions required for ESP32 communication")
+                }
+            }
+            PermissionManager.getPermissionRequestCode() + 1 -> {
+                if (grantResults.isNotEmpty() && grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }) {
+                    // Camera permissions granted
+                    showToast("Camera permissions granted!")
+                } else {
+                    showToast("Camera permissions required for profile photos")
+                }
+            }
+        }
     }
 } 

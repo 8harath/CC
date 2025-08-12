@@ -22,6 +22,7 @@ import com.example.cc.util.Esp32Manager
 import com.example.cc.util.Esp32BluetoothService
 import com.example.cc.data.model.MedicalProfile
 import com.example.cc.data.model.EmergencyContact
+import com.example.cc.ui.publisher.Device
 import android.util.Log
 
 class PublisherViewModel(application: Application) : AndroidViewModel(application) {
@@ -58,6 +59,9 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
     private val _emergencyCountdown = MutableStateFlow(30) // 30 second countdown
     val emergencyCountdown: StateFlow<Int> = _emergencyCountdown.asStateFlow()
     
+    private val _discoveredDevices = MutableStateFlow<List<Device>>(emptyList())
+    val discoveredDevices: StateFlow<List<Device>> = _discoveredDevices.asStateFlow()
+    
     fun initializeMqtt(context: Context) {
         mqttClient = MqttClient(context)
         esp32Manager = Esp32Manager(context)
@@ -88,6 +92,34 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             esp32Manager?.connectionType?.collect { type ->
                 _esp32ConnectionType.value = type
+            }
+        }
+        
+        viewModelScope.launch {
+            esp32Manager?.discoveredDevices?.collect { devices ->
+                // Convert discovered devices to Device objects
+                val deviceList = devices.mapNotNull { device ->
+                    when (device) {
+                        is android.bluetooth.BluetoothDevice -> {
+                            Device(
+                                name = device.name ?: "Unknown Bluetooth Device",
+                                address = device.address,
+                                deviceType = Esp32Manager.ConnectionType.BLUETOOTH_CLASSIC,
+                                signalStrength = 75 // Default signal strength
+                            )
+                        }
+                        is android.net.wifi.p2p.WifiP2pDevice -> {
+                            Device(
+                                name = device.deviceName,
+                                address = device.deviceAddress,
+                                deviceType = Esp32Manager.ConnectionType.WIFI_DIRECT,
+                                signalStrength = 80 // Default signal strength
+                            )
+                        }
+                        else -> null
+                    }
+                }
+                _discoveredDevices.value = deviceList
             }
         }
     }
