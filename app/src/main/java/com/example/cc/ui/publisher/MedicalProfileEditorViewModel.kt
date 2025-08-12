@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 
 class MedicalProfileEditorViewModel(application: Application) : AndroidViewModel(application) {
     
-    private val repository = MedicalProfileRepository(application)
+    private val repository = MedicalProfileRepository(CarCrashDetectionApp.instance.database.medicalProfileDao())
     
     private val _profile = MutableStateFlow<MedicalProfile?>(null)
     val profile: StateFlow<MedicalProfile?> = _profile

@@ -30,6 +30,7 @@ class Esp32BluetoothService(private val context: Context) {
     
     companion object {
         private const val TAG = "Esp32BluetoothService"
+        private const val IMPACT_THRESHOLD = 5.0f // Adjust based on ESP32 calibration
         
         // ESP32 Service UUIDs (standard BLE service)
         private val ESP32_SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
@@ -402,7 +403,5 @@ class Esp32BluetoothService(private val context: Context) {
         return _sensorData.value
     }
     
-    companion object {
-        private const val IMPACT_THRESHOLD = 5.0f // Adjust based on ESP32 calibration
-    }
+
 }

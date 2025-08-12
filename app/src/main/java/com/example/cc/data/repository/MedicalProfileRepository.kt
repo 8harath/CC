@@ -8,6 +8,9 @@ class MedicalProfileRepository(
     suspend fun getMedicalProfileByUserId(userId: Long): MedicalProfile? = 
         medicalProfileDao.getMedicalProfileByUserId(userId)
     
+    suspend fun getMedicalProfileById(id: Long): MedicalProfile? = 
+        medicalProfileDao.getMedicalProfileById(id)
+    
     suspend fun insertMedicalProfile(medicalProfile: MedicalProfile): Long = 
         medicalProfileDao.insertMedicalProfile(medicalProfile)
     

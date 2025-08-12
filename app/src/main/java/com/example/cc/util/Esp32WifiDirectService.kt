@@ -32,6 +32,7 @@ class Esp32WifiDirectService(private val context: Context) {
     companion object {
         private const val TAG = "Esp32WifiDirectService"
         private const val PORT = 8888
+        private const val IMPACT_THRESHOLD = 5.0f // Same as Bluetooth service
     }
     
     // Connection states
@@ -93,7 +94,7 @@ class Esp32WifiDirectService(private val context: Context) {
                     })
                 }
                 
-                WifiP2pManager.WIFI_P2P_CONNECTION_STATE_CHANGE_ACTION -> {
+                "android.net.wifi.p2p.CONNECTION_STATE_CHANGE" -> {
                     val networkInfo = intent.getParcelableExtra<android.net.NetworkInfo>(WifiP2pManager.EXTRA_NETWORK_INFO)
                     if (networkInfo?.isConnected == true) {
                         Log.i(TAG, "WiFi P2P connected")
@@ -126,7 +127,7 @@ class Esp32WifiDirectService(private val context: Context) {
     
     private fun initializeWifiP2P() {
         wifiP2pManager = context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
-        wifiP2pChannel = wifiP2pManager?.initialize(context, context.mainExecutor, null)
+        wifiP2pChannel = wifiP2pManager?.initialize(context, context.mainLooper, null)
         
         if (wifiP2pManager == null || wifiP2pChannel == null) {
             Log.e(TAG, "WiFi P2P not supported on this device")
@@ -138,7 +139,7 @@ class Esp32WifiDirectService(private val context: Context) {
         val intentFilter = IntentFilter().apply {
             addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
             addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
-            addAction(WifiP2pManager.WIFI_P2P_CONNECTION_STATE_CHANGE_ACTION)
+            addAction("android.net.wifi.p2p.CONNECTION_STATE_CHANGE")
         }
         context.registerReceiver(receiver, intentFilter)
     }
@@ -431,7 +432,5 @@ class Esp32WifiDirectService(private val context: Context) {
         }
     }
     
-    companion object {
-        private const val IMPACT_THRESHOLD = 5.0f // Same as Bluetooth service
-    }
+
 }
