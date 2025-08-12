@@ -73,28 +73,28 @@ class MqttClient(private val context: Context) {
     
     suspend fun publish(topic: String, payload: String, qos: Int = 1): Boolean = withContext(Dispatchers.IO) {
         try {
-            val client = mqttClient ?: return false
-            if (client.isConnected) {
-                val message = MqttMessage(payload.toByteArray()).apply {
-                    this.qos = qos
-                }
-                
-                return suspendCoroutine { continuation ->
-                    client.publish(topic, message, null, object : IMqttActionListener {
-                        override fun onSuccess(asyncActionToken: IMqttToken?) {
-                            Log.d(TAG, "Message published to $topic")
-                            continuation.resume(true)
-                        }
-                        
-                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                            Log.e(TAG, "Failed to publish message: ${exception?.message}")
-                            continuation.resume(false)
-                        }
-                    })
-                }
-            } else {
+            val client = mqttClient ?: return@withContext false
+            if (!client.isConnected) {
                 Log.w(TAG, "Not connected to MQTT broker")
-                false
+                return@withContext false
+            }
+            
+            val message = MqttMessage(payload.toByteArray()).apply {
+                this.qos = qos
+            }
+            
+            suspendCoroutine { continuation ->
+                client.publish(topic, message, null, object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        Log.d(TAG, "Message published to $topic")
+                        continuation.resume(true)
+                    }
+                    
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                        Log.e(TAG, "Failed to publish message: ${exception?.message}")
+                        continuation.resume(false)
+                    }
+                })
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to publish message: ${e.message}")
@@ -104,24 +104,24 @@ class MqttClient(private val context: Context) {
     
     suspend fun subscribe(topic: String, qos: Int = 1): Boolean = withContext(Dispatchers.IO) {
         try {
-            val client = mqttClient ?: return false
-            if (client.isConnected) {
-                return suspendCoroutine { continuation ->
-                    client.subscribe(topic, qos, null, object : IMqttActionListener {
-                        override fun onSuccess(asyncActionToken: IMqttToken?) {
-                            Log.d(TAG, "Subscribed to $topic")
-                            continuation.resume(true)
-                        }
-                        
-                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                            Log.e(TAG, "Failed to subscribe to topic: ${exception?.message}")
-                            continuation.resume(false)
-                        }
-                    })
-                }
-            } else {
+            val client = mqttClient ?: return@withContext false
+            if (!client.isConnected) {
                 Log.w(TAG, "Not connected to MQTT broker")
-                false
+                return@withContext false
+            }
+            
+            suspendCoroutine { continuation ->
+                client.subscribe(topic, qos, null, object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        Log.d(TAG, "Subscribed to $topic")
+                        continuation.resume(true)
+                    }
+                    
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                        Log.e(TAG, "Failed to subscribe to topic: ${exception?.message}")
+                        continuation.resume(false)
+                    }
+                })
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to subscribe to topic: ${e.message}")
