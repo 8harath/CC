@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cc.R
 import com.example.cc.data.model.EmergencyContact
 import com.example.cc.data.model.MedicalProfile
-import com.example.cc.databinding.ActivityMedicalProfileEditorBinding
 import com.example.cc.util.PermissionManager
 import kotlinx.coroutines.launch
 import java.io.File
@@ -28,7 +27,6 @@ import java.util.*
 
 class MedicalProfileEditorActivity : AppCompatActivity() {
     
-    private lateinit var binding: ActivityMedicalProfileEditorBinding
     private val viewModel: MedicalProfileEditorViewModel by viewModels()
     private lateinit var emergencyContactsAdapter: EmergencyContactsAdapter
     private var currentPhotoPath: String? = null
@@ -51,8 +49,7 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMedicalProfileEditorBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_medical_profile_editor)
         
         setupToolbar()
         setupEmergencyContactsRecyclerView()
@@ -68,7 +65,7 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = "Medical Profile"
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
@@ -79,14 +76,14 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
             onContactDelete = { contact -> viewModel.removeEmergencyContact(contact) }
         )
         
-        binding.rvEmergencyContacts.apply {
+        findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvEmergencyContacts).apply {
             layoutManager = LinearLayoutManager(this@MedicalProfileEditorActivity)
             adapter = emergencyContactsAdapter
         }
     }
     
     private fun setupButtons() {
-        binding.btnTakePhoto.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnTakePhoto).setOnClickListener {
             if (PermissionManager.hasCameraPermissions(this)) {
                 showPhotoOptionsDialog()
             } else {
@@ -94,11 +91,11 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
             }
         }
         
-        binding.btnAddContact.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAddContact).setOnClickListener {
             showAddContactDialog()
         }
         
-        binding.btnSaveProfile.setOnClickListener {
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveProfile).setOnClickListener {
             saveProfile()
         }
     }
@@ -118,7 +115,7 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             viewModel.isLoading.collect { isLoading ->
-                binding.btnSaveProfile.isEnabled = !isLoading
+                findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSaveProfile).isEnabled = !isLoading
             }
         }
         
@@ -139,16 +136,16 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
     }
     
     private fun populateFields(profile: MedicalProfile) {
-        binding.etFullName.setText(profile.fullName)
-        binding.etDateOfBirth.setText(profile.dateOfBirth)
-        binding.etHeight.setText(profile.height)
-        binding.etWeight.setText(profile.weight)
-        binding.etBloodType.setText(profile.bloodType)
-        binding.etAllergies.setText(profile.allergies)
-        binding.etMedications.setText(profile.medications)
-        binding.etMedicalConditions.setText(profile.medicalConditions)
-        binding.etInsuranceInfo.setText(profile.insuranceInfo)
-        binding.cbOrganDonor.isChecked = profile.organDonor
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etFullName).setText(profile.fullName)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etDateOfBirth).setText(profile.dateOfBirth)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etHeight).setText(profile.height)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etWeight).setText(profile.weight)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etBloodType).setText(profile.bloodType)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etAllergies).setText(profile.allergies)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etMedications).setText(profile.medications)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etMedicalConditions).setText(profile.medicalConditions)
+        findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etInsuranceInfo).setText(profile.insuranceInfo)
+        findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbOrganDonor).isChecked = profile.organDonor
         
         // Load profile photo
         profile.photoPath?.let { path ->
@@ -196,7 +193,7 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
     private fun loadProfilePhoto(path: String) {
         try {
             val bitmap = BitmapFactory.decodeFile(path)
-            binding.ivProfilePhoto.setImageBitmap(bitmap)
+            findViewById<android.widget.ImageView>(R.id.ivProfilePhoto).setImageBitmap(bitmap)
         } catch (e: Exception) {
             showError("Failed to load photo: ${e.message}")
         }
@@ -206,7 +203,7 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
         try {
             val inputStream = contentResolver.openInputStream(uri)
             val bitmap = BitmapFactory.decodeStream(inputStream)
-            binding.ivProfilePhoto.setImageBitmap(bitmap)
+            findViewById<android.widget.ImageView>(R.id.ivProfilePhoto).setImageBitmap(bitmap)
             
             // Save the image to a file
             val photoFile = createImageFile()
@@ -281,16 +278,16 @@ class MedicalProfileEditorActivity : AppCompatActivity() {
         val profile = MedicalProfile(
             id = intent.getLongExtra("profile_id", 0),
             userId = 1L, // TODO: Get from user session
-            fullName = binding.etFullName.text.toString(),
-            dateOfBirth = binding.etDateOfBirth.text.toString(),
-            height = binding.etHeight.text.toString(),
-            weight = binding.etWeight.text.toString(),
-            bloodType = binding.etBloodType.text.toString(),
-            allergies = binding.etAllergies.text.toString(),
-            medications = binding.etMedications.text.toString(),
-            medicalConditions = binding.etMedicalConditions.text.toString(),
-            insuranceInfo = binding.etInsuranceInfo.text.toString(),
-            organDonor = binding.cbOrganDonor.isChecked,
+            fullName = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etFullName).text.toString(),
+            dateOfBirth = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etDateOfBirth).text.toString(),
+            height = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etHeight).text.toString(),
+            weight = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etWeight).text.toString(),
+            bloodType = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etBloodType).text.toString(),
+            allergies = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etAllergies).text.toString(),
+            medications = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etMedications).text.toString(),
+            medicalConditions = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etMedicalConditions).text.toString(),
+            insuranceInfo = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etInsuranceInfo).text.toString(),
+            organDonor = findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbOrganDonor).isChecked,
             photoPath = currentPhotoPath
         )
         
