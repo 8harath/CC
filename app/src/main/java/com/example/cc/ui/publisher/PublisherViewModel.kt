@@ -63,12 +63,22 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
     private val _discoveredDevices = MutableStateFlow<List<Device>>(emptyList())
     val discoveredDevices: StateFlow<List<Device>> = _discoveredDevices.asStateFlow()
     
+    private val _currentLocation = MutableStateFlow<android.location.Location?>(null)
+    val currentLocation: StateFlow<android.location.Location?> = _currentLocation.asStateFlow()
+    
+    private val _gpsStatus = MutableStateFlow("GPS: Not available")
+    val gpsStatus: StateFlow<String> = _gpsStatus.asStateFlow()
+    
     fun initializeMqtt(context: Context) {
         mqttClient = MqttClient(context)
         esp32Manager = Esp32Manager(context)
+        gpsService = GpsService(context)
         
         // Initialize ESP32 monitoring
         initializeEsp32Monitoring()
+        
+        // Initialize GPS monitoring
+        initializeGpsMonitoring()
     }
     
     private fun initializeEsp32Monitoring() {
