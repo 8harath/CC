@@ -110,13 +110,13 @@ class MedicalProfileEditorViewModel(application: Application) : AndroidViewModel
                 val profileWithContacts = profile.copy(emergencyContacts = contactsJson)
                 
                 // Save to database
-                val savedProfile = if (profile.id == 0L) {
-                    repository.insertMedicalProfile(profileWithContacts)
+                if (profile.id == 0L) {
+                    val profileId = repository.insertMedicalProfile(profileWithContacts)
+                    _profile.value = profileWithContacts.copy(id = profileId)
                 } else {
                     repository.updateMedicalProfile(profileWithContacts)
+                    _profile.value = profileWithContacts
                 }
-                
-                _profile.value = savedProfile
                 _successMessage.value = "Medical profile saved successfully!"
                 
             } catch (e: Exception) {
