@@ -154,12 +154,19 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
     private fun setupEsp32Buttons() {
         binding.btnDiscoverEsp32.setOnClickListener {
-            viewModel.startEsp32Discovery()
+            if (PermissionManager.hasRequiredPermissions(this)) {
+                viewModel.startEsp32Discovery()
+            } else {
+                PermissionManager.requestRequiredPermissions(this)
+            }
         }
         
         binding.btnConnectEsp32.setOnClickListener {
-            // TODO: Show device selection dialog
-            showToast("Device selection not implemented yet")
+            if (PermissionManager.hasRequiredPermissions(this)) {
+                showDeviceSelectionDialog()
+            } else {
+                PermissionManager.requestRequiredPermissions(this)
+            }
         }
         
         binding.btnDisconnectEsp32.setOnClickListener {
