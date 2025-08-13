@@ -37,7 +37,7 @@ class MqttService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (isNetworkAvailable()) {
                 Log.i(TAG, "Network available, (re)connecting MQTT...")
-                if (!mqttClient.isConnected) connect()
+                if (::mqttClient.isInitialized && !mqttClient.isConnected) connect()
             } else {
                 Log.w(TAG, "Network unavailable, MQTT will disconnect if active.")
             }
