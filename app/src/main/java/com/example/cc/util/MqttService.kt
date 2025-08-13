@@ -136,7 +136,7 @@ class MqttService : Service() {
     }
 
     private fun retryQueuedMessages() {
-        if (mqttClient.isConnected) {
+        if (::mqttClient.isInitialized && mqttClient.isConnected) {
             MqttMessageQueue.retryAll { topic, message ->
                 try {
                     mqttClient.publish(topic, message)
@@ -253,13 +253,13 @@ class MqttService : Service() {
                     if (!role.isNullOrEmpty()) {
                         pendingRole = role
                         pendingIncidentId = incidentId
-                        // Try to connect if not already connected
-                        if (!mqttClient.isConnected) {
-                            Log.i(TAG, "Received start with role=$role, attempting to connect")
-                            connect()
-                        } else {
+                        // Check if mqttClient is initialized before accessing it
+                        if (::mqttClient.isInitialized && mqttClient.isConnected) {
                             Log.i(TAG, "Received start with role=$role, subscribing immediately")
                             subscribeForRole(role, incidentId)
+                        } else {
+                            Log.i(TAG, "Received start with role=$role, attempting to connect")
+                            connect()
                         }
                     }
                 }
