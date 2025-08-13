@@ -154,7 +154,6 @@ dependencies {
     
     // Bluetooth and WiFi Direct for ESP32 integration
     implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.bluetooth:bluetooth:1.0.0-alpha01")
     
     // Location services for GPS integration
     implementation("com.google.android.gms:play-services-location:21.1.0")
