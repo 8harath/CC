@@ -12,16 +12,35 @@ android {
 
     defaultConfig {
         applicationId = "com.example.cc"
-        minSdk = 33
+        minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Enable 16 KB page size compatibility
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+        }
+        
+        // Explicit 16 KB page size compatibility
+        manifestPlaceholders["android:extractNativeLibs"] = "false"
+        
+        // Additional build config for 16 KB compatibility
+        buildConfigField("boolean", "ENABLE_16KB_PAGE_SIZE", "true")
     }
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -29,6 +48,50 @@ android {
             )
         }
     }
+    
+    // Configure native library handling for 16 KB page size compatibility
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+            // Exclude problematic native libraries that don't support 16 KB page sizes
+            excludes += listOf(
+                "**/libimage_processing_util_jni.so"
+            )
+        }
+        // Additional packaging options for 16 KB compatibility
+        resources {
+            excludes += listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+                "META-INF/*.kotlin_module"
+            )
+        }
+    }
+    
+    // Disable native library extraction for 16 KB page size compatibility
+    androidResources {
+        noCompress += listOf("so")
+    }
+    
+    // Additional configuration for 16 KB page size compatibility
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = false
+        }
+        abi {
+            enableSplit = true
+        }
+    }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -39,6 +102,7 @@ android {
     buildFeatures {
         viewBinding = true
         dataBinding = true
+        buildConfig = true
     }
 }
 
@@ -90,7 +154,6 @@ dependencies {
     
     // Bluetooth and WiFi Direct for ESP32 integration
     implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.bluetooth:bluetooth:1.0.0-alpha01")
     
     // Location services for GPS integration
     implementation("com.google.android.gms:play-services-location:21.1.0")
