@@ -270,6 +270,16 @@ class PublisherActivity : BaseActivity<View>() {
     
     private fun showAnimatedConfirmation() {
         val lottie = findViewById<LottieAnimationView>(R.id.lottieCheckmark)
+        
+        // Add failure listener to handle animation loading errors gracefully
+        lottie.addFailureListener { throwable ->
+            Log.e("LottieError", "Failed to load checkmark animation", throwable)
+            // Hide the Lottie view if animation fails to load
+            lottie.visibility = View.GONE
+            // Show a simple toast instead
+            showToast("Success!")
+        }
+        
         lottie.visibility = View.VISIBLE
         lottie.playAnimation()
         Handler(Looper.getMainLooper()).postDelayed({
