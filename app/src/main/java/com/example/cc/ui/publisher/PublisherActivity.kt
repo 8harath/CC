@@ -270,20 +270,26 @@ class PublisherActivity : BaseActivity<View>() {
     
     private fun showAnimatedConfirmation() {
         val lottie = findViewById<LottieAnimationView>(R.id.lottieCheckmark)
+        val fallbackCheckmark = findViewById<android.widget.ImageView>(R.id.fallbackCheckmark)
         
         // Add failure listener to handle animation loading errors gracefully
         lottie.addFailureListener { throwable ->
             Log.e("LottieError", "Failed to load checkmark animation", throwable)
-            // Hide the Lottie view if animation fails to load
+            // Hide the Lottie view and show fallback image
             lottie.visibility = View.GONE
-            // Show a simple toast instead
+            fallbackCheckmark.visibility = View.VISIBLE
+            // Show a simple toast
             showToast("Success!")
         }
         
+        // Hide fallback and show Lottie animation
+        fallbackCheckmark.visibility = View.GONE
         lottie.visibility = View.VISIBLE
         lottie.playAnimation()
+        
         Handler(Looper.getMainLooper()).postDelayed({
             lottie.visibility = View.GONE
+            fallbackCheckmark.visibility = View.GONE
         }, 1800)
     }
     
