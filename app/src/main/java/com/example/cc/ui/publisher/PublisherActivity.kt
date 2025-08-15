@@ -18,6 +18,7 @@ import com.example.cc.util.Esp32Manager
 import com.example.cc.util.PermissionManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.example.cc.ui.publisher.DeviceAdapter
+import android.util.Log
 
 class PublisherActivity : BaseActivity<View>() {
     
@@ -273,7 +274,7 @@ class PublisherActivity : BaseActivity<View>() {
         val fallbackCheckmark = findViewById<android.widget.ImageView>(R.id.fallbackCheckmark)
         
         // Add failure listener to handle animation loading errors gracefully
-        lottie.addFailureListener { throwable ->
+        lottie.addFailureListener { throwable: Throwable ->
             Log.e("LottieError", "Failed to load checkmark animation", throwable)
             // Hide the Lottie view and show fallback image
             lottie.visibility = View.GONE
