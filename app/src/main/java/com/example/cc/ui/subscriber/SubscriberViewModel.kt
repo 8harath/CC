@@ -167,14 +167,14 @@ class SubscriberViewModel : BaseViewModel() {
         }
     }
     
-    fun openNavigation(latitude: Double, longitude: Double) {
+    fun openNavigation(latitude: Double, longitude: Double): Intent {
         val uri = "geo:$latitude,$longitude?q=$latitude,$longitude"
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
         intent.setPackage("com.google.android.apps.maps")
         return intent
     }
     
-    fun openWazeNavigation(latitude: Double, longitude: Double) {
+    fun openWazeNavigation(latitude: Double, longitude: Double): Intent {
         val uri = "waze://?ll=$latitude,$longitude&navigate=yes"
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
         intent.setPackage("com.waze")

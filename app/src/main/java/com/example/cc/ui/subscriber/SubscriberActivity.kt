@@ -182,7 +182,7 @@ class SubscriberActivity : BaseActivity<View>() {
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
     
-    private fun openIncidentDetails(incident: EmergencyAlertMessage) {
+    private fun openIncidentDetails(incident: com.example.cc.util.EmergencyAlertMessage) {
         val intent = Intent(this, IncidentDetailActivity::class.java).apply {
             putExtra("incident_json", kotlinx.serialization.json.Json.encodeToString(incident))
         }
