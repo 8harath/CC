@@ -74,6 +74,9 @@ class SubscriberActivity : BaseActivity<View>() {
             // Temporarily disable MQTT initialization to prevent crashes
             // viewModel.initializeMqtt(this)
             android.util.Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
+            
+            // Add sample data for demonstration
+            addSampleAlerts()
         } catch (e: Exception) {
             android.util.Log.e("SubscriberActivity", "Error in setupViews: ${e.message}", e)
             showToast("Error setting up Emergency Responder interface")
