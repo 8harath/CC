@@ -214,6 +214,53 @@ class SubscriberActivity : BaseActivity<View>() {
         startActivity(intent)
     }
     
+    private fun addSampleAlerts() {
+        try {
+            // Create sample emergency alerts for demonstration
+            val sampleAlert1 = com.example.cc.util.EmergencyAlertMessage(
+                incidentId = "INC_001",
+                victimId = "VICTIM_001",
+                victimName = "John Smith",
+                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7128, -74.0060),
+                timestamp = System.currentTimeMillis() - 300000, // 5 minutes ago
+                severity = "HIGH",
+                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
+                    bloodType = "O+",
+                    allergies = listOf("Penicillin"),
+                    medications = listOf("Aspirin"),
+                    conditions = listOf("Hypertension")
+                )
+            )
+            
+            val sampleAlert2 = com.example.cc.util.EmergencyAlertMessage(
+                incidentId = "INC_002",
+                victimId = "VICTIM_002",
+                victimName = "Sarah Johnson",
+                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7589, -73.9851),
+                timestamp = System.currentTimeMillis() - 600000, // 10 minutes ago
+                severity = "MEDIUM",
+                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
+                    bloodType = "A-",
+                    allergies = listOf("None"),
+                    medications = listOf("None"),
+                    conditions = listOf("None")
+                )
+            )
+            
+            // Add sample alerts to the adapter
+            alertAdapter.submitList(listOf(sampleAlert1, sampleAlert2))
+            
+            // Update dashboard stats
+            updateDashboardStats(2)
+            updateActiveResponses(1)
+            updateConnectionStatus("Demo Mode")
+            
+            android.util.Log.i("SubscriberActivity", "Sample alerts added for demonstration")
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error adding sample alerts: ${e.message}", e)
+        }
+    }
+    
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
