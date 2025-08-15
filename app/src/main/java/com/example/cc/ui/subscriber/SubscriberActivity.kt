@@ -114,13 +114,7 @@ class SubscriberActivity : BaseActivity<View>() {
                     updateActiveResponses(respondingSet.size)
                 }
             }
-        } catch (e: Exception) {
-            android.util.Log.e("SubscriberActivity", "Error in setupObservers: ${e.message}", e)
-            showToast("Error setting up data observers")
-        }
-    }
-
-        try {
+            
             lifecycleScope.launch {
                 viewModel.alertHistory.collectLatest { alerts ->
                     alertAdapter.submitList(alerts)
@@ -144,8 +138,10 @@ class SubscriberActivity : BaseActivity<View>() {
                 updateConnectionStatus(statusText)
             })
         } catch (e: Exception) {
-            android.util.Log.e("SubscriberActivity", "Error in additional observers: ${e.message}", e)
+            android.util.Log.e("SubscriberActivity", "Error in setupObservers: ${e.message}", e)
+            showToast("Error setting up data observers")
         }
+    }
     }
     
     private fun setupToolbar() {
