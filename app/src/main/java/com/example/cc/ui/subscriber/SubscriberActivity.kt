@@ -86,6 +86,18 @@ class SubscriberActivity : BaseActivity<View>() {
                 updateConnectionStatus(status)
             }
         }
+        
+        lifecycleScope.launch {
+            viewModel.alertHistory.collectLatest { alerts ->
+                updateDashboardStats(alerts.size)
+            }
+        }
+        
+        lifecycleScope.launch {
+            viewModel.isResponding.collectLatest { respondingSet ->
+                updateActiveResponses(respondingSet.size)
+            }
+        }
 
         lifecycleScope.launch {
             viewModel.alertHistory.collectLatest { alerts ->
@@ -133,7 +145,15 @@ class SubscriberActivity : BaseActivity<View>() {
     }
     
     private fun updateConnectionStatus(status: String) {
-        findViewById<android.widget.TextView>(R.id.tvStatus).text = "Status: $status"
+        findViewById<android.widget.TextView>(R.id.tvConnectionStatus).text = status
+    }
+    
+    private fun updateDashboardStats(totalAlerts: Int) {
+        findViewById<android.widget.TextView>(R.id.tvTotalAlerts).text = totalAlerts.toString()
+    }
+    
+    private fun updateActiveResponses(activeCount: Int) {
+        findViewById<android.widget.TextView>(R.id.tvActiveResponses).text = activeCount.toString()
     }
 
     // Call this when an MQTT message is received
