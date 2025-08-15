@@ -5,6 +5,7 @@ object MqttTopics {
     const val EMERGENCY_ALERTS = "emergency/alerts"
     const val EMERGENCY_STATUS = "emergency/status"
     const val EMERGENCY_RESPONSE = "emergency/response"
+    const val RESPONSE_ACK = "emergency/response/ack"
 
     // Subtopics
     fun alertIncident(incidentId: String) = "emergency/alerts/$incidentId"
@@ -25,7 +26,8 @@ object MqttTopics {
             ALERT_BROADCAST,
             EMERGENCY_ALERTS + "/+",
             EMERGENCY_STATUS + "/+",
-            EMERGENCY_RESPONSE + "/+"
+            EMERGENCY_RESPONSE + "/+",
+            RESPONSE_ACK + "/+"
         )
         else -> emptyList()
     }

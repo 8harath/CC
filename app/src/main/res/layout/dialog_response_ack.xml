@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter your estimated time of arrival (minutes):"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="16dp" />
+
+    <EditText
+        android:id="@+id/etEtaMinutes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="5"
+        android:inputType="number"
+        android:text="5"
+        android:background="@drawable/edit_text_background"
+        android:padding="12dp"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This will notify the victim that help is on the way."
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

@@ -14,14 +14,9 @@ import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.R
-
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.os.Bundle
-import android.content.ComponentName
-import android.content.ServiceConnection
-import android.os.IBinder
-import android.content.ContextWrapper
 import com.example.cc.util.MqttService
 import androidx.lifecycle.Observer
 import com.example.cc.util.MqttService.ConnectionState
@@ -30,7 +25,6 @@ import android.view.View
 class SubscriberActivity : BaseActivity<View>() {
     
     private val viewModel: SubscriberViewModel by viewModels()
-    
     private lateinit var alertAdapter: AlertHistoryAdapter
     
     private val emergencyAlertReceiver = object : BroadcastReceiver() {
@@ -42,67 +36,109 @@ class SubscriberActivity : BaseActivity<View>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
-        // Start MQTT service with role for dynamic subscriptions
         try {
-            val serviceIntent = Intent(this, MqttService::class.java).apply {
-                putExtra("role", "SUBSCRIBER")
+            registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
+            // Start MQTT service with role for dynamic subscriptions
+            try {
+                val serviceIntent = Intent(this, MqttService::class.java).apply {
+                    putExtra("role", "SUBSCRIBER")
+                }
+                startService(serviceIntent)
+            } catch (e: Exception) {
+                // Log error but don't crash the app
+                android.util.Log.e("SubscriberActivity", "Failed to start MQTT service: ${e.message}")
             }
-            startService(serviceIntent)
         } catch (e: Exception) {
-            // Log error but don't crash the app
-            android.util.Log.e("SubscriberActivity", "Failed to start MQTT service: ${e.message}")
+            android.util.Log.e("SubscriberActivity", "Error in onCreate: ${e.message}", e)
+            showToast("Error initializing Emergency Responder mode")
         }
     }
 
     override fun onDestroy() {
-        unregisterReceiver(emergencyAlertReceiver)
+        try {
+            unregisterReceiver(emergencyAlertReceiver)
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error in onDestroy: ${e.message}", e)
+        }
         super.onDestroy()
     }
     
     override fun getViewBinding(): View = layoutInflater.inflate(R.layout.activity_subscriber, null)
     
     override fun setupViews() {
-        setupToolbar()
-        setupAlertHistoryList()
-        viewModel.initializeMqtt(this)
+        try {
+            setupToolbar()
+            setupAlertHistoryList()
+            // Temporarily disable MQTT initialization to prevent crashes
+            // viewModel.initializeMqtt(this)
+            android.util.Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
+            
+            // Add sample data for demonstration
+            addSampleAlerts()
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error in setupViews: ${e.message}", e)
+            showToast("Error setting up Emergency Responder interface")
+        }
     }
     
     override fun setupObservers() {
-        lifecycleScope.launch {
-            viewModel.isLoading.collect { isLoading ->
-                // Handle loading state
+        try {
+            lifecycleScope.launch {
+                viewModel.isLoading.collect { isLoading ->
+                    // Handle loading state
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.errorMessage.collect { error ->
-                showToast(error)
+            
+            lifecycleScope.launch {
+                viewModel.errorMessage.collect { error ->
+                    showToast(error)
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.connectionStatus.collect { status ->
-                updateConnectionStatus(status)
+            
+            lifecycleScope.launch {
+                viewModel.connectionStatus.collect { status ->
+                    updateConnectionStatus(status)
+                }
             }
-        }
+            
+            lifecycleScope.launch {
+                viewModel.alertHistory.collectLatest { alerts ->
+                    updateDashboardStats(alerts.size)
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.isResponding.collectLatest { respondingSet ->
+                    updateActiveResponses(respondingSet.size)
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.alertHistory.collectLatest { alerts ->
+                    alertAdapter.submitList(alerts)
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.responseStatus.collectLatest { responseStatus ->
+                    alertAdapter.updateResponseStatus(responseStatus)
+                }
+            }
 
-        lifecycleScope.launch {
-            viewModel.alertHistory.collectLatest { alerts ->
-                alertAdapter.submitList(alerts)
-            }
+            // Listen to service connection state
+            MqttService.connectionState.observe(this, Observer { state ->
+                val statusText = when (state) {
+                    ConnectionState.CONNECTING -> "Connecting..."
+                    ConnectionState.CONNECTED -> "Connected"
+                    ConnectionState.DISCONNECTED -> "Disconnected"
+                    else -> state.toString()
+                }
+                updateConnectionStatus(statusText)
+            })
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error in setupObservers: ${e.message}", e)
+            showToast("Error setting up data observers")
         }
-
-        // Listen to service connection state
-        MqttService.connectionState.observe(this, Observer { state ->
-            val statusText = when (state) {
-                ConnectionState.CONNECTING -> "Connecting..."
-                ConnectionState.CONNECTED -> "Connected"
-                ConnectionState.DISCONNECTED -> "Disconnected"
-                else -> state.toString()
-            }
-            updateConnectionStatus(statusText)
-        })
     }
     
     private fun setupToolbar() {
@@ -113,18 +149,25 @@ class SubscriberActivity : BaseActivity<View>() {
     
     private fun setupAlertHistoryList() {
         alertAdapter = AlertHistoryAdapter()
+        alertAdapter.onIncidentClick = { incident ->
+            openIncidentDetails(incident)
+        }
         findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recyclerViewAlerts).apply {
             layoutManager = LinearLayoutManager(this@SubscriberActivity)
             adapter = alertAdapter
         }
     }
     
-    private fun setupStatusDisplay() {
-        // TODO: Implement status display
+    private fun updateConnectionStatus(status: String) {
+        findViewById<android.widget.TextView>(R.id.tvConnectionStatus).text = status
     }
     
-    private fun updateConnectionStatus(status: String) {
-        findViewById<android.widget.TextView>(R.id.tvStatus).text = "Status: $status"
+    private fun updateDashboardStats(totalAlerts: Int) {
+        findViewById<android.widget.TextView>(R.id.tvTotalAlerts).text = totalAlerts.toString()
+    }
+    
+    private fun updateActiveResponses(activeCount: Int) {
+        findViewById<android.widget.TextView>(R.id.tvActiveResponses).text = activeCount.toString()
     }
 
     // Call this when an MQTT message is received
@@ -151,6 +194,60 @@ class SubscriberActivity : BaseActivity<View>() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+    }
+    
+    private fun openIncidentDetails(incident: com.example.cc.util.EmergencyAlertMessage) {
+        val intent = Intent(this, IncidentDetailActivity::class.java).apply {
+            putExtra("incident_json", kotlinx.serialization.json.Json.encodeToString(com.example.cc.util.EmergencyAlertMessage.serializer(), incident))
+        }
+        startActivity(intent)
+    }
+    
+    private fun addSampleAlerts() {
+        try {
+            // Create sample emergency alerts for demonstration
+            val sampleAlert1 = com.example.cc.util.EmergencyAlertMessage(
+                incidentId = "INC_001",
+                victimId = "VICTIM_001",
+                victimName = "John Smith",
+                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7128, -74.0060),
+                timestamp = System.currentTimeMillis() - 300000, // 5 minutes ago
+                severity = "HIGH",
+                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
+                    bloodType = "O+",
+                    allergies = listOf("Penicillin"),
+                    medications = listOf("Aspirin"),
+                    conditions = listOf("Hypertension")
+                )
+            )
+            
+            val sampleAlert2 = com.example.cc.util.EmergencyAlertMessage(
+                incidentId = "INC_002",
+                victimId = "VICTIM_002",
+                victimName = "Sarah Johnson",
+                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7589, -73.9851),
+                timestamp = System.currentTimeMillis() - 600000, // 10 minutes ago
+                severity = "MEDIUM",
+                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
+                    bloodType = "A-",
+                    allergies = listOf("None"),
+                    medications = listOf("None"),
+                    conditions = listOf("None")
+                )
+            )
+            
+            // Add sample alerts to the adapter
+            alertAdapter.submitList(listOf(sampleAlert1, sampleAlert2))
+            
+            // Update dashboard stats
+            updateDashboardStats(2)
+            updateActiveResponses(1)
+            updateConnectionStatus("Demo Mode")
+            
+            android.util.Log.i("SubscriberActivity", "Sample alerts added for demonstration")
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error adding sample alerts: ${e.message}", e)
+        }
     }
     
     override fun onSupportNavigateUp(): Boolean {

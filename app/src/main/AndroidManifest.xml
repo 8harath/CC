@@ -60,6 +60,11 @@
             android:exported="false"
             android:theme="@style/Theme.CC" />
 
+        <activity
+            android:name=".ui.subscriber.IncidentDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CC" />
+
         <service
             android:name=".util.MqttService"
             android:exported="false" />
