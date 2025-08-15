@@ -92,6 +92,12 @@ class SubscriberActivity : BaseActivity<View>() {
                 alertAdapter.submitList(alerts)
             }
         }
+        
+        lifecycleScope.launch {
+            viewModel.responseStatus.collectLatest { responseStatus ->
+                alertAdapter.updateResponseStatus(responseStatus)
+            }
+        }
 
         // Listen to service connection state
         MqttService.connectionState.observe(this, Observer { state ->
@@ -113,6 +119,9 @@ class SubscriberActivity : BaseActivity<View>() {
     
     private fun setupAlertHistoryList() {
         alertAdapter = AlertHistoryAdapter()
+        alertAdapter.onIncidentClick = { incident ->
+            openIncidentDetails(incident)
+        }
         findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recyclerViewAlerts).apply {
             layoutManager = LinearLayoutManager(this@SubscriberActivity)
             adapter = alertAdapter
