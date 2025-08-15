@@ -14,14 +14,9 @@ import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.R
-
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.os.Bundle
-import android.content.ComponentName
-import android.content.ServiceConnection
-import android.os.IBinder
-import android.content.ContextWrapper
 import com.example.cc.util.MqttService
 import androidx.lifecycle.Observer
 import com.example.cc.util.MqttService.ConnectionState
@@ -30,7 +25,6 @@ import android.view.View
 class SubscriberActivity : BaseActivity<View>() {
     
     private val viewModel: SubscriberViewModel by viewModels()
-    
     private lateinit var alertAdapter: AlertHistoryAdapter
     
     private val emergencyAlertReceiver = object : BroadcastReceiver() {
@@ -61,7 +55,11 @@ class SubscriberActivity : BaseActivity<View>() {
     }
 
     override fun onDestroy() {
-        unregisterReceiver(emergencyAlertReceiver)
+        try {
+            unregisterReceiver(emergencyAlertReceiver)
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error in onDestroy: ${e.message}", e)
+        }
         super.onDestroy()
     }
     
@@ -142,7 +140,6 @@ class SubscriberActivity : BaseActivity<View>() {
             showToast("Error setting up data observers")
         }
     }
-    }
     
     private fun setupToolbar() {
         setSupportActionBar(findViewById(R.id.toolbar))
@@ -159,10 +156,6 @@ class SubscriberActivity : BaseActivity<View>() {
             layoutManager = LinearLayoutManager(this@SubscriberActivity)
             adapter = alertAdapter
         }
-    }
-    
-    private fun setupStatusDisplay() {
-        // TODO: Implement status display
     }
     
     private fun updateConnectionStatus(status: String) {
