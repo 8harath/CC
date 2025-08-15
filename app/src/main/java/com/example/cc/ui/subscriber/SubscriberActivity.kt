@@ -184,7 +184,7 @@ class SubscriberActivity : BaseActivity<View>() {
     
     private fun openIncidentDetails(incident: com.example.cc.util.EmergencyAlertMessage) {
         val intent = Intent(this, IncidentDetailActivity::class.java).apply {
-            putExtra("incident_json", kotlinx.serialization.json.Json.encodeToString(incident))
+            putExtra("incident_json", kotlinx.serialization.json.Json.encodeToString(com.example.cc.util.EmergencyAlertMessage.serializer(), incident))
         }
         startActivity(intent)
     }

@@ -29,7 +29,7 @@ class IncidentDetailActivity : BaseActivity<View>() {
         val incidentJson = intent.getStringExtra("incident_json")
         if (incidentJson != null) {
             try {
-                currentIncident = kotlinx.serialization.json.Json.decodeFromString(incidentJson)
+                currentIncident = kotlinx.serialization.json.Json.decodeFromString(com.example.cc.util.EmergencyAlertMessage.serializer(), incidentJson)
                 setupViews()
                 setupObservers()
             } catch (e: Exception) {
