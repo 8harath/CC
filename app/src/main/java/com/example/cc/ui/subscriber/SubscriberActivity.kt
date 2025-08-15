@@ -117,28 +117,32 @@ class SubscriberActivity : BaseActivity<View>() {
         }
     }
 
-        lifecycleScope.launch {
-            viewModel.alertHistory.collectLatest { alerts ->
-                alertAdapter.submitList(alerts)
+        try {
+            lifecycleScope.launch {
+                viewModel.alertHistory.collectLatest { alerts ->
+                    alertAdapter.submitList(alerts)
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.responseStatus.collectLatest { responseStatus ->
-                alertAdapter.updateResponseStatus(responseStatus)
+            
+            lifecycleScope.launch {
+                viewModel.responseStatus.collectLatest { responseStatus ->
+                    alertAdapter.updateResponseStatus(responseStatus)
+                }
             }
-        }
 
-        // Listen to service connection state
-        MqttService.connectionState.observe(this, Observer { state ->
-            val statusText = when (state) {
-                ConnectionState.CONNECTING -> "Connecting..."
-                ConnectionState.CONNECTED -> "Connected"
-                ConnectionState.DISCONNECTED -> "Disconnected"
-                else -> state.toString()
-            }
-            updateConnectionStatus(statusText)
-        })
+            // Listen to service connection state
+            MqttService.connectionState.observe(this, Observer { state ->
+                val statusText = when (state) {
+                    ConnectionState.CONNECTING -> "Connecting..."
+                    ConnectionState.CONNECTED -> "Connected"
+                    ConnectionState.DISCONNECTED -> "Disconnected"
+                    else -> state.toString()
+                }
+                updateConnectionStatus(statusText)
+            })
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error in additional observers: ${e.message}", e)
+        }
     }
     
     private fun setupToolbar() {
