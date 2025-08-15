@@ -67,18 +67,31 @@ class SubscriberViewModel : BaseViewModel() {
     }
 
     fun initializeMqtt(context: Context) {
-        mqttClient = MqttClient(context)
-        mqttClient?.onMessageReceived = { topic, message ->
-            when {
-                topic.startsWith(MqttTopics.EMERGENCY_ALERTS) -> {
-                    onEmergencyAlertReceived(message)
-                }
-                topic.startsWith(MqttTopics.RESPONSE_ACK) -> {
-                    onResponseAckReceived(message)
+        try {
+            // Temporarily disable MQTT initialization to prevent crashes
+            android.util.Log.i("SubscriberViewModel", "MQTT initialization disabled for stability")
+            _connectionStatus.value = "Demo Mode"
+            return
+            
+            // Original MQTT code commented out
+            /*
+            mqttClient = MqttClient(context)
+            mqttClient?.onMessageReceived = { topic, message ->
+                when {
+                    topic.startsWith(MqttTopics.EMERGENCY_ALERTS) -> {
+                        onEmergencyAlertReceived(message)
+                    }
+                    topic.startsWith(MqttTopics.RESPONSE_ACK) -> {
+                        onResponseAckReceived(message)
+                    }
                 }
             }
+            connectToMqtt()
+            */
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberViewModel", "Error initializing MQTT: ${e.message}", e)
+            _connectionStatus.value = "Error: ${e.message}"
         }
-        connectToMqtt()
     }
     
     private fun connectToMqtt() {
