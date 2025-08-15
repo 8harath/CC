@@ -137,6 +137,17 @@ class SubscriberViewModel : BaseViewModel() {
     fun acknowledgeResponse(incidentId: String, responderName: String, etaMinutes: Int) {
         viewModelScope.launch {
             try {
+                // Temporarily disable MQTT publishing to prevent crashes
+                android.util.Log.i("SubscriberViewModel", "Response acknowledgment disabled - would acknowledge: $incidentId")
+                
+                // Update local state for demo purposes
+                _responseStatus.update { currentStatus ->
+                    currentStatus + (incidentId to "$responderName: Responding (ETA: ${etaMinutes}min)")
+                }
+                _isResponding.update { it + incidentId }
+                
+                // Original MQTT code commented out
+                /*
                 val ackMessage = ResponseAckMessage(
                     incidentId = incidentId,
                     responderId = "responder_${System.currentTimeMillis()}",
@@ -148,15 +159,10 @@ class SubscriberViewModel : BaseViewModel() {
                 
                 val json = Json.encodeToString(ackMessage)
                 mqttClient?.publish(MqttTopics.RESPONSE_ACK + "/$incidentId", json)
-                
-                // Update local state
-                _responseStatus.update { currentStatus ->
-                    currentStatus + (incidentId to "$responderName: Responding (ETA: ${etaMinutes}min)")
-                }
-                _isResponding.update { it + incidentId }
+                */
                 
             } catch (e: Exception) {
-                // Handle error
+                android.util.Log.e("SubscriberViewModel", "Error acknowledging response: ${e.message}", e)
             }
         }
     }
@@ -164,6 +170,17 @@ class SubscriberViewModel : BaseViewModel() {
     fun cancelResponse(incidentId: String, responderName: String) {
         viewModelScope.launch {
             try {
+                // Temporarily disable MQTT publishing to prevent crashes
+                android.util.Log.i("SubscriberViewModel", "Response cancellation disabled - would cancel: $incidentId")
+                
+                // Update local state for demo purposes
+                _responseStatus.update { currentStatus ->
+                    currentStatus + (incidentId to "$responderName: Cancelled")
+                }
+                _isResponding.update { it - incidentId }
+                
+                // Original MQTT code commented out
+                /*
                 val ackMessage = ResponseAckMessage(
                     incidentId = incidentId,
                     responderId = "responder_${System.currentTimeMillis()}",
@@ -175,15 +192,10 @@ class SubscriberViewModel : BaseViewModel() {
                 
                 val json = Json.encodeToString(ackMessage)
                 mqttClient?.publish(MqttTopics.RESPONSE_ACK + "/$incidentId", json)
-                
-                // Update local state
-                _responseStatus.update { currentStatus ->
-                    currentStatus + (incidentId to "$responderName: Cancelled")
-                }
-                _isResponding.update { it - incidentId }
+                */
                 
             } catch (e: Exception) {
-                // Handle error
+                android.util.Log.e("SubscriberViewModel", "Error cancelling response: ${e.message}", e)
             }
         }
     }
