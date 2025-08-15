@@ -162,6 +162,13 @@ class SubscriberActivity : BaseActivity<View>() {
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
     
+    private fun openIncidentDetails(incident: EmergencyAlertMessage) {
+        val intent = Intent(this, IncidentDetailActivity::class.java).apply {
+            putExtra("incident_json", kotlinx.serialization.json.Json.encodeToString(incident))
+        }
+        startActivity(intent)
+    }
+    
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true

@@ -31,4 +31,15 @@
     <!-- Emergency Mode Colors -->
     <color name="emergency_background">#FFEBEE</color>
     <color name="emergency_text">#D32F2F</color>
+    
+    <!-- Phase 4 Additional Colors -->
+    <color name="red_light">#FFEBEE</color>
+    <color name="red_dark">#D32F2F</color>
+    <color name="orange_light">#FFF3E0</color>
+    <color name="yellow_light">#FFFDE7</color>
+    <color name="green">#4CAF50</color>
+    <color name="orange">#FF9800</color>
+    <color name="blue">#2196F3</color>
+    <color name="blue_dark">#1976D2</color>
+    <color name="gray_light">#E0E0E0</color>
 </resources>
