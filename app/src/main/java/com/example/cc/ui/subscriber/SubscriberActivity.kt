@@ -42,16 +42,21 @@ class SubscriberActivity : BaseActivity<View>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
-        // Start MQTT service with role for dynamic subscriptions
         try {
-            val serviceIntent = Intent(this, MqttService::class.java).apply {
-                putExtra("role", "SUBSCRIBER")
+            registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
+            // Start MQTT service with role for dynamic subscriptions
+            try {
+                val serviceIntent = Intent(this, MqttService::class.java).apply {
+                    putExtra("role", "SUBSCRIBER")
+                }
+                startService(serviceIntent)
+            } catch (e: Exception) {
+                // Log error but don't crash the app
+                android.util.Log.e("SubscriberActivity", "Failed to start MQTT service: ${e.message}")
             }
-            startService(serviceIntent)
         } catch (e: Exception) {
-            // Log error but don't crash the app
-            android.util.Log.e("SubscriberActivity", "Failed to start MQTT service: ${e.message}")
+            android.util.Log.e("SubscriberActivity", "Error in onCreate: ${e.message}", e)
+            showToast("Error initializing Emergency Responder mode")
         }
     }
 
@@ -63,9 +68,16 @@ class SubscriberActivity : BaseActivity<View>() {
     override fun getViewBinding(): View = layoutInflater.inflate(R.layout.activity_subscriber, null)
     
     override fun setupViews() {
-        setupToolbar()
-        setupAlertHistoryList()
-        viewModel.initializeMqtt(this)
+        try {
+            setupToolbar()
+            setupAlertHistoryList()
+            // Temporarily disable MQTT initialization to prevent crashes
+            // viewModel.initializeMqtt(this)
+            android.util.Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error in setupViews: ${e.message}", e)
+            showToast("Error setting up Emergency Responder interface")
+        }
     }
     
     override fun setupObservers() {
