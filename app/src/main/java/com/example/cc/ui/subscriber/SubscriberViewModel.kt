@@ -97,6 +97,13 @@ class SubscriberViewModel : BaseViewModel() {
     private fun connectToMqtt() {
         viewModelScope.launch {
             try {
+                // Temporarily disable MQTT connection to prevent crashes
+                android.util.Log.i("SubscriberViewModel", "MQTT connection disabled for stability")
+                _connectionStatus.value = "Demo Mode"
+                return@launch
+                
+                // Original connection code commented out
+                /*
                 _connectionStatus.value = "Connecting..."
                 val connected = mqttClient?.connect() ?: false
                 if (connected) {
@@ -108,6 +115,7 @@ class SubscriberViewModel : BaseViewModel() {
                 } else {
                     _connectionStatus.value = "Connection Failed"
                 }
+                */
             } catch (e: Exception) {
                 _connectionStatus.value = "Error: ${e.message}"
             }
