@@ -274,7 +274,7 @@ class PublisherActivity : BaseActivity<View>() {
         val fallbackCheckmark = findViewById<android.widget.ImageView>(R.id.fallbackCheckmark)
         
         // Add failure listener to handle animation loading errors gracefully
-        lottie.addFailureListener { throwable: Throwable ->
+        lottie.setFailureListener { throwable ->
             Log.e("LottieError", "Failed to load checkmark animation", throwable)
             // Hide the Lottie view and show fallback image
             lottie.visibility = View.GONE
