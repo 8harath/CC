@@ -81,35 +81,41 @@ class SubscriberActivity : BaseActivity<View>() {
     }
     
     override fun setupObservers() {
-        lifecycleScope.launch {
-            viewModel.isLoading.collect { isLoading ->
-                // Handle loading state
+        try {
+            lifecycleScope.launch {
+                viewModel.isLoading.collect { isLoading ->
+                    // Handle loading state
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.errorMessage.collect { error ->
-                showToast(error)
+            
+            lifecycleScope.launch {
+                viewModel.errorMessage.collect { error ->
+                    showToast(error)
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.connectionStatus.collect { status ->
-                updateConnectionStatus(status)
+            
+            lifecycleScope.launch {
+                viewModel.connectionStatus.collect { status ->
+                    updateConnectionStatus(status)
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.alertHistory.collectLatest { alerts ->
-                updateDashboardStats(alerts.size)
+            
+            lifecycleScope.launch {
+                viewModel.alertHistory.collectLatest { alerts ->
+                    updateDashboardStats(alerts.size)
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.isResponding.collectLatest { respondingSet ->
-                updateActiveResponses(respondingSet.size)
+            
+            lifecycleScope.launch {
+                viewModel.isResponding.collectLatest { respondingSet ->
+                    updateActiveResponses(respondingSet.size)
+                }
             }
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriberActivity", "Error in setupObservers: ${e.message}", e)
+            showToast("Error setting up data observers")
         }
+    }
 
         lifecycleScope.launch {
             viewModel.alertHistory.collectLatest { alerts ->
