@@ -125,4 +125,8 @@
     <color name="system_indigo">#5856D6</color>
     <color name="system_purple">#AF52DE</color>
     <color name="system_pink">#FF2D92</color>
+    
+    <!-- Ripple Colors for Enhanced Touch Feedback -->
+    <color name="ripple_light">#1F000000</color>
+    <color name="ripple_dark">#1FFFFFFF</color>
 </resources>
