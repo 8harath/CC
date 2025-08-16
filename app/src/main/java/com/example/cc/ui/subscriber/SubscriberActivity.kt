@@ -91,7 +91,7 @@ class SubscriberActivity : BaseActivity<View>() {
             
             lifecycleScope.launch {
                 viewModel.errorMessage.collect { error ->
-                    showToast(error)
+                    error?.let { showToast(it) }
                 }
             }
             
