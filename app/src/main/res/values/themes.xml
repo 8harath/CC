@@ -1,15 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme with Apple-inspired design -->
     <style name="Theme.CC" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
+        <!-- Primary brand color - Apple Blue -->
         <item name="colorPrimary">@color/subscriber_primary</item>
         <item name="colorPrimaryVariant">@color/subscriber_primary</item>
         <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
+        <!-- Secondary brand color - Apple Red -->
         <item name="colorSecondary">@color/publisher_primary</item>
         <item name="colorSecondaryVariant">@color/publisher_primary</item>
         <item name="colorOnSecondary">@color/white</item>
-        <!-- Status bar color. -->
+        <!-- Status bar color -->
         <item name="android:statusBarColor">@color/background</item>
         <item name="android:windowLightStatusBar">true</item>
         <!-- Background colors -->
@@ -36,112 +36,193 @@
         <!-- Component styles -->
         <item name="materialButtonStyle">@style/Widget.CC.Button</item>
         <item name="materialCardViewStyle">@style/Widget.CC.CardView</item>
-        <!-- Customize your theme here. -->
+        <!-- Apple-inspired design attributes -->
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:navigationBarColor">@color/background</item>
     </style>
 
-    <!-- Typography Styles -->
+    <!-- Enhanced Typography Styles with Apple-inspired design -->
     <style name="TextAppearance.CC.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
-        <item name="android:textSize">32sp</item>
+        <item name="android:textSize">34sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">-0.01</item>
+        <item name="android:letterSpacing">-0.02</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
-        <item name="android:textSize">28sp</item>
+        <item name="android:textSize">30sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">-0.01</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">26sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
-        <item name="android:textSize">22sp</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0.01</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0.01</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0.03</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0.03</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.BodySmall" parent="TextAppearance.Material3.BodySmall">
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:letterSpacing">0.04</item>
+        <item name="android:letterSpacing">0.03</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0.01</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0.01</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="TextAppearance.CC.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:letterSpacing">0.01</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
-    <!-- Component Styles -->
+    <!-- Enhanced Component Styles with Apple-inspired design -->
     <style name="Widget.CC.Button" parent="Widget.Material3.Button">
-        <item name="android:minHeight">48dp</item>
+        <item name="android:minHeight">52dp</item>
         <item name="android:textAppearance">@style/TextAppearance.CC.LabelLarge</item>
-        <item name="cornerRadius">24dp</item>
-        <item name="android:paddingStart">24dp</item>
-        <item name="android:paddingEnd">24dp</item>
-        <item name="android:paddingTop">12dp</item>
-        <item name="android:paddingBottom">12dp</item>
+        <item name="cornerRadius">26dp</item>
+        <item name="android:paddingStart">28dp</item>
+        <item name="android:paddingEnd">28dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:elevation">2dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="rippleColor">@color/ripple_light</item>
     </style>
 
     <style name="Widget.CC.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="android:minHeight">40dp</item>
+        <item name="android:minHeight">44dp</item>
         <item name="android:textAppearance">@style/TextAppearance.CC.LabelMedium</item>
-        <item name="cornerRadius">20dp</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:paddingTop">8dp</item>
-        <item name="android:paddingBottom">8dp</item>
+        <item name="cornerRadius">22dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="strokeWidth">1.5dp</item>
+        <item name="strokeColor">@color/outline</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <style name="Widget.CC.Button.Emergency" parent="Widget.CC.Button">
+        <item name="android:backgroundTint">@color/publisher_primary</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:elevation">4dp</item>
+        <item name="cornerRadius">28dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">32dp</item>
+        <item name="android:paddingEnd">32dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
     </style>
 
     <style name="Widget.CC.CardView" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardCornerRadius">16dp</item>
-        <item name="cardElevation">4dp</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">3dp</item>
         <item name="cardBackgroundColor">@color/surface</item>
-        <item name="contentPadding">16dp</item>
+        <item name="contentPadding">20dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="rippleColor">@color/ripple_light</item>
     </style>
 
     <style name="Widget.CC.CardView.Compact" parent="Widget.CC.CardView">
-        <item name="contentPadding">12dp</item>
-        <item name="cardCornerRadius">12dp</item>
+        <item name="contentPadding">16dp</item>
+        <item name="cardCornerRadius">16dp</item>
+    </style>
+
+    <style name="Widget.CC.CardView.Emergency" parent="Widget.CC.CardView">
+        <item name="cardBackgroundColor">@color/emergency_container</item>
+        <item name="cardElevation">6dp</item>
+        <item name="cardCornerRadius">24dp</item>
+        <item name="contentPadding">24dp</item>
+    </style>
+
+    <!-- Apple-inspired Input Styles -->
+    <style name="Widget.CC.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeWidth">1.5dp</item>
+        <item name="boxStrokeColor">@color/outline</item>
+        <item name="hintTextColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Apple-inspired Chip Styles -->
+    <style name="Widget.CC.Chip" parent="Widget.Material3.Chip.Assist">
+        <item name="chipCornerRadius">16dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.CC.LabelMedium</item>
+        <item name="chipBackgroundColor">@color/surface_secondary</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- Apple-inspired Divider Style -->
+    <style name="Widget.CC.Divider" parent="Widget.Material3.Divider">
+        <item name="android:background">@color/outline_variant</item>
+        <item name="android:layout_height">0.5dp</item>
     </style>
 </resources>
