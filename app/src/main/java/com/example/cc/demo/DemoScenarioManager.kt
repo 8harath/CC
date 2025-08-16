@@ -6,6 +6,7 @@ import com.example.cc.data.model.EmergencyContact
 import com.example.cc.data.model.Incident
 import com.example.cc.data.model.MedicalProfile
 import com.example.cc.data.model.User
+import com.example.cc.data.model.UserRole
 import com.example.cc.data.repository.IncidentRepository
 import com.example.cc.data.repository.MedicalProfileRepository
 import com.example.cc.data.repository.UserRepository
@@ -496,31 +497,32 @@ class DemoScenarioManager(
             val demoUser = User(
                 id = 1L,
                 name = "Demo User",
+                role = UserRole.PUBLISHER,
                 email = "demo@example.com",
-                phoneNumber = "+1234567890",
-                emergencyContacts = listOf(
-                    EmergencyContact(
-                        id = 1L,
-                        name = "Emergency Contact",
-                        phoneNumber = "+1987654321",
-                        relationship = "Family"
-                    )
-                ),
-                createdAt = System.currentTimeMillis()
+                phone = "+1234567890"
+            )
+            
+            // Create emergency contact
+            val emergencyContact = EmergencyContact(
+                name = "Emergency Contact",
+                phoneNumber = "+1987654321",
+                relationship = "Family",
+                isPrimary = true
             )
             
             // Create medical profile
             val medicalProfile = MedicalProfile(
                 id = 1L,
                 userId = demoUser.id,
-                name = demoUser.name,
-                age = 30,
+                fullName = demoUser.name,
+                dateOfBirth = "1990-01-01",
                 bloodType = "O+",
-                allergies = listOf("None"),
-                medications = listOf("None"),
-                medicalConditions = listOf("None"),
-                emergencyContacts = demoUser.emergencyContacts,
-                createdAt = System.currentTimeMillis()
+                height = "175",
+                weight = "70",
+                allergies = "None",
+                medications = "None",
+                medicalConditions = "None",
+                emergencyContacts = "[{\"name\":\"${emergencyContact.name}\",\"phoneNumber\":\"${emergencyContact.phoneNumber}\",\"relationship\":\"${emergencyContact.relationship}\"}]"
             )
             
             Log.d(TAG, "Demo medical profile setup completed")
