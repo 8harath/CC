@@ -1,5 +1,7 @@
 package com.example.cc.util
 
+import android.util.Log
+
 object MqttConfig {
     // Local Mosquitto broker for academic demonstration
     const val BROKER_URL = "tcp://192.168.1.100:1883" // Change this to your laptop's IP address
@@ -17,6 +19,33 @@ object MqttConfig {
     
     // Get the appropriate broker URL based on network
     fun getBrokerUrl(): String {
-        return BROKER_URL // Use your laptop's IP address
+        // Try to get the recommended broker URL from NetworkHelper
+        val recommendedUrl = NetworkHelper.getRecommendedBrokerUrl()
+        Log.d("MqttConfig", "Recommended broker URL: $recommendedUrl")
+        
+        // For now, return the hardcoded URL, but you can change this to use recommendedUrl
+        return BROKER_URL
+    }
+    
+    // Get broker URL with fallback options
+    fun getBrokerUrlWithFallback(): String {
+        val primaryUrl = BROKER_URL
+        val fallbackUrl = BROKER_URL_LOCALHOST
+        
+        // Test primary URL first
+        if (NetworkHelper.testBrokerConnectivity("192.168.1.100", 1883)) {
+            Log.i("MqttConfig", "Using primary broker: $primaryUrl")
+            return primaryUrl
+        }
+        
+        // Test fallback URL
+        if (NetworkHelper.testBrokerConnectivity("localhost", 1883)) {
+            Log.i("MqttConfig", "Using fallback broker: $fallbackUrl")
+            return fallbackUrl
+        }
+        
+        // If neither works, return primary and let connection fail
+        Log.w("MqttConfig", "No broker accessible, using primary: $primaryUrl")
+        return primaryUrl
     }
 }
