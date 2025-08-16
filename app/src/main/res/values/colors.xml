@@ -3,97 +3,130 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
-    <!-- Material Design 3 Color Tokens -->
-    <color name="colorPrimary">#1976D2</color>
+    <!-- Apple-Inspired Material Design 3 Color Tokens -->
+    <color name="colorPrimary">#007AFF</color>
     <color name="colorOnPrimary">#FFFFFF</color>
-    <color name="colorPrimaryContainer">#BBDEFB</color>
+    <color name="colorPrimaryContainer">#E3F2FD</color>
     <color name="colorOnPrimaryContainer">#0D47A1</color>
     
-    <color name="colorSecondary">#E53935</color>
+    <color name="colorSecondary">#FF3B30</color>
     <color name="colorOnSecondary">#FFFFFF</color>
-    <color name="colorSecondaryContainer">#FFCDD2</color>
+    <color name="colorSecondaryContainer">#FFEBEE</color>
     <color name="colorOnSecondaryContainer">#B71C1C</color>
     
-    <color name="colorTertiary">#FF9800</color>
+    <color name="colorTertiary">#FF9500</color>
     <color name="colorOnTertiary">#FFFFFF</color>
     <color name="colorTertiaryContainer">#FFF3E0</color>
     <color name="colorOnTertiaryContainer">#E65100</color>
     
-    <!-- Surface Colors -->
-    <color name="background">#FAFAFA</color>
+    <!-- Apple-Inspired Surface Colors -->
+    <color name="background">#F2F2F7</color>
     <color name="surface">#FFFFFF</color>
-    <color name="surface_variant">#F5F5F5</color>
-    <color name="colorOnSurface">#212121</color>
-    <color name="colorOnSurfaceVariant">#757575</color>
+    <color name="surface_variant">#F8F8FA</color>
+    <color name="colorOnSurface">#1C1C1E</color>
+    <color name="colorOnSurfaceVariant">#8E8E93</color>
     
-    <!-- Outline Colors -->
-    <color name="outline">#BDBDBD</color>
-    <color name="outline_variant">#E0E0E0</color>
+    <!-- Apple-Inspired Outline Colors -->
+    <color name="outline">#C7C7CC</color>
+    <color name="outline_variant">#E5E5EA</color>
     
-    <!-- Text Colors with Improved Contrast -->
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#616161</color>
-    <color name="text_tertiary">#9E9E9E</color>
-    <color name="text_disabled">#BDBDBD</color>
+    <!-- Apple-Inspired Text Colors with Enhanced Accessibility -->
+    <color name="text_primary">#1C1C1E</color>
+    <color name="text_secondary">#8E8E93</color>
+    <color name="text_tertiary">#AEAEB2</color>
+    <color name="text_disabled">#C7C7CC</color>
     
-    <!-- Publisher Colors (Victim) - Enhanced Contrast -->
-    <color name="publisher_primary">#D32F2F</color>
+    <!-- Publisher Colors (Victim) - Apple Red -->
+    <color name="publisher_primary">#FF3B30</color>
     <color name="publisher_secondary">#FFCDD2</color>
     <color name="publisher_container">#FFEBEE</color>
     <color name="publisher_on_container">#B71C1C</color>
     
-    <!-- Subscriber Colors (Responder) - Enhanced Contrast -->
-    <color name="subscriber_primary">#1565C0</color>
+    <!-- Subscriber Colors (Responder) - Apple Blue -->
+    <color name="subscriber_primary">#007AFF</color>
     <color name="subscriber_secondary">#BBDEFB</color>
     <color name="subscriber_container">#E3F2FD</color>
     <color name="subscriber_on_container">#0D47A1</color>
     
-    <!-- Status Colors with Accessibility in Mind -->
-    <color name="success">#2E7D32</color>
-    <color name="success_container">#C8E6C9</color>
-    <color name="success_on_container">#1B5E20</color>
+    <!-- Apple-Inspired Status Colors with Enhanced Accessibility -->
+    <color name="success">#34C759</color>
+    <color name="success_container">#D4EDDA</color>
+    <color name="success_on_container">#155724</color>
     
-    <color name="warning">#F57C00</color>
-    <color name="warning_container">#FFE0B2</color>
+    <color name="warning">#FF9500</color>
+    <color name="warning_container">#FFF3E0</color>
     <color name="warning_on_container">#E65100</color>
     
-    <color name="error">#D32F2F</color>
+    <color name="error">#FF3B30</color>
     <color name="error_container">#FFCDD2</color>
     <color name="error_on_container">#B71C1C</color>
     
-    <color name="info">#1976D2</color>
+    <color name="info">#007AFF</color>
     <color name="info_container">#BBDEFB</color>
     <color name="info_on_container">#0D47A1</color>
     
-    <!-- Emergency Mode Colors - High Contrast -->
+    <!-- Emergency Mode Colors - High Contrast Apple Design -->
     <color name="emergency_background">#FFEBEE</color>
     <color name="emergency_text">#B71C1C</color>
     <color name="emergency_container">#FFCDD2</color>
     <color name="emergency_on_container">#8E0000</color>
     
+    <!-- Apple-Inspired Accent Colors -->
+    <color name="accent_purple">#AF52DE</color>
+    <color name="accent_pink">#FF2D92</color>
+    <color name="accent_orange">#FF9500</color>
+    <color name="accent_yellow">#FFCC02</color>
+    <color name="accent_green">#34C759</color>
+    <color name="accent_teal">#5AC8FA</color>
+    <color name="accent_blue">#007AFF</color>
+    <color name="accent_indigo">#5856D6</color>
+    
+    <!-- Enhanced Background Variants -->
+    <color name="background_secondary">#E5E5EA</color>
+    <color name="background_tertiary">#D1D1D6</color>
+    
+    <!-- Enhanced Surface Variants -->
+    <color name="surface_secondary">#F8F8FA</color>
+    <color name="surface_tertiary">#F2F2F7</color>
+    
     <!-- Legacy Colors (Maintained for Compatibility) -->
-    <color name="red">#D32F2F</color>
+    <color name="red">#FF3B30</color>
     <color name="red_light">#FFEBEE</color>
     <color name="red_dark">#B71C1C</color>
     <color name="orange_light">#FFF3E0</color>
     <color name="yellow_light">#FFFDE7</color>
-    <color name="green">#2E7D32</color>
-    <color name="orange">#F57C00</color>
-    <color name="blue">#1976D2</color>
-    <color name="blue_dark">#1565C0</color>
-    <color name="gray_light">#E0E0E0</color>
+    <color name="green">#34C759</color>
+    <color name="orange">#FF9500</color>
+    <color name="blue">#007AFF</color>
+    <color name="blue_dark">#0056CC</color>
+    <color name="gray_light">#E5E5EA</color>
     
     <!-- Theme Colors (required by themes) -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
+    <color name="purple_200">#AF52DE</color>
+    <color name="purple_700">#5856D6</color>
+    <color name="teal_200">#5AC8FA</color>
     
-    <!-- Dark Mode Colors -->
-    <color name="background_dark">#121212</color>
-    <color name="surface_dark">#1E1E1E</color>
-    <color name="surface_variant_dark">#2D2D2D</color>
+    <!-- Enhanced Dark Mode Colors -->
+    <color name="background_dark">#000000</color>
+    <color name="surface_dark">#1C1C1E</color>
+    <color name="surface_variant_dark">#2C2C2E</color>
     <color name="text_primary_dark">#FFFFFF</color>
-    <color name="text_secondary_dark">#B3B3B3</color>
-    <color name="outline_dark">#424242</color>
-    <color name="outline_variant_dark">#616161</color>
+    <color name="text_secondary_dark">#EBEBF5</color>
+    <color name="outline_dark">#38383A</color>
+    <color name="outline_variant_dark">#48484A</color>
+    
+    <!-- Apple-Inspired Semantic Colors -->
+    <color name="system_red">#FF3B30</color>
+    <color name="system_orange">#FF9500</color>
+    <color name="system_yellow">#FFCC02</color>
+    <color name="system_green">#34C759</color>
+    <color name="system_teal">#5AC8FA</color>
+    <color name="system_blue">#007AFF</color>
+    <color name="system_indigo">#5856D6</color>
+    <color name="system_purple">#AF52DE</color>
+    <color name="system_pink">#FF2D92</color>
+    
+    <!-- Ripple Colors for Enhanced Touch Feedback -->
+    <color name="ripple_light">#1F000000</color>
+    <color name="ripple_dark">#1FFFFFFF</color>
 </resources>

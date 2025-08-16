@@ -29,4 +29,8 @@
     <string name="error_occurred">An error occurred</string>
     <string name="network_error">Network error</string>
     <string name="try_again">Try Again</string>
+    
+    <!-- Activity Titles -->
+    <string name="emergency_alert_publisher">Emergency Alert System</string>
+    <string name="emergency_response_dashboard">Emergency Response Dashboard</string>
 </resources>
