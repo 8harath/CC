@@ -34,8 +34,6 @@
         <item name="textAppearanceLabelMedium">@style/TextAppearance.CC.LabelMedium</item>
         <item name="textAppearanceLabelSmall">@style/TextAppearance.CC.LabelSmall</item>
         <!-- Component styles -->
-        <item name="materialButtonStyle">@style/Widget.CC.Button</item>
-        <item name="materialCardViewStyle">@style/Widget.CC.CardView</item>
         <!-- Apple-inspired design attributes -->
         <item name="android:windowBackground">@color/background</item>
         <item name="android:windowLightNavigationBar">true</item>
@@ -139,90 +137,5 @@
         <item name="android:textStyle">normal</item>
     </style>
 
-    <!-- Enhanced Component Styles with Apple-inspired design -->
-    <style name="Widget.CC.Button" parent="Widget.Material3.Button">
-        <item name="android:minHeight">52dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.CC.LabelLarge</item>
-        <item name="cornerRadius">26dp</item>
-        <item name="android:paddingStart">28dp</item>
-        <item name="android:paddingEnd">28dp</item>
-        <item name="android:paddingTop">14dp</item>
-        <item name="android:paddingBottom">14dp</item>
-        <item name="android:elevation">2dp</item>
-        <item name="android:stateListAnimator">@null</item>
-        <item name="rippleColor">@color/ripple_light</item>
-    </style>
 
-    <style name="Widget.CC.Button.Secondary" parent="Widget.Material3.Button">
-        <item name="android:minHeight">44dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.CC.LabelMedium</item>
-        <item name="cornerRadius">22dp</item>
-        <item name="android:paddingStart">20dp</item>
-        <item name="android:paddingEnd">20dp</item>
-        <item name="android:paddingTop">10dp</item>
-        <item name="android:paddingBottom">10dp</item>
-        <item name="strokeWidth">1.5dp</item>
-        <item name="strokeColor">@color/outline</item>
-        <item name="android:elevation">0dp</item>
-        <item name="android:stateListAnimator">@null</item>
-    </style>
-
-    <style name="Widget.CC.Button.Emergency" parent="Widget.CC.Button">
-        <item name="android:backgroundTint">@color/publisher_primary</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="android:elevation">4dp</item>
-        <item name="cornerRadius">28dp</item>
-        <item name="android:minHeight">56dp</item>
-        <item name="android:paddingStart">32dp</item>
-        <item name="android:paddingEnd">32dp</item>
-        <item name="android:paddingTop">16dp</item>
-        <item name="android:paddingBottom">16dp</item>
-    </style>
-
-    <style name="Widget.CC.CardView" parent="Widget.Material3.CardView">
-        <item name="cardCornerRadius">20dp</item>
-        <item name="cardElevation">3dp</item>
-        <item name="cardBackgroundColor">@color/surface</item>
-        <item name="contentPadding">20dp</item>
-        <item name="strokeWidth">0dp</item>
-        <item name="rippleColor">@color/ripple_light</item>
-    </style>
-
-    <style name="Widget.CC.CardView.Compact" parent="Widget.CC.CardView">
-        <item name="contentPadding">16dp</item>
-        <item name="cardCornerRadius">16dp</item>
-    </style>
-
-    <style name="Widget.CC.CardView.Emergency" parent="Widget.CC.CardView">
-        <item name="cardBackgroundColor">@color/emergency_container</item>
-        <item name="cardElevation">6dp</item>
-        <item name="cardCornerRadius">24dp</item>
-        <item name="contentPadding">24dp</item>
-    </style>
-
-    <!-- Apple-inspired Input Styles -->
-    <style name="Widget.CC.TextInputLayout" parent="Widget.Material3.TextInputLayout">
-        <item name="boxCornerRadiusTopStart">12dp</item>
-        <item name="boxCornerRadiusTopEnd">12dp</item>
-        <item name="boxCornerRadiusBottomStart">12dp</item>
-        <item name="boxCornerRadiusBottomEnd">12dp</item>
-        <item name="boxStrokeWidth">1.5dp</item>
-        <item name="boxStrokeColor">@color/outline</item>
-        <item name="hintTextColor">@color/text_secondary</item>
-    </style>
-
-    <!-- Apple-inspired Chip Styles -->
-    <style name="Widget.CC.Chip" parent="Widget.Material3.Chip">
-        <item name="chipCornerRadius">16dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.CC.LabelMedium</item>
-        <item name="chipBackgroundColor">@color/surface_secondary</item>
-        <item name="chipStrokeWidth">0dp</item>
-        <item name="android:textColor">@color/text_primary</item>
-    </style>
-
-    <!-- Apple-inspired Divider Style -->
-    <style name="Widget.CC.Divider">
-        <item name="android:background">@color/outline_variant</item>
-        <item name="android:layout_height">0.5dp</item>
-    </style>
 </resources>

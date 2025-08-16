@@ -43,7 +43,7 @@
             android:layout_marginEnd="8dp"
             android:textAppearance="@style/TextAppearance.CC.LabelMedium"
             android:contentDescription="Refresh device discovery"
-            style="@style/Widget.CC.Button.Secondary" />
+            style="@style/Widget.AppCompat.Button" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
@@ -54,7 +54,7 @@
             android:layout_marginStart="8dp"
             android:textAppearance="@style/TextAppearance.CC.LabelMedium"
             android:contentDescription="Cancel device selection"
-            style="@style/Widget.CC.Button.Secondary" />
+            style="@style/Widget.AppCompat.Button" />
 
     </LinearLayout>
 

@@ -227,23 +227,23 @@
                             android:id="@+id/btnDiscoverEsp32"
                             android:layout_width="0dp"
                             android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:text="Discover"
-                            android:layout_marginEnd="8dp"
-                            android:textAppearance="@style/TextAppearance.CC.LabelMedium"
-                            android:contentDescription="Discover ESP32 devices"
-                            style="@style/Widget.CC.Button.Secondary" />
+                                                    android:layout_weight="1"
+                        android:text="Discover"
+                        android:layout_marginEnd="8dp"
+                        android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                        android:contentDescription="Discover ESP32 devices"
+                        style="@style/Widget.AppCompat.Button" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnConnectEsp32"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:text="Connect"
-                            android:layout_marginStart="8dp"
-                            android:textAppearance="@style/TextAppearance.CC.LabelMedium"
-                            android:contentDescription="Connect to ESP32 device"
-                            style="@style/Widget.CC.Button.Secondary" />
+                                                    android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="Connect"
+                        android:layout_marginStart="8dp"
+                        android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                        android:contentDescription="Connect to ESP32 device"
+                        style="@style/Widget.AppCompat.Button" />
 
                     </LinearLayout>
 
@@ -254,7 +254,7 @@
                         android:text="Disconnect"
                         android:textAppearance="@style/TextAppearance.CC.LabelMedium"
                         android:contentDescription="Disconnect from ESP32 device"
-                        style="@style/Widget.CC.Button.Secondary" />
+                        style="@style/Widget.AppCompat.Button" />
 
                 </LinearLayout>
 
@@ -303,7 +303,7 @@
                         android:text="Load Medical Profile"
                         android:textAppearance="@style/TextAppearance.CC.LabelMedium"
                         android:contentDescription="Load medical profile"
-                        style="@style/Widget.CC.Button.Secondary" />
+                        style="@style/Widget.AppCompat.Button" />
 
                 </LinearLayout>
 
@@ -361,7 +361,7 @@
                             android:layout_marginEnd="8dp"
                             android:textAppearance="@style/TextAppearance.CC.LabelMedium"
                             android:contentDescription="Cancel emergency alert"
-                            style="@style/Widget.CC.Button.Secondary" />
+                            style="@style/Widget.AppCompat.Button" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSendNow"
@@ -372,7 +372,7 @@
                             android:layout_marginStart="8dp"
                             android:textAppearance="@style/TextAppearance.CC.LabelMedium"
                             android:contentDescription="Send emergency alert immediately"
-                            style="@style/Widget.CC.Button.Emergency" />
+                            style="@style/Widget.AppCompat.Button" />
 
                     </LinearLayout>
 
