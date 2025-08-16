@@ -6,6 +6,12 @@ import android.util.Log
 import com.example.cc.BuildConfig
 import com.example.cc.data.database.AppDatabase
 import com.example.cc.util.SystemHealthMonitor
+import com.example.cc.util.MqttService
+import com.example.cc.util.Esp32Manager
+import com.example.cc.util.GpsService
+import com.example.cc.data.repository.UserRepository
+import com.example.cc.data.repository.MedicalProfileRepository
+import com.example.cc.data.repository.IncidentRepository
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileInputStream
@@ -39,7 +45,15 @@ class InstallationManager private constructor(private val context: Context) {
     
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    private val systemHealthMonitor = SystemHealthMonitor.getInstance(context)
+    private val systemHealthMonitor = SystemHealthMonitor(
+        context,
+        MqttService(),
+        Esp32Manager(context),
+        GpsService(context),
+        UserRepository(AppDatabase.getDatabase(context).userDao()),
+        MedicalProfileRepository(AppDatabase.getDatabase(context).medicalProfileDao()),
+        IncidentRepository(AppDatabase.getDatabase(context).incidentDao())
+    )
     private val maintenanceManager = MaintenanceManager.getInstance(context)
     
     /**
@@ -350,7 +364,7 @@ class InstallationManager private constructor(private val context: Context) {
     
     private suspend fun setupDatabase(): InstallationStep {
         return try {
-            val database = AppDatabase.getInstance(context)
+            val database = AppDatabase.getDatabase(context)
             
             // Verify database connection
             database.openHelper.readableDatabase.version
@@ -556,7 +570,7 @@ class InstallationManager private constructor(private val context: Context) {
     
     private fun validateDatabase(): ValidationItem {
         return try {
-            val database = AppDatabase.getInstance(context)
+            val database = AppDatabase.getDatabase(context)
             val version = database.openHelper.readableDatabase.version
             
             ValidationItem(

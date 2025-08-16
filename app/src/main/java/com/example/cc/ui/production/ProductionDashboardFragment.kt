@@ -13,6 +13,7 @@ import com.example.cc.production.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import java.io.File
 
 /**
  * Production dashboard fragment for system monitoring, maintenance, and administration
@@ -211,10 +212,10 @@ class ProductionDashboardFragment : Fragment() {
         // Update maintenance due indicator
         if (maintenanceStatus.isMaintenanceDue) {
             binding.tvMaintenanceDue.text = "MAINTENANCE DUE"
-            binding.tvMaintenanceDue.setTextColor(resources.getColor(R.color.error_color, null))
+            binding.tvMaintenanceDue.setTextColor(resources.getColor(R.color.error, null))
         } else {
             binding.tvMaintenanceDue.text = "Up to date"
-            binding.tvMaintenanceDue.setTextColor(resources.getColor(R.color.success_color, null))
+            binding.tvMaintenanceDue.setTextColor(resources.getColor(R.color.success, null))
         }
     }
     
@@ -234,16 +235,16 @@ class ProductionDashboardFragment : Fragment() {
         binding.tvInstallationStatus.text = if (installationStatus.isInstalled) "Installed" else "Not Installed"
         binding.tvInstallationStatus.setTextColor(
             if (installationStatus.isInstalled) 
-                resources.getColor(R.color.success_color, null) 
+                resources.getColor(R.color.success, null) 
             else 
-                resources.getColor(R.color.warning_color, null)
+                resources.getColor(R.color.warning, null)
         )
         
         binding.tvConfigurationStatus.setTextColor(
             if (installationStatus.isConfigured) 
-                resources.getColor(R.color.success_color, null) 
+                resources.getColor(R.color.success, null) 
             else 
-                resources.getColor(R.color.warning_color, null)
+                resources.getColor(R.color.warning, null)
         )
     }
     
