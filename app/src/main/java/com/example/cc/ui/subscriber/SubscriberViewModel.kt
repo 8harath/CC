@@ -302,4 +302,3 @@ class SubscriberViewModel(application: Application) : AndroidViewModel(applicati
         initializeMqtt(context)
     }
 } 
-} 
