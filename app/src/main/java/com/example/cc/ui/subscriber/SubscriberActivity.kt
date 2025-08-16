@@ -102,25 +102,25 @@ class SubscriberActivity : BaseActivity<View>() {
             }
             
             lifecycleScope.launch {
-                viewModel.alertHistory.collectLatest { alerts ->
+                viewModel.alertHistory.collect { alerts ->
                     updateDashboardStats(alerts.size)
                 }
             }
             
             lifecycleScope.launch {
-                viewModel.isResponding.collectLatest { respondingSet ->
+                viewModel.isResponding.collect { respondingSet ->
                     updateActiveResponses(respondingSet.size)
                 }
             }
             
             lifecycleScope.launch {
-                viewModel.alertHistory.collectLatest { alerts ->
+                viewModel.alertHistory.collect { alerts ->
                     alertAdapter.submitList(alerts)
                 }
             }
             
             lifecycleScope.launch {
-                viewModel.responseStatus.collectLatest { responseStatus ->
+                viewModel.responseStatus.collect { responseStatus ->
                     alertAdapter.updateResponseStatus(responseStatus)
                 }
             }
