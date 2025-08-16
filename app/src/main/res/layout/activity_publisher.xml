@@ -23,6 +23,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -36,58 +38,134 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline_variant">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Connection Status"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="16dp" />
 
-                    <TextView
-                        android:id="@+id/tvStatus"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="MQTT: Disconnected | ESP32: Not Connected"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:textColor="@color/text_secondary" />
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvEsp32Status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="ESP32: Not Connected"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
 
-                    <TextView
-                        android:id="@+id/tvSensorData"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sensor Data: No data"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp" />
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_mqtt"
+                                android:tint="@color/info"
+                                android:contentDescription="MQTT status icon" />
 
-                    <TextView
-                        android:id="@+id/tvGpsStatus"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="GPS: Not available"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp" />
+                            <TextView
+                                android:id="@+id/tvStatus"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:text="MQTT: Disconnected"
+                                android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_bluetooth"
+                                android:tint="@color/info"
+                                android:contentDescription="ESP32 status icon" />
+
+                            <TextView
+                                android:id="@+id/tvEsp32Status"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:text="ESP32: Not Connected"
+                                android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_sensor"
+                                android:tint="@color/info"
+                                android:contentDescription="Sensor data icon" />
+
+                            <TextView
+                                android:id="@+id/tvSensorData"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:text="Sensor Data: No data"
+                                android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_location"
+                                android:tint="@color/info"
+                                android:contentDescription="GPS status icon" />
+
+                            <TextView
+                                android:id="@+id/tvGpsStatus"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:text="GPS: Not available"
+                                android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -98,56 +176,63 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline_variant">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="ESP32 Device"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="16dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
+                        android:layout_marginBottom="12dp">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnDiscoverEsp32"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dp"
                             android:layout_weight="1"
                             android:text="Discover"
                             android:layout_marginEnd="8dp"
-                            style="@style/Widget.Material3.Button.OutlinedButton" />
+                            android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                            android:contentDescription="Discover ESP32 devices"
+                            style="@style/Widget.CC.Button.Secondary" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnConnectEsp32"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dp"
                             android:layout_weight="1"
                             android:text="Connect"
                             android:layout_marginStart="8dp"
-                            style="@style/Widget.Material3.Button.OutlinedButton" />
+                            android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                            android:contentDescription="Connect to ESP32 device"
+                            style="@style/Widget.CC.Button.Secondary" />
 
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnDisconnectEsp32"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:text="Disconnect"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                        android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                        android:contentDescription="Disconnect from ESP32 device"
+                        style="@style/Widget.CC.Button.Secondary" />
 
                 </LinearLayout>
 
@@ -158,39 +243,42 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline_variant">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Medical Profile"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="16dp" />
 
                     <TextView
                         android:id="@+id/tvMedicalProfile"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="No medical profile loaded"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="16dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLoadProfile"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:text="Load Medical Profile"
-                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                        android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                        android:contentDescription="Load medical profile"
+                        style="@style/Widget.CC.Button.Secondary" />
 
                 </LinearLayout>
 
@@ -202,34 +290,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp"
+                app:strokeWidth="2dp"
+                app:strokeColor="@color/emergency_on_container"
                 android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp"
+                    android:padding="24dp"
                     android:background="@color/emergency_background">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="EMERGENCY MODE"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                        android:textAppearance="@style/TextAppearance.CC.HeadlineSmall"
                         android:textColor="@color/emergency_text"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="16dp" />
 
                     <TextView
                         android:id="@+id/tvEmergencyCountdown"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Auto-send in: 30s"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/emergency_text"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="20dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -239,20 +328,24 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCancelEmergency"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dp"
                             android:layout_weight="1"
                             android:text="I'm OK"
                             android:layout_marginEnd="8dp"
-                            style="@style/Widget.Material3.Button.OutlinedButton" />
+                            android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                            android:contentDescription="Cancel emergency alert"
+                            style="@style/Widget.CC.Button.Secondary" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSendNow"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dp"
                             android:layout_weight="1"
                             android:text="Send Now"
                             android:layout_marginStart="8dp"
-                            style="@style/Widget.Material3.Button" />
+                            android:textAppearance="@style/TextAppearance.CC.LabelMedium"
+                            android:contentDescription="Send emergency alert immediately"
+                            style="@style/Widget.CC.Button" />
 
                     </LinearLayout>
 
@@ -265,8 +358,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline_variant">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -276,20 +371,22 @@
                     android:gravity="center">
 
                     <ImageView
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
                         android:layout_marginBottom="16dp"
                         android:src="@drawable/ic_emergency"
-                        android:tint="@color/publisher_primary" />
+                        android:tint="@color/publisher_primary"
+                        android:contentDescription="Emergency alert icon"
+                        android:background="@drawable/circle_background"
+                        android:padding="16dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         android:text="Emergency Alert"
-                        android:textColor="@color/text_primary"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textAppearance="@style/TextAppearance.CC.TitleLarge"
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -297,8 +394,8 @@
                         android:layout_marginBottom="24dp"
                         android:gravity="center"
                         android:text="Tap the button below to send an emergency alert to responders"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                        android:textColor="@color/text_secondary" />
 
                     <FrameLayout
                         android:layout_width="80dp"
@@ -328,15 +425,18 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEmergency"
-                        android:layout_width="180dp"
-                        android:layout_height="180dp"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
                         android:text="SOS"
-                        android:textSize="28sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="90dp"
+                        android:textAppearance="@style/TextAppearance.CC.HeadlineMedium"
+                        android:textColor="@color/white"
+                        android:contentDescription="Emergency SOS button"
+                        app:cornerRadius="60dp"
                         app:icon="@drawable/ic_emergency"
                         app:iconGravity="top"
-                        app:iconSize="40dp" />
+                        app:iconSize="32dp"
+                        app:iconTint="@color/white"
+                        android:backgroundTint="@color/emergency_on_container" />
 
                 </LinearLayout>
 
