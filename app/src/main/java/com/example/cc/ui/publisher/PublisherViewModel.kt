@@ -2,6 +2,7 @@ package com.example.cc.ui.publisher
 
 import com.example.cc.ui.base.BaseViewModel
 import android.content.Context
+import android.content.Intent
 import com.example.cc.util.MqttClient
 import com.example.cc.util.MqttTopics
 import kotlinx.serialization.encodeToString
@@ -9,7 +10,6 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 import com.example.cc.util.EmergencyAlertMessage
 import com.example.cc.util.ResponseAckMessage
-import android.content.Intent
 import com.example.cc.util.MqttService
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -71,15 +71,31 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
     val gpsStatus: StateFlow<String> = _gpsStatus.asStateFlow()
     
     fun initializeMqtt(context: Context) {
-        mqttClient = MqttClient(context)
-        esp32Manager = Esp32Manager(context)
-        gpsService = GpsService(context)
-        
-        // Initialize ESP32 monitoring
-        initializeEsp32Monitoring()
-        
-        // Initialize GPS monitoring
-        initializeGpsMonitoring()
+        try {
+            Log.i("PublisherViewModel", "Initializing MQTT for publisher role")
+            
+            // Start MQTT service with publisher role
+            val intent = Intent(context, MqttService::class.java).apply {
+                putExtra("role", "PUBLISHER")
+            }
+            context.startService(intent)
+            
+            // Initialize ESP32 and GPS services
+            esp32Manager = Esp32Manager(context)
+            gpsService = GpsService(context)
+            
+            // Initialize ESP32 monitoring
+            initializeEsp32Monitoring()
+            
+            // Initialize GPS monitoring
+            initializeGpsMonitoring()
+            
+            Log.i("PublisherViewModel", "MQTT service started for publisher role")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherViewModel", "Error initializing MQTT: ${e.message}", e)
+            _errorMessage.value = "Failed to initialize MQTT: ${e.message}"
+        }
     }
     
     private fun initializeEsp32Monitoring() {
