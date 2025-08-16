@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.math.roundToInt
 
 /**
  * Maintenance manager for system updates, diagnostics, and maintenance operations
@@ -283,7 +284,7 @@ class MaintenanceManager private constructor(private val context: Context) {
      */
     fun getMaintenanceStatus(): MaintenanceStatus {
         val lastMaintenance = prefs.getLong(KEY_LAST_MAINTENANCE, 0)
-        val maintenanceSchedule = prefs.getString(KEY_MAINTENANCE_SCHEDULE, "weekly")
+        val maintenanceSchedule = prefs.getString(KEY_MAINTENANCE_SCHEDULE, "weekly") ?: "weekly"
         val systemVersion = prefs.getString(KEY_SYSTEM_VERSION, BuildConfig.VERSION_NAME)
         
         val nextMaintenance = calculateNextMaintenance(lastMaintenance, maintenanceSchedule)
@@ -292,7 +293,7 @@ class MaintenanceManager private constructor(private val context: Context) {
         return MaintenanceStatus(
             lastMaintenance = lastMaintenance,
             nextMaintenance = nextMaintenance,
-            maintenanceSchedule = maintenanceSchedule,
+            maintenanceSchedule = maintenanceSchedule ?: "weekly",
             systemVersion = systemVersion ?: "Unknown",
             isMaintenanceDue = isMaintenanceDue,
             systemHealth = mapOf("overall" to "OK") // Simplified for now

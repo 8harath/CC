@@ -151,9 +151,9 @@ class ProductionMonitor private constructor(private val context: Context) {
                 val gpsPerformance = benchmarkGPSPerformance()
                 
                 // Log comprehensive metrics
-                logPerformanceMetric("database", dbPerformance)
-                logPerformanceMetric("mqtt", mqttPerformance)
-                logPerformanceMetric("gps", gpsPerformance)
+                logPerformanceMetric("database", PerformanceMetric("database", dbPerformance, System.currentTimeMillis()))
+                logPerformanceMetric("mqtt", PerformanceMetric("mqtt", mqttPerformance, System.currentTimeMillis()))
+                logPerformanceMetric("gps", PerformanceMetric("gps", gpsPerformance, System.currentTimeMillis()))
                 
                 // System health analysis
                 analyzeSystemHealth(systemHealth)
