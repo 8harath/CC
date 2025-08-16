@@ -35,7 +35,7 @@ object AppModule {
     val incidentRepository: IncidentRepository by lazy { IncidentRepository(incidentDao) }
     
     // Phase 6 Components
-    val mqttService: MqttService by lazy { MqttService(CarCrashDetectionApp.instance) }
+    val mqttService: MqttService by lazy { MqttService() }
     val esp32Manager: Esp32Manager by lazy { Esp32Manager(CarCrashDetectionApp.instance) }
     val gpsService: GpsService by lazy { GpsService(CarCrashDetectionApp.instance) }
     
