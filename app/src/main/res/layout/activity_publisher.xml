@@ -5,18 +5,24 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <!-- Enhanced App Bar with Apple-inspired design -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:elevation="0dp"
         app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/publisher_primary"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+            android:background="@color/surface"
+            android:theme="@style/ThemeOverlay.AppCompat.Light"
+            app:title="@string/emergency_alert_publisher"
+            app:titleTextAppearance="@style/TextAppearance.CC.TitleLarge"
+            app:titleTextColor="@color/text_primary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -24,30 +30,31 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="16dp"
+        android:paddingBottom="24dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
-            <!-- Connection Status Section -->
+            <!-- Enhanced Connection Status Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline_variant">
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/outline_variant"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -55,7 +62,8 @@
                         android:text="Connection Status"
                         android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="20dp"
+                        android:fontFamily="sans-serif-medium" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -67,11 +75,14 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp">
+                            android:layout_marginBottom="16dp"
+                            android:padding="16dp"
+                            android:background="@color/surface_secondary"
+                            android:backgroundTint="@color/surface_secondary">
 
                             <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_mqtt"
                                 android:tint="@color/info"
                                 android:contentDescription="MQTT status icon" />
@@ -81,10 +92,10 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="16dp"
                                 android:text="MQTT: Disconnected"
                                 android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                                android:textColor="@color/text_secondary" />
+                                android:textColor="@color/text_primary" />
 
                         </LinearLayout>
 
@@ -93,11 +104,14 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp">
+                            android:layout_marginBottom="16dp"
+                            android:padding="16dp"
+                            android:background="@color/surface_secondary"
+                            android:backgroundTint="@color/surface_secondary">
 
                             <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_bluetooth"
                                 android:tint="@color/info"
                                 android:contentDescription="ESP32 status icon" />
@@ -107,10 +121,10 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="16dp"
                                 android:text="ESP32: Not Connected"
                                 android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                                android:textColor="@color/text_secondary" />
+                                android:textColor="@color/text_primary" />
 
                         </LinearLayout>
 
@@ -119,11 +133,14 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp">
+                            android:layout_marginBottom="16dp"
+                            android:padding="16dp"
+                            android:background="@color/surface_secondary"
+                            android:backgroundTint="@color/surface_secondary">
 
                             <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_sensor"
                                 android:tint="@color/info"
                                 android:contentDescription="Sensor data icon" />
@@ -133,10 +150,10 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="16dp"
                                 android:text="Sensor Data: No data"
                                 android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                                android:textColor="@color/text_secondary" />
+                                android:textColor="@color/text_primary" />
 
                         </LinearLayout>
 
@@ -144,11 +161,14 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:gravity="center_vertical"
+                            android:padding="16dp"
+                            android:background="@color/surface_secondary"
+                            android:backgroundTint="@color/surface_secondary">
 
                             <ImageView
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
                                 android:src="@drawable/ic_location"
                                 android:tint="@color/info"
                                 android:contentDescription="GPS status icon" />
@@ -158,10 +178,10 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="16dp"
                                 android:text="GPS: Not available"
                                 android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                                android:textColor="@color/text_secondary" />
+                                android:textColor="@color/text_primary" />
 
                         </LinearLayout>
 
@@ -171,21 +191,22 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ESP32 Connection Section -->
+            <!-- Enhanced ESP32 Connection Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline_variant">
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/outline_variant"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -193,13 +214,14 @@
                         android:text="ESP32 Device"
                         android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="20dp"
+                        android:fontFamily="sans-serif-medium" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="12dp">
+                        android:layout_marginBottom="16dp">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnDiscoverEsp32"
@@ -238,21 +260,22 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Medical Profile Section -->
+            <!-- Enhanced Medical Profile Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline_variant">
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/outline_variant"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -260,7 +283,8 @@
                         android:text="Medical Profile"
                         android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="20dp"
+                        android:fontFamily="sans-serif-medium" />
 
                     <TextView
                         android:id="@+id/tvMedicalProfile"
@@ -269,7 +293,8 @@
                         android:text="No medical profile loaded"
                         android:textAppearance="@style/TextAppearance.CC.BodyMedium"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="20dp"
+                        android:lineSpacingExtra="2dp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLoadProfile"
@@ -284,14 +309,14 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Emergency Mode Section -->
+            <!-- Enhanced Emergency Mode Section -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardEmergencyMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="8dp"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="6dp"
                 app:strokeWidth="2dp"
                 app:strokeColor="@color/emergency_on_container"
                 android:visibility="gone">
@@ -300,7 +325,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="24dp"
+                    android:padding="28dp"
                     android:background="@color/emergency_background">
 
                     <TextView
@@ -309,7 +334,8 @@
                         android:text="EMERGENCY MODE"
                         android:textAppearance="@style/TextAppearance.CC.HeadlineSmall"
                         android:textColor="@color/emergency_text"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="20dp"
+                        android:fontFamily="sans-serif-medium" />
 
                     <TextView
                         android:id="@+id/tvEmergencyCountdown"
@@ -318,7 +344,8 @@
                         android:text="Auto-send in: 30s"
                         android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/emergency_text"
-                        android:layout_marginBottom="20dp" />
+                        android:layout_marginBottom="24dp"
+                        android:fontFamily="sans-serif-medium" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -328,7 +355,7 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCancelEmergency"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="52dp"
                             android:layout_weight="1"
                             android:text="I'm OK"
                             android:layout_marginEnd="8dp"
@@ -339,13 +366,13 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnSendNow"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="52dp"
                             android:layout_weight="1"
                             android:text="Send Now"
                             android:layout_marginStart="8dp"
                             android:textAppearance="@style/TextAppearance.CC.LabelMedium"
                             android:contentDescription="Send emergency alert immediately"
-                            style="@style/Widget.CC.Button" />
+                            style="@style/Widget.CC.Button.Emergency" />
 
                     </LinearLayout>
 
@@ -353,55 +380,58 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Emergency Button Section -->
+            <!-- Enhanced Emergency Button Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline_variant">
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/outline_variant"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="24dp"
+                    android:padding="28dp"
                     android:gravity="center">
 
                     <ImageView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        android:layout_marginBottom="16dp"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:layout_marginBottom="20dp"
                         android:src="@drawable/ic_emergency"
                         android:tint="@color/publisher_primary"
                         android:contentDescription="Emergency alert icon"
                         android:background="@drawable/circle_background"
-                        android:padding="16dp" />
+                        android:padding="20dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="12dp"
                         android:text="Emergency Alert"
                         android:textAppearance="@style/TextAppearance.CC.TitleLarge"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_primary"
+                        android:fontFamily="sans-serif-medium" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="24dp"
+                        android:layout_marginBottom="28dp"
                         android:gravity="center"
                         android:text="Tap the button below to send an emergency alert to responders"
                         android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                        android:textColor="@color/text_secondary" />
+                        android:textColor="@color/text_secondary"
+                        android:lineSpacingExtra="2dp" />
 
                     <FrameLayout
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:layout_gravity="center"
-                        android:layout_marginBottom="16dp">
+                        android:layout_marginBottom="20dp">
 
                         <com.airbnb.lottie.LottieAnimationView
                             android:id="@+id/lottieCheckmark"
@@ -425,18 +455,19 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEmergency"
-                        android:layout_width="120dp"
-                        android:layout_height="120dp"
+                        android:layout_width="128dp"
+                        android:layout_height="128dp"
                         android:text="SOS"
                         android:textAppearance="@style/TextAppearance.CC.HeadlineMedium"
                         android:textColor="@color/white"
                         android:contentDescription="Emergency SOS button"
-                        app:cornerRadius="60dp"
+                        app:cornerRadius="64dp"
                         app:icon="@drawable/ic_emergency"
                         app:iconGravity="top"
-                        app:iconSize="32dp"
+                        app:iconSize="36dp"
                         app:iconTint="@color/white"
-                        android:backgroundTint="@color/emergency_on_container" />
+                        android:backgroundTint="@color/emergency_on_container"
+                        android:elevation="8dp" />
 
                 </LinearLayout>
 
