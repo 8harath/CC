@@ -61,11 +61,11 @@ class DemoScenarioManager(
 
     data class DemoProgress(
         val scenarioId: String,
-        val currentStep: Int,
+        var currentStep: Int,
         val totalSteps: Int,
         val startTime: Long,
         val estimatedEndTime: Long,
-        val status: DemoStatus,
+        var status: DemoStatus,
         val completedSteps: MutableSet<String> = mutableSetOf(),
         val failedSteps: MutableSet<String> = mutableSetOf()
     )
