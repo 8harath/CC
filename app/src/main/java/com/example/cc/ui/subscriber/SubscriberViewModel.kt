@@ -301,4 +301,24 @@ class SubscriberViewModel(application: Application) : AndroidViewModel(applicati
         val context = getApplication<Application>()
         initializeMqtt(context)
     }
+    
+    // Additional methods needed by other components
+    
+    fun getResponderName(): String {
+        return "Responder_${System.currentTimeMillis() % 1000}"
+    }
+    
+    fun openNavigation(latitude: Double, longitude: Double): android.content.Intent {
+        val uri = "geo:$latitude,$longitude?q=$latitude,$longitude"
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri))
+        intent.setPackage("com.google.android.apps.maps")
+        return intent
+    }
+    
+    fun openWazeNavigation(latitude: Double, longitude: Double): android.content.Intent {
+        val uri = "waze://?ll=$latitude,$longitude&navigate=yes"
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri))
+        intent.setPackage("com.waze")
+        return intent
+    }
 } 
