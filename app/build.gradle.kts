@@ -1,9 +1,19 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
     id("kotlin-parcelize")
     alias(libs.plugins.kotlin.serialization)
+}
+
+// Load keystore properties for production signing
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -14,8 +24,8 @@ android {
         applicationId = "com.example.cc"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -31,21 +41,42 @@ android {
         buildConfigField("boolean", "ENABLE_16KB_PAGE_SIZE", "true")
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystoreProperties.isNotEmpty()) {
+                keyAlias = keystoreProperties["keyAlias"] as String?
+                keyPassword = keystoreProperties["keyPassword"] as String?
+                storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+                storePassword = keystoreProperties["storePassword"] as String?
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Production optimizations
+            buildConfigField("boolean", "ENABLE_LOGGING", "false")
+            buildConfigField("boolean", "ENABLE_DEBUG_FEATURES", "false")
+            buildConfigField("boolean", "ENABLE_ANALYTICS", "true")
         }
         debug {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Debug features
+            buildConfigField("boolean", "ENABLE_LOGGING", "true")
+            buildConfigField("boolean", "ENABLE_DEBUG_FEATURES", "true")
+            buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
         }
     }
     
