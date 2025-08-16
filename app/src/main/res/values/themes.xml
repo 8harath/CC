@@ -43,84 +43,72 @@
     <style name="TextAppearance.CC.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
         <item name="android:textSize">32sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
 
     <style name="TextAppearance.CC.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
         <item name="android:textSize">28sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
 
     <style name="TextAppearance.CC.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
     <style name="TextAppearance.CC.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
     <style name="TextAppearance.CC.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
 
     <style name="TextAppearance.CC.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
 
     <style name="TextAppearance.CC.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_regular</item>
         <item name="android:letterSpacing">0.03</item>
     </style>
 
     <style name="TextAppearance.CC.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_regular</item>
         <item name="android:letterSpacing">0.03</item>
     </style>
 
     <style name="TextAppearance.CC.BodySmall" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:fontFamily">@font/roboto_regular</item>
         <item name="android:letterSpacing">0.04</item>
     </style>
 
     <style name="TextAppearance.CC.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
 
     <style name="TextAppearance.CC.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
 
     <style name="TextAppearance.CC.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:fontFamily">@font/roboto_medium</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
 
@@ -155,30 +143,5 @@
     <style name="Widget.CC.CardView.Compact" parent="Widget.CC.CardView">
         <item name="contentPadding">12dp</item>
         <item name="cardCornerRadius">12dp</item>
-    </style>
-
-    <!-- Spacing Styles -->
-    <style name="Spacing.CC">
-        <item name="android:layout_margin">0dp</item>
-    </style>
-
-    <style name="Spacing.CC.Small">
-        <item name="android:layout_margin">4dp</item>
-    </style>
-
-    <style name="Spacing.CC.Medium">
-        <item name="android:layout_margin">8dp</item>
-    </style>
-
-    <style name="Spacing.CC.Large">
-        <item name="android:layout_margin">16dp</item>
-    </style>
-
-    <style name="Spacing.CC.ExtraLarge">
-        <item name="android:layout_margin">24dp</item>
-    </style>
-
-    <style name="Spacing.CC.PageMargin">
-        <item name="android:layout_margin">32dp</item>
     </style>
 </resources>
