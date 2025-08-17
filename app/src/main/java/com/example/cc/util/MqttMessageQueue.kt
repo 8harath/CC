@@ -1,28 +1,33 @@
 package com.example.cc.util
 
-import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object MqttMessageQueue {
-    private val queue = ConcurrentLinkedQueue<Pair<String, MqttMessage>>()
+    private data class QueuedMessage(
+        val topic: String,
+        val payload: String,
+        val qos: Int,
+        val retained: Boolean
+    )
+    
+    private val queue = ConcurrentLinkedQueue<QueuedMessage>()
 
-    fun enqueue(topic: String, message: MqttMessage) {
-        queue.add(topic to message)
+    fun enqueue(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
+        queue.add(QueuedMessage(topic, payload, qos, retained))
     }
 
-    fun dequeue(): Pair<String, MqttMessage>? = queue.poll()
+    fun dequeue(): QueuedMessage? = queue.poll()
 
     fun isEmpty(): Boolean = queue.isEmpty()
 
-    fun retryAll(publishFunc: (String, MqttMessage) -> Boolean) {
-        val failed = mutableListOf<Pair<String, MqttMessage>>()
+    fun retryAll(publishFunc: (String, String, Int, Boolean) -> Boolean) {
+        val failed = mutableListOf<QueuedMessage>()
         while (queue.isNotEmpty()) {
             val item = queue.poll()
             if (item != null) {
-                val (topic, message) = item
-                val success = publishFunc(topic, message)
+                val success = publishFunc(item.topic, item.payload, item.qos, item.retained)
                 if (!success) {
-                    failed.add(topic to message)
+                    failed.add(item)
                 }
             }
         }
