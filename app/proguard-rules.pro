@@ -70,3 +70,26 @@
 -keepclassmembers class * {
     @androidx.annotation.Keep *;
 }
+
+# Fix for LocalBroadcastManager compatibility issue
+-keep class androidx.localbroadcastmanager.** { *; }
+
+# Additional MQTT compatibility rules
+-dontwarn org.eclipse.paho.client.mqttv3.**
+
+# Additional MQTT compatibility rules for AndroidX
+-keep class org.eclipse.paho.client.mqttv3.** { *; }
+-keepclassmembers class org.eclipse.paho.client.mqttv3.** { *; }
+
+# Preserve our custom AndroidX MQTT client
+-keep class com.example.cc.util.AndroidXMqttClient { *; }
+-keepclassmembers class com.example.cc.util.AndroidXMqttClient { *; }
+
+# Preserve MQTT callback methods
+-keepclassmembers class org.eclipse.paho.client.mqttv3.MqttClient {
+    public void setCallback(org.eclipse.paho.client.mqttv3.MqttCallback);
+    public void connect(org.eclipse.paho.client.mqttv3.MqttConnectOptions);
+    public void disconnect();
+    public void subscribe(java.lang.String, int);
+    public void publish(java.lang.String, org.eclipse.paho.client.mqttv3.MqttMessage);
+}

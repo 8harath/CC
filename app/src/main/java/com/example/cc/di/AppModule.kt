@@ -15,6 +15,9 @@ import com.example.cc.testing.IntegrationTestSuite
 import com.example.cc.util.SystemHealthMonitor
 import com.example.cc.demo.DemoScenarioManager
 import com.example.cc.util.ErrorHandler
+import com.example.cc.production.ProductionMonitor
+import com.example.cc.production.MaintenanceManager
+import com.example.cc.production.InstallationManager
 
 object AppModule {
     
@@ -85,5 +88,18 @@ object AppModule {
             medicalProfileRepository,
             incidentRepository
         )
+    }
+    
+    // Phase 7 Components - Production and Deployment
+    val productionMonitor: ProductionMonitor by lazy {
+        ProductionMonitor.getInstance(CarCrashDetectionApp.instance)
+    }
+    
+    val maintenanceManager: MaintenanceManager by lazy {
+        MaintenanceManager.getInstance(CarCrashDetectionApp.instance)
+    }
+    
+    val installationManager: InstallationManager by lazy {
+        InstallationManager.getInstance(CarCrashDetectionApp.instance)
     }
 } 

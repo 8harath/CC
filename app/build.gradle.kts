@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,16 +9,23 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// Load keystore properties for production signing
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.example.cc"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.cc"
         minSdk = 24
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 34
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -29,16 +39,41 @@ android {
         
         // Additional build config for 16 KB compatibility
         buildConfigField("boolean", "ENABLE_16KB_PAGE_SIZE", "true")
+        
+        // Force AndroidX compatibility
+        vectorDrawables.useSupportLibrary = true
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keystoreProperties.isNotEmpty() && keystoreProperties["storeFile"] != null) {
+                val keystoreFile = file(keystoreProperties["storeFile"] as String)
+                if (keystoreFile.exists()) {
+                    keyAlias = keystoreProperties["keyAlias"] as String?
+                    keyPassword = keystoreProperties["keyPassword"] as String?
+                    storeFile = keystoreFile
+                    storePassword = keystoreProperties["storePassword"] as String?
+                }
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // Only use release signing if keystore exists
+            if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Production optimizations
+            buildConfigField("boolean", "ENABLE_LOGGING", "false")
+            buildConfigField("boolean", "ENABLE_DEBUG_FEATURES", "false")
+            buildConfigField("boolean", "ENABLE_ANALYTICS", "true")
         }
         debug {
             isMinifyEnabled = false
@@ -46,6 +81,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Debug features
+            buildConfigField("boolean", "ENABLE_LOGGING", "true")
+            buildConfigField("boolean", "ENABLE_DEBUG_FEATURES", "true")
+            buildConfigField("boolean", "ENABLE_ANALYTICS", "false")
         }
     }
     
@@ -104,6 +143,15 @@ android {
         dataBinding = true
         buildConfig = true
     }
+    
+    // Force AndroidX compatibility
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.core:core:1.12.0")
+            force("androidx.appcompat:appcompat:1.6.1")
+            force("androidx.fragment:fragment:1.6.2")
+        }
+    }
 }
 
 dependencies {
@@ -118,9 +166,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     
     // Room Database
-    implementation("androidx.room:room-runtime:2.7.0")
-    implementation("androidx.room:room-ktx:2.7.0")
-    kapt("androidx.room:room-compiler:2.7.0")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
     
     // Navigation Component
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
@@ -144,9 +192,17 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    // MQTT - Eclipse Paho Android Service
-    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
+    // MQTT - Eclipse Paho with AndroidX compatibility fixes
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    // LocalBroadcastManager replacement - ensure this is available
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    // Additional AndroidX support libraries that might be needed
+    implementation("androidx.annotation:annotation:1.7.1")
+    // Force AndroidX compatibility
+    implementation("androidx.core:core:1.12.0")
+    // Additional AndroidX support
+    implementation("androidx.fragment:fragment:1.6.2")
+    
     // JSON serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     // Lottie for animations

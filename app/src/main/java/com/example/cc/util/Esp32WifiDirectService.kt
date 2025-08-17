@@ -80,18 +80,20 @@ class Esp32WifiDirectService(private val context: Context) {
                 }
                 
                 WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
-                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        Log.w(TAG, "Location permission not granted for WiFi P2P")
-                        return
-                    }
-                    
-                    wifiP2pManager?.requestPeers(wifiP2pChannel, object : WifiP2pManager.PeerListListener {
-                        override fun onPeersAvailable(peers: WifiP2pDeviceList?) {
-                            val deviceList = peers?.deviceList?.toList() ?: emptyList()
-                            _discoveredDevices.value = deviceList
-                            Log.i(TAG, "Discovered ${deviceList.size} WiFi P2P devices")
+                    context?.let { ctx ->
+                        if (ActivityCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            Log.w(TAG, "Location permission not granted for WiFi P2P")
+                            return
                         }
-                    })
+                        
+                        wifiP2pManager?.requestPeers(wifiP2pChannel, object : WifiP2pManager.PeerListListener {
+                            override fun onPeersAvailable(peers: WifiP2pDeviceList?) {
+                                val deviceList = peers?.deviceList?.toList() ?: emptyList()
+                                _discoveredDevices.value = deviceList
+                                Log.i(TAG, "Discovered ${deviceList.size} WiFi P2P devices")
+                            }
+                        })
+                    }
                 }
                 
                 "android.net.wifi.p2p.CONNECTION_STATE_CHANGE" -> {

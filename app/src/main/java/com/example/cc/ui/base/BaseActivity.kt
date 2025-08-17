@@ -3,19 +3,26 @@ package com.example.cc.ui.base
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import android.view.View
+import androidx.viewbinding.ViewBinding
 
-abstract class BaseActivity<VB : View> : AppCompatActivity() {
+abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     
     protected lateinit var binding: VB
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = getViewBinding()
-        setContentView(binding)
-        
-        setupViews()
-        setupObservers()
+        try {
+            binding = getViewBinding()
+            setContentView(binding.root)
+            
+            setupViews()
+            setupObservers()
+        } catch (e: Exception) {
+            // Fallback to prevent crashes
+            setContentView(android.R.layout.simple_list_item_1)
+            Toast.makeText(this, "Error initializing app: ${e.message}", Toast.LENGTH_LONG).show()
+            finish()
+        }
     }
     
     abstract fun getViewBinding(): VB
@@ -25,10 +32,20 @@ abstract class BaseActivity<VB : View> : AppCompatActivity() {
     abstract fun setupObservers()
     
     protected fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        try {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            // Fallback if toast fails
+            android.util.Log.e("BaseActivity", "Toast failed: ${e.message}")
+        }
     }
     
     protected fun showLongToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        try {
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            // Fallback if toast fails
+            android.util.Log.e("BaseActivity", "Toast failed: ${e.message}")
+        }
     }
 } 
