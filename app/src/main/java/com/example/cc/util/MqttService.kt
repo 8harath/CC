@@ -103,7 +103,7 @@ class MqttService : Service() {
                     }
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                         Log.e(TAG, "Publish failed, enqueuing: ${exception?.message}")
-                        MqttMessageQueue.add(topic, payload, qos, retained)
+                        MqttMessageQueue.enqueue(topic, payload, qos, retained)
                     }
                 })
             } catch (e: Exception) {

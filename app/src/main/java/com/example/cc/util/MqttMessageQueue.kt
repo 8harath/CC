@@ -12,7 +12,7 @@ object MqttMessageQueue {
     
     private val queue = ConcurrentLinkedQueue<QueuedMessage>()
 
-    fun add(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
+    fun enqueue(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
         queue.add(QueuedMessage(topic, payload, qos, retained))
     }
 
