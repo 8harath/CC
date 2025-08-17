@@ -139,7 +139,7 @@
                     android:id="@+id/tvConnectionStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="--"
+                    android:text="MQTT: Disabled"
                     android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                     android:textColor="@color/text_primary"
                     android:fontFamily="sans-serif-medium" />
@@ -151,6 +151,19 @@
                     android:text="Connection"
                     android:textAppearance="@style/TextAppearance.CC.BodySmall"
                     android:textColor="@color/text_secondary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEnableMqtt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Enable MQTT"
+                    android:textSize="10sp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    app:cornerRadius="16dp"
+                    android:backgroundTint="@color/primary"
+                    android:textColor="@color/white" />
 
             </LinearLayout>
 
