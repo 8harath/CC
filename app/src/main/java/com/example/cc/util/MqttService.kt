@@ -254,6 +254,7 @@ class MqttService : Service() {
                     true
                 } catch (e: Exception) {
                     Log.e(TAG, "Retry publish failed: ${e.message}")
+                    false
                 }
             }
         }
@@ -364,7 +365,7 @@ class MqttService : Service() {
         
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             isReconnecting = false
-            if (::mqttClient.isInitialized && !mqttClient.isConnected) {
+            if (::mqttClient.isInitialized && !mqttClient.isConnected()) {
                 connect()
             }
         }, MqttConfig.RECONNECT_DELAY)
@@ -422,7 +423,7 @@ class MqttService : Service() {
                         
                         // Only connect if MQTT is enabled
                         if (isMqttEnabled) {
-                            if (::mqttClient.isInitialized && mqttClient.isConnected) {
+                            if (::mqttClient.isInitialized && mqttClient.isConnected()) {
                                 Log.i(TAG, "Received start with role=$role, subscribing immediately")
                                 subscribeForRole(role, incidentId)
                             } else {
