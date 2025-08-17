@@ -20,6 +20,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.example.cc.ui.publisher.DeviceAdapter
 import android.util.Log
 import com.example.cc.databinding.ActivityPublisherBinding
+import android.content.res.ColorStateList
+import androidx.core.content.ContextCompat
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
@@ -396,6 +398,44 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             }
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error handling permission results: ${e.message}")
+        }
+    }
+    
+    private fun enableMqttService() {
+        try {
+            Log.i("PublisherActivity", "Enabling MQTT service for publisher role")
+            
+            // Start MQTT service
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                putExtra("role", "PUBLISHER")
+            }
+            startService(serviceIntent)
+            
+            // Update UI
+            binding.btnEnableMqtt.text = "Enabled"
+            binding.btnEnableMqtt.isEnabled = false
+            binding.btnEnableMqtt.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.success))
+            
+            // Start observing MQTT connection state
+            MqttService.connectionState.observe(this, Observer { state ->
+                try {
+                    val statusText = when (state) {
+                        ConnectionState.CONNECTING -> "MQTT: Connecting..."
+                        ConnectionState.CONNECTED -> "MQTT: Connected"
+                        ConnectionState.DISCONNECTED -> "MQTT: Disconnected"
+                        else -> "MQTT: ${state.toString()}"
+                    }
+                    binding.tvStatus.text = statusText
+                } catch (e: Exception) {
+                    Log.e("PublisherActivity", "Error updating MQTT status: ${e.message}")
+                }
+            })
+            
+            showToast("MQTT service enabled for publisher role")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error enabling MQTT service: ${e.message}")
+            showToast("Failed to enable MQTT service: ${e.message}")
         }
     }
 } 
