@@ -1,264 +1,275 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="@color/background"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
     tools:context=".ui.main.MainActivity">
 
-    <!-- Enhanced App Logo/Icon Area with Apple-style design -->
-    <ImageView
-        android:id="@+id/ivAppLogo"
-        android:layout_width="88dp"
-        android:layout_height="88dp"
-        android:layout_marginTop="80dp"
-        android:src="@drawable/ic_emergency"
-        android:tint="@color/white"
-        android:background="@drawable/enhanced_circle_background"
-        android:padding="24dp"
-        android:contentDescription="App logo"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Enhanced Title with Apple-style typography -->
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/app_title"
-        android:textAppearance="@style/TextAppearance.CC.HeadlineLarge"
-        android:gravity="center"
-        android:textColor="@color/text_primary"
-        android:fontFamily="sans-serif-light"
-        android:letterSpacing="-0.03"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ivAppLogo" />
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp">
 
-    <!-- Enhanced Subtitle with Apple-style design -->
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:gravity="center"
-        android:text="@string/app_subtitle"
-        android:textAppearance="@style/TextAppearance.CC.BodyLarge"
-        android:textColor="@color/text_secondary"
-        android:lineSpacingExtra="6dp"
-        android:fontFamily="sans-serif"
-        android:letterSpacing="0.01"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+        <!-- Enhanced App Logo/Icon Area with Apple-style design -->
+        <ImageView
+            android:id="@+id/ivAppLogo"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:layout_marginTop="60dp"
+            android:src="@drawable/ic_emergency"
+            android:tint="@color/white"
+            android:background="@drawable/enhanced_circle_background"
+            android:padding="24dp"
+            android:contentDescription="App logo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Enhanced Role Selection Section with Apple-style spacing -->
-    <LinearLayout
-        android:id="@+id/llRoleSelection"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
-
-        <!-- Enhanced Section Title -->
+        <!-- Enhanced Title with Apple-style typography -->
         <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:text="@string/select_role"
-            android:textAppearance="@style/TextAppearance.CC.TitleLarge"
-            android:textColor="@color/text_primary"
+            android:layout_marginTop="24dp"
+            android:text="@string/app_title"
+            android:textAppearance="@style/TextAppearance.CC.HeadlineLarge"
             android:gravity="center"
+            android:textColor="@color/text_primary"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="-0.03"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivAppLogo" />
+
+        <!-- Enhanced Subtitle with Apple-style design -->
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:gravity="center"
+            android:text="@string/app_subtitle"
+            android:textAppearance="@style/TextAppearance.CC.BodyLarge"
+            android:textColor="@color/text_secondary"
+            android:lineSpacingExtra="6dp"
+            android:fontFamily="sans-serif"
+            android:letterSpacing="0.01"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+        <!-- Enhanced Role Selection Section with Apple-style spacing -->
+        <LinearLayout
+            android:id="@+id/llRoleSelection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
+
+            <!-- Enhanced Section Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:text="@string/select_role"
+                android:textAppearance="@style/TextAppearance.CC.TitleLarge"
+                android:textColor="@color/text_primary"
+                android:gravity="center"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="-0.01" />
+
+            <!-- Enhanced Publisher Role Card with Apple-style design -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPublisher"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Publisher role selection card"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline_variant"
+                app:cardBackgroundColor="@color/surface"
+                app:rippleColor="@color/ripple_light">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="24dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Enhanced Publisher Icon -->
+                    <ImageView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ic_person"
+                        android:tint="@color/white"
+                        android:contentDescription="Publisher icon"
+                        android:background="@drawable/enhanced_circle_background"
+                        android:padding="18dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/publisher_role"
+                            android:textAppearance="@style/TextAppearance.CC.TitleMedium"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="-0.01" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/publisher_description"
+                            android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingExtra="4dp"
+                            android:fontFamily="sans-serif"
+                            android:letterSpacing="0.02" />
+
+                    </LinearLayout>
+
+                    <!-- Enhanced Arrow Icon -->
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_forward"
+                        android:tint="@color/text_tertiary"
+                        android:contentDescription="Arrow forward"
+                        android:alpha="0.7" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Enhanced Subscriber Role Card with Apple-style design -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSubscriber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="Subscriber role selection card"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/outline_variant"
+                app:cardBackgroundColor="@color/surface"
+                app:rippleColor="@color/ripple_light">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="24dp"
+                    android:gravity="center_vertical">
+
+                    <!-- Enhanced Subscriber Icon -->
+                    <ImageView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:src="@drawable/ic_emergency"
+                        android:tint="@color/white"
+                        android:contentDescription="Subscriber icon"
+                        android:background="@drawable/enhanced_circle_background"
+                        android:padding="18dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/subscriber_role"
+                            android:textAppearance="@style/TextAppearance.CC.TitleMedium"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="-0.01" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/subscriber_description"
+                            android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                            android:textColor="@color/text_secondary"
+                            android:lineSpacingExtra="4dp"
+                            android:fontFamily="sans-serif"
+                            android:letterSpacing="0.02" />
+
+                    </LinearLayout>
+
+                    <!-- Enhanced Arrow Icon -->
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_forward"
+                        android:tint="@color/text_tertiary"
+                        android:contentDescription="Arrow forward"
+                        android:alpha="0.7" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Enhanced Continue Button with Apple-style design -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnContinue"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
+            android:enabled="false"
+            android:text="@string/continue_text"
+            android:textAppearance="@style/TextAppearance.CC.LabelLarge"
+            android:contentDescription="Continue button"
+            android:backgroundTint="@color/subscriber_primary"
+            android:textColor="@color/white"
             android:fontFamily="sans-serif-medium"
-            android:letterSpacing="-0.01" />
+            android:letterSpacing="0.01"
+            app:cornerRadius="28dp"
+            app:icon="@drawable/ic_arrow_forward"
+            app:iconGravity="end"
+            app:iconSize="20dp"
+            app:iconTint="@color/white"
+            app:iconPadding="8dp"
+            app:elevation="4dp"
+            app:rippleColor="@color/ripple_light"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llRoleSelection" />
 
-        <!-- Enhanced Publisher Role Card with Apple-style design -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardPublisher"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="Publisher role selection card"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="4dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/outline_variant"
-            app:cardBackgroundColor="@color/surface"
-            app:rippleColor="@color/ripple_light">
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="28dp"
-                android:gravity="center_vertical">
-
-                <!-- Enhanced Publisher Icon -->
-                <ImageView
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:src="@drawable/ic_person"
-                    android:tint="@color/white"
-                    android:contentDescription="Publisher icon"
-                    android:background="@drawable/enhanced_circle_background"
-                    android:padding="20dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="28dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/publisher_role"
-                        android:textAppearance="@style/TextAppearance.CC.TitleMedium"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="-0.01" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/publisher_description"
-                        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                        android:textColor="@color/text_secondary"
-                        android:lineSpacingExtra="4dp"
-                        android:fontFamily="sans-serif"
-                        android:letterSpacing="0.02" />
-
-                </LinearLayout>
-
-                <!-- Enhanced Arrow Icon -->
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_arrow_forward"
-                    android:tint="@color/text_tertiary"
-                    android:contentDescription="Arrow forward"
-                    android:alpha="0.7" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Enhanced Subscriber Role Card with Apple-style design -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardSubscriber"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:focusable="true"
-            android:contentDescription="Subscriber role selection card"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="4dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/outline_variant"
-            app:cardBackgroundColor="@color/surface"
-            app:rippleColor="@color/ripple_light">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="28dp"
-                android:gravity="center_vertical">
-
-                <!-- Enhanced Subscriber Icon -->
-                <ImageView
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
-                    android:src="@drawable/ic_emergency"
-                    android:tint="@color/white"
-                    android:contentDescription="Subscriber icon"
-                    android:background="@drawable/enhanced_circle_background"
-                    android:padding="20dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="28dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/subscriber_role"
-                        android:textAppearance="@style/TextAppearance.CC.TitleMedium"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="-0.01" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/subscriber_description"
-                        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                        android:textColor="@color/text_secondary"
-                        android:lineSpacingExtra="4dp"
-                        android:fontFamily="sans-serif"
-                        android:letterSpacing="0.02" />
-
-                </LinearLayout>
-
-                <!-- Enhanced Arrow Icon -->
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_arrow_forward"
-                    android:tint="@color/text_tertiary"
-                    android:contentDescription="Arrow forward"
-                    android:alpha="0.7" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-    </LinearLayout>
-
-    <!-- Enhanced Continue Button with Apple-style design -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnContinue"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="48dp"
-        android:enabled="false"
-        android:text="@string/continue_text"
-        android:textAppearance="@style/TextAppearance.CC.LabelLarge"
-        android:contentDescription="Continue button"
-        android:backgroundTint="@color/subscriber_primary"
-        android:textColor="@color/white"
-        android:fontFamily="sans-serif-medium"
-        android:letterSpacing="0.01"
-        app:cornerRadius="30dp"
-        app:icon="@drawable/ic_arrow_forward"
-        app:iconGravity="end"
-        app:iconSize="22dp"
-        app:iconTint="@color/white"
-        app:iconPadding="8dp"
-        app:elevation="4dp"
-        app:rippleColor="@color/ripple_light"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.core.widget.NestedScrollView> 
