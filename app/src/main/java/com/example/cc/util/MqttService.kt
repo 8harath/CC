@@ -244,15 +244,18 @@ class MqttService : Service() {
     }
     
     private fun setupMessageCallback() {
-        mqttClient.toAsync().publishes { publish ->
-            Log.d(TAG, "Message received: ${publish.topic} -> ${String(publish.payloadAsBytes)}")
-            
-            if (publish.topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
-                val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                intent.putExtra("alert_json", String(publish.payloadAsBytes))
-                sendBroadcast(intent)
-            }
-        }
+        mqttClient.toAsync().publishes(
+            { publish ->
+                Log.d(TAG, "Message received: ${publish.topic} -> ${String(publish.payloadAsBytes)}")
+                
+                if (publish.topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                    val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                    intent.putExtra("alert_json", String(publish.payloadAsBytes))
+                    sendBroadcast(intent)
+                }
+            },
+            true
+        )
     }
     
     private fun scheduleReconnect() {
