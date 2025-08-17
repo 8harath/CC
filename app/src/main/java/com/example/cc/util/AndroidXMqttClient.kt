@@ -49,7 +49,7 @@ class AndroidXMqttClient(
      */
     fun connect(options: MqttConnectOptions, userContext: Any?, actionListener: IMqttActionListener?) {
         if (mqttClient == null) {
-            actionListener?.onFailure(null, MqttException(MqttException.REASON_CODE_CLIENT_NOT_CONNECTED))
+            actionListener?.onFailure(null, Exception("MQTT client not initialized"))
             return
         }
         
@@ -93,7 +93,7 @@ class AndroidXMqttClient(
      */
     fun subscribe(topic: String, qos: Int, userContext: Any?, actionListener: IMqttActionListener?) {
         if (!isConnected()) {
-            actionListener?.onFailure(null, MqttException(MqttException.REASON_CODE_CLIENT_NOT_CONNECTED))
+            actionListener?.onFailure(null, Exception("MQTT client not connected"))
             return
         }
         
@@ -115,7 +115,7 @@ class AndroidXMqttClient(
      */
     fun publish(topic: String, message: MqttMessage, userContext: Any?, actionListener: IMqttActionListener?) {
         if (!isConnected()) {
-            actionListener?.onFailure(null, MqttException(MqttException.REASON_CODE_CLIENT_NOT_CONNECTED))
+            actionListener?.onFailure(null, Exception("MQTT client not connected"))
             return
         }
         
