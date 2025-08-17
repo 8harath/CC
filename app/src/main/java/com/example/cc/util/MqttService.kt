@@ -16,10 +16,11 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 // Import Eclipse Paho MQTT Client
-import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.*
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttMessage
+// Import our custom AndroidX-compatible MQTT client
+import com.example.cc.util.AndroidXMqttClient
 
 class MqttService : Service() {
     enum class ConnectionState { CONNECTING, CONNECTED, DISCONNECTED }
@@ -122,7 +123,7 @@ class MqttService : Service() {
         }
     }
     
-    private lateinit var mqttClient: MqttAndroidClient
+    private lateinit var mqttClient: AndroidXMqttClient
     private val TAG = "MqttService"
     private var reconnectAttempts = 0
     private var isReconnecting = false
@@ -151,7 +152,7 @@ class MqttService : Service() {
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
             // Initialize MQTT client but DON'T connect automatically
-            mqttClient = MqttAndroidClient(applicationContext, MqttConfig.getBrokerUrl(), clientId)
+            mqttClient = AndroidXMqttClient(applicationContext, MqttConfig.getBrokerUrl(), clientId)
             
             // Register network receiver
             registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
@@ -187,7 +188,7 @@ class MqttService : Service() {
             this.isRetained = retained
         }
         
-        if (::mqttClient.isInitialized && mqttClient.isConnected) {
+        if (::mqttClient.isInitialized && mqttClient.isConnected()) {
             try {
                 Log.d(TAG, "Publishing message to $topic: $payload")
                 mqttClient.publish(topic, message, null, object : IMqttActionListener {
@@ -216,7 +217,7 @@ class MqttService : Service() {
         }
         
         val validTopics = topics.filter { isValidTopic(it) }
-        if (::mqttClient.isInitialized && mqttClient.isConnected) {
+        if (::mqttClient.isInitialized && mqttClient.isConnected()) {
             validTopics.forEach { topic ->
                 try {
                     Log.d(TAG, "Subscribing to topic: $topic")
@@ -245,7 +246,7 @@ class MqttService : Service() {
     }
 
     private fun retryQueuedMessages() {
-        if (::mqttClient.isInitialized && mqttClient.isConnected) {
+        if (::mqttClient.isInitialized && mqttClient.isConnected()) {
             Log.d(TAG, "Retrying queued messages...")
             MqttMessageQueue.retryAll { topic, payload, qos, retained ->
                 try {
@@ -253,7 +254,6 @@ class MqttService : Service() {
                     true
                 } catch (e: Exception) {
                     Log.e(TAG, "Retry publish failed: ${e.message}")
-                    false
                 }
             }
         }

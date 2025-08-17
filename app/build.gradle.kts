@@ -194,6 +194,15 @@ dependencies {
 
     // MQTT - Eclipse Paho with AndroidX compatibility fixes
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    // Use the Android service library with support library exclusions
+    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1") {
+        exclude(group = "com.android.support")
+        exclude(module = "appcompat-v7")
+        exclude(module = "support-v4")
+        exclude(module = "support-annotations")
+        exclude(module = "support-v13")
+    }
+    // Alternative: try the newer Paho library version
     implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1") {
         exclude(group = "com.android.support")
         exclude(module = "appcompat-v7")

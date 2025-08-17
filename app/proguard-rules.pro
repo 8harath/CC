@@ -152,3 +152,33 @@
 # Force AndroidX imports
 -keep class androidx.** { *; }
 -dontwarn androidx.**
+
+# Additional MQTT compatibility rules for AndroidX
+-keep class org.eclipse.paho.android.service.MqttAndroidClient {
+    public *;
+    private *;
+    protected *;
+    static *;
+}
+
+# Preserve MQTT callback methods
+-keepclassmembers class org.eclipse.paho.android.service.MqttAndroidClient {
+    public void setCallback(org.eclipse.paho.client.mqttv3.MqttCallback);
+    public void connect(org.eclipse.paho.client.mqttv3.MqttConnectOptions, java.lang.Object, org.eclipse.paho.client.mqttv3.IMqttActionListener);
+}
+
+# Preserve LocalBroadcastManager methods that MQTT might use
+-keepclassmembers class android.support.v4.content.LocalBroadcastManager {
+    public static android.support.v4.content.LocalBroadcastManager getInstance(android.content.Context);
+    public void registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter);
+    public void unregisterReceiver(android.content.BroadcastReceiver);
+    public boolean sendBroadcast(android.content.Intent);
+}
+
+# Preserve AndroidX LocalBroadcastManager methods
+-keepclassmembers class androidx.localbroadcastmanager.content.LocalBroadcastManager {
+    public static androidx.localbroadcastmanager.content.LocalBroadcastManager getInstance(android.content.Context);
+    public void registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter);
+    public void unregisterReceiver(android.content.BroadcastReceiver);
+    public boolean sendBroadcast(android.content.Intent);
+}
