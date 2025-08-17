@@ -19,35 +19,40 @@ object MqttConfig {
     // For SSL/TLS (if needed later)
     // const val BROKER_URL_SSL = "ssl://192.168.1.100:8883"
     
-    // Get the appropriate broker URL based on network
-    fun getBrokerUrl(): String {
-        // Try to get the recommended broker URL from NetworkHelper
-        val recommendedUrl = NetworkHelper.getRecommendedBrokerUrl()
-        Log.d("MqttConfig", "Recommended broker URL: $recommendedUrl")
+    // Get the appropriate broker host based on network
+    fun getBrokerHost(): String {
+        // Try to get the recommended broker host from NetworkHelper
+        val recommendedHost = NetworkHelper.getRecommendedBrokerHost()
+        Log.d("MqttConfig", "Recommended broker host: $recommendedHost")
         
-        // For now, return the hardcoded URL, but you can change this to use recommendedUrl
-        return BROKER_URL
+        // For now, return the hardcoded host, but you can change this to use recommendedHost
+        return BROKER_HOST
     }
     
-    // Get broker URL with fallback options
-    fun getBrokerUrlWithFallback(): String {
-        val primaryUrl = BROKER_URL
-        val fallbackUrl = BROKER_URL_LOCALHOST
+    // Get broker host with fallback options
+    fun getBrokerHostWithFallback(): String {
+        val primaryHost = BROKER_HOST
+        val fallbackHost = BROKER_HOST_LOCALHOST
         
-        // Test primary URL first
+        // Test primary host first
         if (NetworkHelper.testBrokerConnectivity("192.168.1.100", 1883)) {
-            Log.i("MqttConfig", "Using primary broker: $primaryUrl")
-            return primaryUrl
+            Log.i("MqttConfig", "Using primary broker: $primaryHost")
+            return primaryHost
         }
         
-        // Test fallback URL
+        // Test fallback host
         if (NetworkHelper.testBrokerConnectivity("localhost", 1883)) {
-            Log.i("MqttConfig", "Using fallback broker: $fallbackUrl")
-            return fallbackUrl
+            Log.i("MqttConfig", "Using fallback broker: $fallbackHost")
+            return fallbackHost
         }
         
         // If neither works, return primary and let connection fail
-        Log.w("MqttConfig", "No broker accessible, using primary: $primaryUrl")
-        return primaryUrl
+        Log.w("MqttConfig", "No broker accessible, using primary: $primaryHost")
+        return primaryHost
+    }
+    
+    // Get broker port
+    fun getBrokerPort(): Int {
+        return BROKER_PORT
     }
 }
