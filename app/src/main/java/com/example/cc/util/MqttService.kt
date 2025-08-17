@@ -108,7 +108,7 @@ class MqttService : Service() {
                 val publishMessage = Mqtt5Publish.builder()
                     .topic(topic)
                     .payload(payload.toByteArray())
-                    .qos(qos)
+                    .qos(MqttQos.fromCode(qos))
                     .retain(retained)
                     .build()
                 
@@ -142,7 +142,7 @@ class MqttService : Service() {
                     
                     mqttClient.subscribeWith()
                         .topicFilter(topic)
-                        .qos(1)
+                        .qos(MqttQos.fromCode(1))
                         .send()
                         .whenComplete { subAck: Mqtt5SubAck?, throwable: Throwable? ->
                             if (throwable != null) {
