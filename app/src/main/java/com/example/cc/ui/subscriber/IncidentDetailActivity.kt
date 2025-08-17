@@ -16,8 +16,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import android.util.Log
+import com.example.cc.databinding.ActivityIncidentDetailBinding
 
-class IncidentDetailActivity : BaseActivity<View>() {
+class IncidentDetailActivity : BaseActivity<ActivityIncidentDetailBinding>() {
     
     private val viewModel: SubscriberViewModel by viewModels()
     private var currentIncident: EmergencyAlertMessage? = null
@@ -33,6 +35,7 @@ class IncidentDetailActivity : BaseActivity<View>() {
                 setupViews()
                 setupObservers()
             } catch (e: Exception) {
+                Log.e("IncidentDetailActivity", "Error loading incident details: ${e.message}")
                 showToast("Error loading incident details")
                 finish()
             }
@@ -42,97 +45,135 @@ class IncidentDetailActivity : BaseActivity<View>() {
         }
     }
     
-    override fun getViewBinding(): View = layoutInflater.inflate(R.layout.activity_incident_detail, null)
+    override fun getViewBinding(): ActivityIncidentDetailBinding = ActivityIncidentDetailBinding.inflate(layoutInflater)
     
     override fun setupViews() {
-        setupToolbar()
-        populateIncidentDetails()
-        setupActionButtons()
+        try {
+            setupToolbar()
+            populateIncidentDetails()
+            setupActionButtons()
+        } catch (e: Exception) {
+            Log.e("IncidentDetailActivity", "Error setting up views: ${e.message}")
+            showToast("Error setting up incident details")
+        }
     }
     
     override fun setupObservers() {
-        lifecycleScope.launch {
-            viewModel.responseStatus.collectLatest { responseStatus ->
-                updateResponseStatus(responseStatus)
+        try {
+            lifecycleScope.launch {
+                viewModel.responseStatus.collectLatest { responseStatus ->
+                    try {
+                        updateResponseStatus(responseStatus)
+                    } catch (e: Exception) {
+                        Log.e("IncidentDetailActivity", "Error updating response status: ${e.message}")
+                    }
+                }
             }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.isResponding.collectLatest { respondingSet ->
-                updateResponseButtons(respondingSet)
+            
+            lifecycleScope.launch {
+                viewModel.isResponding.collectLatest { respondingSet ->
+                    try {
+                        updateResponseButtons(respondingSet)
+                    } catch (e: Exception) {
+                        Log.e("IncidentDetailActivity", "Error updating response buttons: ${e.message}")
+                    }
+                }
             }
+        } catch (e: Exception) {
+            Log.e("IncidentDetailActivity", "Error setting up observers: ${e.message}")
         }
     }
     
     private fun setupToolbar() {
-        setSupportActionBar(findViewById(R.id.toolbar))
-        supportActionBar?.title = "Incident Details"
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        try {
+            setSupportActionBar(binding.toolbar)
+            supportActionBar?.title = "Incident Details"
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        } catch (e: Exception) {
+            Log.e("IncidentDetailActivity", "Error setting up toolbar: ${e.message}")
+        }
     }
     
     private fun populateIncidentDetails() {
-        currentIncident?.let { incident ->
-            // Basic incident info
-            findViewById<android.widget.TextView>(R.id.tvVictimName).text = incident.victimName
-            findViewById<android.widget.TextView>(R.id.tvIncidentId).text = "ID: ${incident.incidentId}"
-            findViewById<android.widget.TextView>(R.id.tvSeverity).text = "Severity: ${incident.severity}"
-            
-            // Timestamp
-            val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault())
-            findViewById<android.widget.TextView>(R.id.tvTimestamp).text = "Time: ${sdf.format(Date(incident.timestamp))}"
-            
-            // Location
-            findViewById<android.widget.TextView>(R.id.tvLocation).text = 
-                "Location: ${String.format("%.6f, %.6f", incident.location.latitude, incident.location.longitude)}"
-            
-            // Medical information
-            findViewById<android.widget.TextView>(R.id.tvBloodType).text = "Blood Type: ${incident.medicalInfo.bloodType}"
-            
-            val allergiesText = if (incident.medicalInfo.allergies.isNotEmpty()) {
-                incident.medicalInfo.allergies.joinToString(", ")
-            } else {
-                "None"
+        try {
+            currentIncident?.let { incident ->
+                // Basic incident info
+                binding.tvVictimName.text = incident.victimName
+                binding.tvIncidentId.text = "ID: ${incident.incidentId}"
+                binding.tvSeverity.text = "Severity: ${incident.severity}"
+                
+                // Timestamp
+                val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault())
+                binding.tvTimestamp.text = "Time: ${sdf.format(Date(incident.timestamp))}"
+                
+                // Location
+                binding.tvLocation.text = 
+                    "Location: ${String.format("%.6f, %.6f", incident.location.latitude, incident.location.longitude)}"
+                
+                // Medical information
+                binding.tvBloodType.text = "Blood Type: ${incident.medicalInfo.bloodType}"
+                
+                val allergiesText = if (incident.medicalInfo.allergies.isNotEmpty()) {
+                    incident.medicalInfo.allergies.joinToString(", ")
+                } else {
+                    "None"
+                }
+                binding.tvAllergies.text = "Allergies: $allergiesText"
+                
+                val medicationsText = if (incident.medicalInfo.medications.isNotEmpty()) {
+                    incident.medicalInfo.medications.joinToString(", ")
+                } else {
+                    "None"
+                }
+                binding.tvMedications.text = "Medications: $medicationsText"
+                
+                // Vehicle information
+                binding.tvVehicleMake.text = "Make: ${incident.vehicleInfo.make}"
+                binding.tvVehicleModel.text = "Model: ${incident.vehicleInfo.model}"
+                binding.tvVehicleYear.text = "Year: ${incident.vehicleInfo.year}"
+                binding.tvLicensePlate.text = "License: ${incident.vehicleInfo.licensePlate}"
+                
+                // Impact data
+                binding.tvImpactForce.text = "Impact Force: ${String.format("%.1f", incident.impactData.force)}g"
+                binding.tvImpactDirection.text = "Direction: ${incident.impactData.direction}"
+                
+                // Show/hide sections based on data availability
+                binding.sectionMedical.visibility = if (incident.medicalInfo.bloodType.isNotEmpty()) View.VISIBLE else View.GONE
+                binding.sectionVehicle.visibility = if (incident.vehicleInfo.make.isNotEmpty()) View.VISIBLE else View.GONE
+                binding.sectionImpact.visibility = if (incident.impactData.force > 0) View.VISIBLE else View.GONE
+                
+            } ?: run {
+                Log.w("IncidentDetailActivity", "No incident data to populate")
+                showToast("No incident data available")
             }
-            findViewById<android.widget.TextView>(R.id.tvAllergies).text = "Allergies: $allergiesText"
-            
-            val medicationsText = if (incident.medicalInfo.medications.isNotEmpty()) {
-                incident.medicalInfo.medications.joinToString(", ")
-            } else {
-                "None"
-            }
-            findViewById<android.widget.TextView>(R.id.tvMedications).text = "Medications: $medicationsText"
-            
-            val conditionsText = if (incident.medicalInfo.conditions.isNotEmpty()) {
-                incident.medicalInfo.conditions.joinToString(", ")
-            } else {
-                "None"
-            }
-            findViewById<android.widget.TextView>(R.id.tvConditions).text = "Conditions: $conditionsText"
+        } catch (e: Exception) {
+            Log.e("IncidentDetailActivity", "Error populating incident details: ${e.message}")
+            showToast("Error loading incident information")
         }
     }
     
     private fun setupActionButtons() {
         // Respond button
-        findViewById<android.widget.Button>(R.id.btnRespond).setOnClickListener {
+        binding.btnRespond.setOnClickListener {
             showResponseDialog()
         }
         
         // Cancel response button
-        findViewById<android.widget.Button>(R.id.btnCancelResponse).setOnClickListener {
+        binding.btnCancelResponse.setOnClickListener {
             showCancelResponseDialog()
         }
         
         // Navigation buttons
-        findViewById<android.widget.Button>(R.id.btnNavigateMaps).setOnClickListener {
+        binding.btnNavigateMaps.setOnClickListener {
             openGoogleMaps()
         }
         
-        findViewById<android.widget.Button>(R.id.btnNavigateWaze).setOnClickListener {
+        binding.btnNavigateWaze.setOnClickListener {
             openWaze()
         }
         
         // Call emergency services
-        findViewById<android.widget.Button>(R.id.btnCallEmergency).setOnClickListener {
+        binding.btnCallEmergency.setOnClickListener {
             callEmergencyServices()
         }
     }
@@ -208,7 +249,7 @@ class IncidentDetailActivity : BaseActivity<View>() {
     private fun updateResponseStatus(responseStatus: Map<String, String>) {
         currentIncident?.let { incident ->
             val status = responseStatus[incident.incidentId]
-            findViewById<android.widget.TextView>(R.id.tvResponseStatus).text = 
+            binding.tvResponseStatus.text = 
                 "Response Status: ${status ?: "No response yet"}"
         }
     }
@@ -216,9 +257,9 @@ class IncidentDetailActivity : BaseActivity<View>() {
     private fun updateResponseButtons(respondingSet: Set<String>) {
         currentIncident?.let { incident ->
             val isCurrentlyResponding = respondingSet.contains(incident.incidentId)
-            findViewById<android.widget.Button>(R.id.btnRespond).visibility = 
+            binding.btnRespond.visibility = 
                 if (isCurrentlyResponding) View.GONE else View.VISIBLE
-            findViewById<android.widget.Button>(R.id.btnCancelResponse).visibility = 
+            binding.btnCancelResponse.visibility = 
                 if (isCurrentlyResponding) View.VISIBLE else View.GONE
         }
     }
