@@ -24,6 +24,9 @@ import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish
 import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck
 import com.hivemq.client.mqtt.mqtt5.message.unsubscribe.unsuback.Mqtt5UnsubAck
+import com.hivemq.client.mqtt.datatypes.MqttQos
+import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5PublishResult
+import java.util.function.Consumer
 
 class MqttService : Service() {
     enum class ConnectionState { CONNECTING, CONNECTED, DISCONNECTED }
