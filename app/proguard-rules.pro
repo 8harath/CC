@@ -70,3 +70,53 @@
 -keepclassmembers class * {
     @androidx.annotation.Keep *;
 }
+
+# Fix for LocalBroadcastManager compatibility issue
+-keep class androidx.localbroadcastmanager.** { *; }
+-keep class android.support.v4.content.LocalBroadcastManager { *; }
+-keep class android.support.v4.content.** { *; }
+
+# Additional MQTT compatibility rules
+-dontwarn android.support.v4.content.LocalBroadcastManager
+-dontwarn android.support.v4.content.**
+-dontwarn org.eclipse.paho.android.service.**
+
+# Preserve MQTT service classes
+-keep class org.eclipse.paho.android.service.MqttService { *; }
+-keep class org.eclipse.paho.android.service.MqttAndroidClient { *; }
+
+# Force AndroidX compatibility for MQTT
+-keep class org.eclipse.paho.android.service.** {
+    *;
+}
+
+# Additional AndroidX compatibility rules
+-keep class androidx.** { *; }
+-dontwarn androidx.**
+
+# Preserve all MQTT-related classes and methods
+-keep class org.eclipse.paho.** { *; }
+-keepclassmembers class org.eclipse.paho.** { *; }
+
+# Handle LocalBroadcastManager replacement
+-keep class androidx.localbroadcastmanager.content.LocalBroadcastManager { *; }
+-keepclassmembers class androidx.localbroadcastmanager.content.LocalBroadcastManager { *; }
+
+# Specific fix for LocalBroadcastManager issue
+-keep class android.support.v4.content.LocalBroadcastManager {
+    public *;
+}
+-keep class androidx.localbroadcastmanager.content.LocalBroadcastManager {
+    public *;
+}
+
+# Force AndroidX imports for MQTT
+-keep class org.eclipse.paho.android.service.MqttAndroidClient {
+    public *;
+    private *;
+}
+
+# Additional compatibility rules
+-dontwarn android.support.**
+-dontwarn org.eclipse.paho.**
+-keepattributes *Annotation*

@@ -39,6 +39,9 @@ android {
         
         // Additional build config for 16 KB compatibility
         buildConfigField("boolean", "ENABLE_16KB_PAGE_SIZE", "true")
+        
+        // Force AndroidX compatibility
+        vectorDrawables.useSupportLibrary = true
     }
 
     signingConfigs {
@@ -140,6 +143,15 @@ android {
         dataBinding = true
         buildConfig = true
     }
+    
+    // Force AndroidX compatibility
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.core:core:1.12.0")
+            force("androidx.appcompat:appcompat:1.6.1")
+            force("androidx.fragment:fragment:1.6.2")
+        }
+    }
 }
 
 dependencies {
@@ -186,11 +198,19 @@ dependencies {
         exclude(group = "com.android.support")
         exclude(module = "appcompat-v7")
         exclude(module = "support-v4")
+        exclude(module = "support-annotations")
+        exclude(module = "support-v13")
     }
-    // AndroidX support for Paho
+    // AndroidX support for Paho - updated versions for better compatibility
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    // LocalBroadcastManager replacement
+    // LocalBroadcastManager replacement - ensure this is available
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    // Additional AndroidX support libraries that might be needed
+    implementation("androidx.annotation:annotation:1.7.1")
+    // Force AndroidX compatibility
+    implementation("androidx.core:core:1.12.0")
+    // Additional AndroidX support
+    implementation("androidx.fragment:fragment:1.6.2")
     
     // JSON serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
