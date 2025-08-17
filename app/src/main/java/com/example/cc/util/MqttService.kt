@@ -450,8 +450,7 @@ class MqttService : Service() {
         try {
             unregisterReceiver(networkReceiver)
             if (::mqttClient.isInitialized) {
-                mqttClient.unregisterResources()
-                mqttClient.disconnect()
+                mqttClient.close()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error disconnecting MQTT: ${e.message}")
@@ -489,7 +488,7 @@ class MqttService : Service() {
         setMqttEnabled(false)
         
         // Disconnect if connected
-        if (::mqttClient.isInitialized && mqttClient.isConnected) {
+        if (::mqttClient.isInitialized && mqttClient.isConnected()) {
             try {
                 mqttClient.disconnect()
                 Log.i(TAG, "MQTT disconnected due to user disabling")

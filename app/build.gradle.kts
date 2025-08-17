@@ -194,28 +194,8 @@ dependencies {
 
     // MQTT - Eclipse Paho with AndroidX compatibility fixes
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
-    // Use the Android service library with support library exclusions
-    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1") {
-        exclude(group = "com.android.support")
-        exclude(module = "appcompat-v7")
-        exclude(module = "support-v4")
-        exclude(module = "support-annotations")
-        exclude(module = "support-v13")
-    }
-    // Alternative: try the newer Paho library version
-    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1") {
-        exclude(group = "com.android.support")
-        exclude(module = "appcompat-v7")
-        exclude(module = "support-v4")
-        exclude(module = "support-annotations")
-        exclude(module = "support-v13")
-    }
-    // AndroidX support for Paho - updated versions for better compatibility
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
     // LocalBroadcastManager replacement - ensure this is available
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-    // Additional support for MQTT service compatibility
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
     // Additional AndroidX support libraries that might be needed
     implementation("androidx.annotation:annotation:1.7.1")
     // Force AndroidX compatibility

@@ -73,112 +73,23 @@
 
 # Fix for LocalBroadcastManager compatibility issue
 -keep class androidx.localbroadcastmanager.** { *; }
--keep class android.support.v4.content.LocalBroadcastManager { *; }
--keep class android.support.v4.content.** { *; }
 
 # Additional MQTT compatibility rules
--dontwarn android.support.v4.content.LocalBroadcastManager
--dontwarn android.support.v4.content.**
--dontwarn org.eclipse.paho.android.service.**
-
-# Preserve MQTT service classes
--keep class org.eclipse.paho.android.service.MqttService { *; }
--keep class org.eclipse.paho.android.service.MqttAndroidClient { *; }
-
-# Force AndroidX compatibility for MQTT
--keep class org.eclipse.paho.android.service.** {
-    *;
-}
-
-# Additional AndroidX compatibility rules
--keep class androidx.** { *; }
--dontwarn androidx.**
-
-# Preserve all MQTT-related classes and methods
--keep class org.eclipse.paho.** { *; }
--keepclassmembers class org.eclipse.paho.** { *; }
-
-# Handle LocalBroadcastManager replacement
--keep class androidx.localbroadcastmanager.content.LocalBroadcastManager { *; }
--keepclassmembers class androidx.localbroadcastmanager.content.LocalBroadcastManager { *; }
-
-# Specific fix for LocalBroadcastManager issue
--keep class android.support.v4.content.LocalBroadcastManager {
-    public *;
-}
--keep class androidx.localbroadcastmanager.content.LocalBroadcastManager {
-    public *;
-}
-
-# Force AndroidX imports for MQTT
--keep class org.eclipse.paho.android.service.MqttAndroidClient {
-    public *;
-    private *;
-}
-
-# Additional compatibility rules
--dontwarn android.support.**
--dontwarn org.eclipse.paho.**
--keepattributes *Annotation*
-
-# Comprehensive LocalBroadcastManager fix
--keep class android.support.v4.content.LocalBroadcastManager {
-    public *;
-    private *;
-}
--keep class androidx.localbroadcastmanager.content.LocalBroadcastManager {
-    public *;
-    private *;
-}
-
-# Force MQTT to use AndroidX
--keep class org.eclipse.paho.android.service.MqttAndroidClient {
-    public *;
-    private *;
-    protected *;
-}
-
-# Additional MQTT compatibility
--keep class org.eclipse.paho.android.service.MqttService {
-    public *;
-    private *;
-    protected *;
-}
-
-# Handle all support library references
--keep class android.support.** { *; }
--dontwarn android.support.**
-
-# Force AndroidX imports
--keep class androidx.** { *; }
--dontwarn androidx.**
+-dontwarn org.eclipse.paho.client.mqttv3.**
 
 # Additional MQTT compatibility rules for AndroidX
--keep class org.eclipse.paho.android.service.MqttAndroidClient {
-    public *;
-    private *;
-    protected *;
-    static *;
-}
+-keep class org.eclipse.paho.client.mqttv3.** { *; }
+-keepclassmembers class org.eclipse.paho.client.mqttv3.** { *; }
+
+# Preserve our custom AndroidX MQTT client
+-keep class com.example.cc.util.AndroidXMqttClient { *; }
+-keepclassmembers class com.example.cc.util.AndroidXMqttClient { *; }
 
 # Preserve MQTT callback methods
--keepclassmembers class org.eclipse.paho.android.service.MqttAndroidClient {
+-keepclassmembers class org.eclipse.paho.client.mqttv3.MqttClient {
     public void setCallback(org.eclipse.paho.client.mqttv3.MqttCallback);
-    public void connect(org.eclipse.paho.client.mqttv3.MqttConnectOptions, java.lang.Object, org.eclipse.paho.client.mqttv3.IMqttActionListener);
-}
-
-# Preserve LocalBroadcastManager methods that MQTT might use
--keepclassmembers class android.support.v4.content.LocalBroadcastManager {
-    public static android.support.v4.content.LocalBroadcastManager getInstance(android.content.Context);
-    public void registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter);
-    public void unregisterReceiver(android.content.BroadcastReceiver);
-    public boolean sendBroadcast(android.content.Intent);
-}
-
-# Preserve AndroidX LocalBroadcastManager methods
--keepclassmembers class androidx.localbroadcastmanager.content.LocalBroadcastManager {
-    public static androidx.localbroadcastmanager.content.LocalBroadcastManager getInstance(android.content.Context);
-    public void registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter);
-    public void unregisterReceiver(android.content.BroadcastReceiver);
-    public boolean sendBroadcast(android.content.Intent);
+    public void connect(org.eclipse.paho.client.mqttv3.MqttConnectOptions);
+    public void disconnect();
+    public void subscribe(java.lang.String, int);
+    public void publish(java.lang.String, org.eclipse.paho.client.mqttv3.MqttMessage);
 }
