@@ -30,7 +30,7 @@
 }
 
 # Additional 16 KB page size compatibility rules
--keep class org.eclipse.paho.** { *; }
+-keep class com.hivemq.** { *; }
 -keep class com.airbnb.lottie.** { *; }
 
 # Preserve native libraries
