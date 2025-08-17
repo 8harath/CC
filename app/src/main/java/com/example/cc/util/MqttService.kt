@@ -202,7 +202,7 @@ class MqttService : Service() {
             // Connect using HiveMQ client
             mqttClient.connectWith()
                 .cleanStart(true)
-                .keepAlive(MqttConfig.KEEP_ALIVE_INTERVAL.toLong())
+                .keepAlive(MqttConfig.KEEP_ALIVE_INTERVAL.toInt().toLong())
                 .send()
                 .whenComplete { connAck: Mqtt5ConnAck?, throwable: Throwable? ->
                     if (throwable != null) {
