@@ -108,6 +108,30 @@ class MqttService : Service() {
                 else -> "MQTT: Unknown"
             }
         }
+        
+        /**
+         * Get current MQTT status as a human-readable string with role info
+         */
+        fun getStatusStringWithRole(role: String? = null): String {
+            val baseStatus = getStatusString()
+            return if (role != null) {
+                "$baseStatus ($role)"
+            } else {
+                baseStatus
+            }
+        }
+        
+        /**
+         * Get current MQTT status as a human-readable string with role info
+         */
+        fun getStatusStringWithRole(role: String? = null): String {
+            val baseStatus = getStatusString()
+            return if (role != null) {
+                "$baseStatus ($role)"
+            } else {
+                baseStatus
+            }
+        }
     }
     
     private lateinit var mqttClient: MqttAndroidClient
