@@ -3,7 +3,6 @@ package com.example.cc.ui.publisher
 import com.example.cc.ui.base.BaseViewModel
 import android.content.Context
 import android.content.Intent
-import com.example.cc.util.MqttClient
 import com.example.cc.util.MqttTopics
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -28,7 +27,6 @@ import android.util.Log
 
 class PublisherViewModel(application: Application) : AndroidViewModel(application) {
     
-    private var mqttClient: MqttClient? = null
     private var esp32Manager: Esp32Manager? = null
     private var gpsService: GpsService? = null
     
