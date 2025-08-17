@@ -241,19 +241,16 @@ class MqttService : Service() {
     }
     
     private fun setupMessageCallback() {
-        mqttClient.toAsync().publishes(
-            com.hivemq.client.mqtt.MqttGlobalPublishFilter.SUBSCRIPTIONS,
-            { publish ->
-                Log.d(TAG, "Message received: ${publish.topic} -> ${String(publish.payloadAsBytes)}")
-                
-                if (publish.topic.toString().startsWith(MqttTopics.EMERGENCY_ALERTS)) {
-                    val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                    intent.putExtra("alert_json", String(publish.payloadAsBytes))
-                    sendBroadcast(intent)
-                }
-            },
-            true
-        )
+        // Set up message callback using basic HiveMQ API
+        mqttClient.toAsync().publishes { publish ->
+            Log.d(TAG, "Message received: ${publish.topic} -> ${String(publish.payloadAsBytes)}")
+            
+            if (publish.topic.toString().startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                intent.putExtra("alert_json", String(publish.payloadAsBytes))
+                sendBroadcast(intent)
+            }
+        }
     }
     
     private fun scheduleReconnect() {
