@@ -108,7 +108,7 @@ class MqttService : Service() {
                 })
             } catch (e: Exception) {
                 Log.e(TAG, "Publish exception, enqueuing: ${e.message}")
-                MqttMessageQueue.add(topic, payload, qos, retained)
+                MqttMessageQueue.enqueue(topic, payload, qos, retained)
             }
         } else {
             Log.w(TAG, "Not connected, enqueuing message for $topic")
