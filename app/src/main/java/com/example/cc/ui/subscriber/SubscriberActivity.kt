@@ -23,6 +23,8 @@ import com.example.cc.util.MqttService.ConnectionState
 import android.view.View
 import android.util.Log
 import com.example.cc.databinding.ActivitySubscriberBinding
+import android.content.res.ColorStateList
+import androidx.core.content.ContextCompat
 
 class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
@@ -69,6 +71,11 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             setupAlertHistoryList()
             // MQTT initialization disabled since service is not auto-started
             Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
+            
+            // Setup MQTT enable button
+            binding.btnEnableMqtt.setOnClickListener {
+                enableMqttService()
+            }
             
             // Add sample data for demonstration
             addSampleAlerts()
@@ -258,5 +265,31 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+    
+    private fun enableMqttService() {
+        try {
+            Log.i("SubscriberActivity", "Enabling MQTT service for subscriber role")
+            
+            // Start MQTT service
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                putExtra("role", "SUBSCRIBER")
+            }
+            startService(serviceIntent)
+            
+            // Update UI
+            binding.btnEnableMqtt.text = "Enabled"
+            binding.btnEnableMqtt.isEnabled = false
+            binding.btnEnableMqtt.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.success))
+            
+            // Update connection status
+            binding.tvConnectionStatus.text = "MQTT: Enabled"
+            
+            showToast("MQTT service enabled for subscriber role")
+            
+        } catch (e: Exception) {
+            Log.e("SubscriberActivity", "Error enabling MQTT service: ${e.message}")
+            showToast("Failed to enable MQTT service: ${e.message}")
+        }
     }
 } 
