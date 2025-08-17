@@ -42,100 +42,155 @@
 
     <!-- Enhanced Typography Styles with Apple-inspired design -->
     <style name="TextAppearance.CC.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
-        <item name="android:textSize">34sp</item>
+        <item name="android:textSize">36sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">-0.02</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.04</item>
+        <item name="android:fontFamily">sans-serif-light</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
     <style name="TextAppearance.CC.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
-        <item name="android:textSize">30sp</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:letterSpacing">-0.02</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
+    </style>
+
+    <style name="TextAppearance.CC.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:letterSpacing">-0.01</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
+    </style>
+
+    <style name="TextAppearance.CC.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">26sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">-0.01</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
-    <style name="TextAppearance.CC.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
-        <item name="android:textSize">26sp</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textStyle">normal</item>
-    </style>
-
-    <style name="TextAppearance.CC.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+    <style name="TextAppearance.CC.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
-    </style>
-
-    <style name="TextAppearance.CC.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textSize">22sp</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0.01</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
     <style name="TextAppearance.CC.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0.01</item>
+        <item name="android:letterSpacing">0</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
     <style name="TextAppearance.CC.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">20sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0.02</item>
+        <item name="android:letterSpacing">0.01</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
     </style>
 
     <style name="TextAppearance.CC.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
-        <item name="android:textSize">16sp</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0.02</item>
-        <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textStyle">normal</item>
-    </style>
-
-    <style name="TextAppearance.CC.BodySmall" parent="TextAppearance.Material3.BodySmall">
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:letterSpacing">0.03</item>
-        <item name="android:fontFamily">sans-serif</item>
-        <item name="android:textStyle">normal</item>
-    </style>
-
-    <style name="TextAppearance.CC.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:letterSpacing">0.01</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <style name="TextAppearance.CC.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <style name="TextAppearance.CC.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:letterSpacing">0</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
     <style name="TextAppearance.CC.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:letterSpacing">0.01</item>
+        <item name="android:letterSpacing">0</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
     <style name="TextAppearance.CC.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/text_secondary</item>
-        <item name="android:letterSpacing">0.01</item>
+        <item name="android:letterSpacing">0</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
 
+    <!-- Enhanced Button Styles with Apple-inspired design -->
+    <style name="Widget.CC.Button" parent="Widget.Material3.Button">
+        <item name="android:textAppearance">@style/TextAppearance.CC.LabelLarge</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="cornerRadius">30dp</item>
+        <item name="elevation">8dp</item>
+        <item name="rippleColor">@color/ripple_light</item>
+        <item name="android:minHeight">60dp</item>
+        <item name="android:paddingStart">32dp</item>
+        <item name="android:paddingEnd">32dp</item>
+    </style>
+
+    <style name="Widget.CC.Button.Primary" parent="Widget.CC.Button">
+        <item name="backgroundTint">@color/subscriber_primary</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="iconTint">@color/white</item>
+    </style>
+
+    <style name="Widget.CC.Button.Secondary" parent="Widget.CC.Button">
+        <item name="backgroundTint">@color/surface</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="iconTint">@color/text_primary</item>
+        <item name="strokeColor">@color/outline</item>
+        <item name="strokeWidth">1.5dp</item>
+    </style>
+
+    <!-- Enhanced Card Styles with Apple-inspired design -->
+    <style name="Widget.CC.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">28dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/outline_variant</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+        <item name="contentPadding">28dp</item>
+    </style>
+
+    <style name="Widget.CC.Card.Interactive" parent="Widget.CC.Card">
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
+        <item name="stateListAnimator">@animator/card_state_list_anim</item>
+    </style>
 
 </resources>
