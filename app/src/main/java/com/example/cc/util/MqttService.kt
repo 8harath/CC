@@ -105,7 +105,7 @@ class MqttService : Service() {
                 val publishMessage = Mqtt5Publish.builder()
                     .topic(topic)
                     .payload(payload.toByteArray())
-                    .qos(MqttQos.fromCode(qos))
+                    .qos(MqttQos.fromCode(qos) ?: MqttQos.AT_LEAST_ONCE)
                     .retain(retained)
                     .build()
                 
@@ -139,7 +139,7 @@ class MqttService : Service() {
                     
                     mqttClient.subscribeWith()
                         .topicFilter(topic)
-                        .qos(MqttQos.fromCode(1))
+                        .qos(MqttQos.fromCode(1) ?: MqttQos.AT_LEAST_ONCE)
                         .send()
                         .whenComplete { subAck: Mqtt5SubAck?, throwable: Throwable? ->
                             if (throwable != null) {
@@ -199,7 +199,7 @@ class MqttService : Service() {
             // Connect using HiveMQ client
             mqttClient.connectWith()
                 .cleanStart(true)
-                .keepAlive(MqttConfig.KEEP_ALIVE_INTERVAL.toInt().toLong())
+                .keepAlive(MqttConfig.KEEP_ALIVE_INTERVAL.toInt())
                 .send()
                 .whenComplete { connAck: Mqtt5ConnAck?, throwable: Throwable? ->
                     if (throwable != null) {
