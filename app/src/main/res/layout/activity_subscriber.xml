@@ -162,7 +162,7 @@
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="6dp"
                     app:cornerRadius="16dp"
-                    android:backgroundTint="@color/primary"
+                    android:backgroundTint="@color/colorPrimary"
                     android:textColor="@color/white" />
 
             </LinearLayout>
