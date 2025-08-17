@@ -58,15 +58,15 @@ object NetworkHelper {
     }
     
     /**
-     * Get recommended broker host based on network configuration
+     * Get recommended broker URL based on network configuration
      */
-    fun getRecommendedBrokerHost(): String {
+    fun getRecommendedBrokerUrl(): String {
         val localIp = getLocalIpAddress()
         return if (localIp != null) {
-            localIp
+            "tcp://$localIp:1883"
         } else {
             // Fallback to localhost if local IP not found
-            "localhost"
+            "tcp://localhost:1883"
         }
     }
     
@@ -120,7 +120,7 @@ object NetworkHelper {
             "type" to getNetworkType(context),
             "quality" to getNetworkQuality(context),
             "local_ip" to (getLocalIpAddress() ?: "Unknown"),
-            "recommended_broker" to getRecommendedBrokerHost()
+            "recommended_broker" to getRecommendedBrokerUrl()
         )
     }
 }

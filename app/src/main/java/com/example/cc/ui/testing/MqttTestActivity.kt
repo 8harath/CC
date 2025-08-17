@@ -104,10 +104,13 @@ class MqttTestActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             try {
-                val host = MqttConfig.getBrokerHost()
-                val port = MqttConfig.getBrokerPort()
-                logMessage("Broker Host: $host")
-                logMessage("Broker Port: $port")
+                val brokerUrl = MqttConfig.getBrokerUrl()
+                logMessage("Broker URL: $brokerUrl")
+                
+                // Extract host and port from URL
+                val urlParts = brokerUrl.replace("tcp://", "").split(":")
+                val host = urlParts[0]
+                val port = urlParts[1].toInt()
                 
                 logMessage("Testing connectivity to $host:$port...")
                 
