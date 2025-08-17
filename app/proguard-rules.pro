@@ -120,3 +120,35 @@
 -dontwarn android.support.**
 -dontwarn org.eclipse.paho.**
 -keepattributes *Annotation*
+
+# Comprehensive LocalBroadcastManager fix
+-keep class android.support.v4.content.LocalBroadcastManager {
+    public *;
+    private *;
+}
+-keep class androidx.localbroadcastmanager.content.LocalBroadcastManager {
+    public *;
+    private *;
+}
+
+# Force MQTT to use AndroidX
+-keep class org.eclipse.paho.android.service.MqttAndroidClient {
+    public *;
+    private *;
+    protected *;
+}
+
+# Additional MQTT compatibility
+-keep class org.eclipse.paho.android.service.MqttService {
+    public *;
+    private *;
+    protected *;
+}
+
+# Handle all support library references
+-keep class android.support.** { *; }
+-dontwarn android.support.**
+
+# Force AndroidX imports
+-keep class androidx.** { *; }
+-dontwarn androidx.**
