@@ -72,6 +72,42 @@ class MqttService : Service() {
             }
             context.startService(intent)
         }
+        
+        /**
+         * Get current connection state
+         */
+        fun getConnectionState(): ConnectionState? {
+            return connectionState.value
+        }
+        
+        /**
+         * Check if MQTT service is currently running
+         */
+        fun isServiceRunning(context: Context): Boolean {
+            val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val runningServices = manager.getRunningServices(Integer.MAX_VALUE)
+            return runningServices.any { it.service.className == MqttService::class.java.name }
+        }
+        
+        /**
+         * Check if MQTT is enabled and connected
+         */
+        fun isConnected(): Boolean {
+            return isMqttEnabledGlobal && connectionState.value == ConnectionState.CONNECTED
+        }
+        
+        /**
+         * Get current MQTT status as a human-readable string
+         */
+        fun getStatusString(): String {
+            return when {
+                !isMqttEnabledGlobal -> "MQTT: Disabled"
+                connectionState.value == ConnectionState.CONNECTING -> "MQTT: Connecting..."
+                connectionState.value == ConnectionState.CONNECTED -> "MQTT: Connected"
+                connectionState.value == ConnectionState.DISCONNECTED -> "MQTT: Disconnected"
+                else -> "MQTT: Unknown"
+            }
+        }
     }
     
     private lateinit var mqttClient: MqttAndroidClient
