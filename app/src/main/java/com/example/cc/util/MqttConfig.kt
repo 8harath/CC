@@ -4,8 +4,10 @@ import android.util.Log
 
 object MqttConfig {
     // Local Mosquitto broker for academic demonstration
-    const val BROKER_URL = "tcp://192.168.1.100:1883" // Change this to your laptop's IP address
-    const val BROKER_URL_LOCALHOST = "tcp://localhost:1883" // For testing on same device
+    const val BROKER_HOST = "192.168.1.100" // Change this to your laptop's IP address
+    const val BROKER_HOST_LOCALHOST = "localhost" // For testing on same device
+    const val BROKER_PORT = 1883
+    const val BROKER_PORT_SSL = 8883
     const val CLIENT_ID_PREFIX = "car_crash_client_"
     const val USERNAME = "" // No authentication for local broker
     const val PASSWORD = "" // No authentication for local broker
