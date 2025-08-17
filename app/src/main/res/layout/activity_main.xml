@@ -20,7 +20,6 @@
         android:background="@drawable/enhanced_circle_background"
         android:padding="24dp"
         android:contentDescription="App logo"
-        android:elevation="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -91,13 +90,13 @@
             android:layout_marginBottom="24dp"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Publisher role selection card"
             app:cardCornerRadius="28dp"
-            app:cardElevation="6dp"
-            app:strokeWidth="1.5dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="1dp"
             app:strokeColor="@color/outline_variant"
-            app:cardBackgroundColor="@color/surface">
+            app:cardBackgroundColor="@color/surface"
+            app:rippleColor="@color/ripple_light">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -114,8 +113,7 @@
                     android:tint="@color/white"
                     android:contentDescription="Publisher icon"
                     android:background="@drawable/enhanced_circle_background"
-                    android:padding="20dp"
-                    android:elevation="4dp" />
+                    android:padding="20dp" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -166,13 +164,13 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Subscriber role selection card"
             app:cardCornerRadius="28dp"
-            app:cardElevation="6dp"
-            app:strokeWidth="1.5dp"
+            app:cardElevation="4dp"
+            app:strokeWidth="1dp"
             app:strokeColor="@color/outline_variant"
-            app:cardBackgroundColor="@color/surface">
+            app:cardBackgroundColor="@color/surface"
+            app:rippleColor="@color/ripple_light">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -189,8 +187,7 @@
                     android:tint="@color/white"
                     android:contentDescription="Subscriber icon"
                     android:background="@drawable/enhanced_circle_background"
-                    android:padding="20dp"
-                    android:elevation="4dp" />
+                    android:padding="20dp" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -258,7 +255,7 @@
         app:iconSize="22dp"
         app:iconTint="@color/white"
         app:iconPadding="8dp"
-        app:elevation="8dp"
+        app:elevation="4dp"
         app:rippleColor="@color/ripple_light"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

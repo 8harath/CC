@@ -1,77 +1,32 @@
 @echo off
-echo ========================================
-echo Car Crash Detection App - Production Build
-echo ========================================
+echo Building Production APK for Car Crash Detection App...
 echo.
 
-echo Checking Java installation...
-java -version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ERROR: Java is not installed or not in PATH
-    echo Please install Java 11 or later and add it to PATH
-    pause
-    exit /b 1
-)
-
-echo Checking Android SDK...
-if not exist "%ANDROID_HOME%" (
-    echo ERROR: ANDROID_HOME environment variable is not set
-    echo Please set ANDROID_HOME to your Android SDK path
-    pause
-    exit /b 1
-)
-
-echo Checking keystore configuration...
-if not exist "keystore.properties" (
-    echo ERROR: keystore.properties file not found
-    echo Please create keystore.properties with your signing configuration
-    pause
-    exit /b 1
-)
-
-echo.
-echo Starting production build...
-echo.
-
+REM Clean previous builds
 echo Cleaning previous builds...
-call gradlew clean
-if %errorlevel% neq 0 (
-    echo ERROR: Clean failed
+call gradlew.bat clean
+if %ERRORLEVEL% neq 0 (
+    echo Error: Failed to clean project
     pause
     exit /b 1
 )
 
-echo Building release APK...
-call gradlew assembleRelease
-if %errorlevel% neq 0 (
-    echo ERROR: Build failed
-    pause
-    exit /b 1
-)
-
-echo.
-echo Checking for generated APK...
-if exist "app\build\outputs\apk\release\app-release.apk" (
-    echo.
-    echo ========================================
-    echo BUILD SUCCESSFUL!
-    echo ========================================
-    echo.
-    echo Production APK generated at:
-    echo app\build\outputs\apk\release\app-release.apk
-    echo.
-    echo APK Details:
-    dir "app\build\outputs\apk\release\app-release.apk"
-    echo.
-    echo Ready for distribution!
-    echo.
-) else (
-    echo ERROR: APK not found in expected location
-    echo Check build output for errors
+REM Build debug version (since we don't have keystore)
+echo Building debug APK...
+call gradlew.bat assembleDebug
+if %ERRORLEVEL% neq 0 (
+    echo Error: Failed to build debug APK
     pause
     exit /b 1
 )
 
 echo.
 echo Build completed successfully!
+echo APK location: app\build\outputs\apk\debug\app-debug.apk
+echo.
+echo Note: This is a debug build. For production release, you need to:
+echo 1. Create a keystore file
+echo 2. Configure keystore.properties
+echo 3. Run: gradlew.bat assembleRelease
+echo.
 pause

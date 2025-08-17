@@ -15,8 +15,9 @@ import kotlinx.coroutines.launch
 import android.view.View
 import android.util.Log
 import android.widget.Toast
+import com.example.cc.databinding.ActivityMainBinding
 
-class MainActivity : BaseActivity<View>() {
+class MainActivity : BaseActivity<ActivityMainBinding>() {
     
     companion object {
         private const val TAG = "MainActivity"
@@ -24,7 +25,7 @@ class MainActivity : BaseActivity<View>() {
     
     private val viewModel: MainViewModel by viewModels()
     
-    override fun getViewBinding(): View = layoutInflater.inflate(R.layout.activity_main, null)
+    override fun getViewBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
     
     override fun setupViews() {
         try {
@@ -49,8 +50,8 @@ class MainActivity : BaseActivity<View>() {
             lifecycleScope.launch {
                 viewModel.selectedRole.collect { role ->
                     try {
-                        val continueButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnContinue)
-                        continueButton?.isEnabled = role != null
+                        binding.btnContinue.isEnabled = role != null
+                        updateCardSelection(role)
                         Log.d(TAG, "Role selection updated: $role")
                     } catch (e: Exception) {
                         Log.e(TAG, "Error updating continue button: ${e.message}", e)
@@ -75,9 +76,8 @@ class MainActivity : BaseActivity<View>() {
             lifecycleScope.launch {
                 viewModel.isLoading.collect { isLoading ->
                     try {
-                        val continueButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.btnContinue)
                         val selectedRole = viewModel.selectedRole.value
-                        continueButton?.isEnabled = !isLoading && selectedRole != null
+                        binding.btnContinue.isEnabled = !isLoading && selectedRole != null
                         Log.d(TAG, "Loading state updated: $isLoading")
                     } catch (e: Exception) {
                         Log.e(TAG, "Error updating loading state: ${e.message}", e)
@@ -98,7 +98,6 @@ class MainActivity : BaseActivity<View>() {
                 }
             }
             
-            Log.d(TAG, "Observers setup completed successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up observers: ${e.message}", e)
             showToast("Error setting up app: ${e.message}")
@@ -109,24 +108,22 @@ class MainActivity : BaseActivity<View>() {
         try {
             Log.d(TAG, "Setting up role selection...")
             
-            findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPublisher)?.setOnClickListener {
+            binding.cardPublisher.setOnClickListener {
                 try {
-                    Log.d(TAG, "Publisher role selected")
+                    Log.d(TAG, "Publisher card clicked")
                     viewModel.selectRole(UserRole.PUBLISHER)
-                    updateCardSelection()
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error selecting publisher role: ${e.message}", e)
+                    Log.e(TAG, "Error handling publisher card click: ${e.message}", e)
                     showToast("Error selecting role: ${e.message}")
                 }
             }
             
-            findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSubscriber)?.setOnClickListener {
+            binding.cardSubscriber.setOnClickListener {
                 try {
-                    Log.d(TAG, "Subscriber role selected")
+                    Log.d(TAG, "Subscriber card clicked")
                     viewModel.selectRole(UserRole.SUBSCRIBER)
-                    updateCardSelection()
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error selecting subscriber role: ${e.message}", e)
+                    Log.e(TAG, "Error handling subscriber card click: ${e.message}", e)
                     showToast("Error selecting role: ${e.message}")
                 }
             }
@@ -142,20 +139,20 @@ class MainActivity : BaseActivity<View>() {
         try {
             Log.d(TAG, "Setting up continue button...")
             
-            findViewById<com.google.android.material.button.MaterialButton>(R.id.btnContinue)?.setOnClickListener {
+            binding.btnContinue.setOnClickListener {
                 try {
+                    Log.d(TAG, "Continue button clicked")
                     val selectedRole = viewModel.selectedRole.value
-                    Log.d(TAG, "Continue button clicked, selected role: $selectedRole")
                     
                     if (selectedRole != null) {
                         showNameInputDialog(selectedRole)
                     } else {
-                        Log.w(TAG, "No role selected when continue button clicked")
+                        Log.w(TAG, "Continue button clicked but no role selected")
                         showToast("Please select a role first")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error handling continue button click: ${e.message}", e)
-                    showToast("Error: ${e.message}")
+                    showToast("Error processing request: ${e.message}")
                 }
             }
             
@@ -166,25 +163,24 @@ class MainActivity : BaseActivity<View>() {
         }
     }
     
-    private fun updateCardSelection() {
+    private fun updateCardSelection(selectedRole: UserRole?) {
         try {
-            val selectedRole = viewModel.selectedRole.value
             Log.d(TAG, "Updating card selection for role: $selectedRole")
             
             // Reset card styles
-            findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPublisher)?.strokeWidth = 0
-            findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSubscriber)?.strokeWidth = 0
+            binding.cardPublisher.strokeWidth = 0
+            binding.cardSubscriber.strokeWidth = 0
             
             // Apply selection style
             when (selectedRole) {
                 UserRole.PUBLISHER -> {
-                    findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardPublisher)?.apply {
+                    binding.cardPublisher.apply {
                         strokeWidth = 4
                         strokeColor = getColor(R.color.publisher_primary)
                     }
                 }
                 UserRole.SUBSCRIBER -> {
-                    findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardSubscriber)?.apply {
+                    binding.cardSubscriber.apply {
                         strokeWidth = 4
                         strokeColor = getColor(R.color.subscriber_primary)
                     }
