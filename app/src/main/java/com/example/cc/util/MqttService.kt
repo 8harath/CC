@@ -242,6 +242,7 @@ class MqttService : Service() {
     
     private fun setupMessageCallback() {
         mqttClient.toAsync().publishes(
+            com.hivemq.client.mqtt.MqttGlobalPublishFilter.ALL_SUBSCRIPTIONS,
             { publish ->
                 Log.d(TAG, "Message received: ${publish.topic} -> ${String(publish.payloadAsBytes)}")
                 
