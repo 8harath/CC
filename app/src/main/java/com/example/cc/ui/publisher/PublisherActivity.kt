@@ -87,6 +87,11 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             // MQTT status observation disabled since service is not auto-started
             binding.tvStatus.text = "MQTT: Disabled"
             
+            // Setup MQTT enable button
+            binding.btnEnableMqtt.setOnClickListener {
+                enableMqttService()
+            }
+            
             // Observe ESP32 states
             lifecycleScope.launch {
                 viewModel.esp32ConnectionState.collect { state ->
