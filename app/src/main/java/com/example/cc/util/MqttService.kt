@@ -15,15 +15,11 @@ import android.os.Build
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-// Import HiveMQ MQTT Client
-import com.hivemq.client.mqtt.MqttClient
-import com.hivemq.client.mqtt.MqttClientState
-import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient
-import com.hivemq.client.mqtt.mqtt5.message.connect.connack.Mqtt5ConnAck
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish
-import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck
-import com.hivemq.client.mqtt.mqtt5.message.unsubscribe.unsuback.Mqtt5UnsubAck
-import com.hivemq.client.mqtt.datatypes.MqttQos
+// Import Eclipse Paho MQTT Client
+import org.eclipse.paho.android.service.MqttAndroidClient
+import org.eclipse.paho.client.mqttv3.*
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
+import org.eclipse.paho.client.mqttv3.MqttMessage
 
 class MqttService : Service() {
     enum class ConnectionState { CONNECTING, CONNECTED, DISCONNECTED }
@@ -37,7 +33,7 @@ class MqttService : Service() {
         const val EXTRA_RETAINED = "extra_retained"
     }
     
-    private lateinit var mqttClient: Mqtt5AsyncClient
+    private lateinit var mqttClient: MqttAndroidClient
     private val TAG = "MqttService"
     private var reconnectAttempts = 0
     private var isReconnecting = false
@@ -49,7 +45,7 @@ class MqttService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (isNetworkAvailable()) {
                 Log.i(TAG, "Network available, (re)connecting MQTT...")
-                if (::mqttClient.isInitialized && mqttClient.state != MqttClientState.CONNECTED) {
+                if (::mqttClient.isInitialized && !mqttClient.isConnected) {
                     connect()
                 }
             } else {
@@ -66,13 +62,8 @@ class MqttService : Service() {
             // Generate unique client ID
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
-            // Initialize HiveMQ MQTT client
-            mqttClient = MqttClient.builder()
-                .useMqttVersion5()
-                .identifier(clientId)
-                .serverHost(MqttConfig.getBrokerUrl().replace("tcp://", "").split(":")[0])
-                .serverPort(MqttConfig.getBrokerUrl().replace("tcp://", "").split(":")[1].toInt())
-                .buildAsync()
+            // Initialize MQTT client
+            mqttClient = MqttAndroidClient(applicationContext, MqttConfig.getBrokerUrl(), clientId)
             
             // Register network receiver
             registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
@@ -98,28 +89,23 @@ class MqttService : Service() {
             return
         }
         
-        if (::mqttClient.isInitialized && mqttClient.state == MqttClientState.CONNECTED) {
+        val message = MqttMessage(payload.toByteArray()).apply {
+            this.qos = qos
+            this.isRetained = retained
+        }
+        
+        if (::mqttClient.isInitialized && mqttClient.isConnected) {
             try {
                 Log.d(TAG, "Publishing message to $topic: $payload")
-                
-                val publishMessage = Mqtt5Publish.builder()
-                    .topic(topic)
-                    .payload(payload.toByteArray())
-                    .qos(MqttQos.fromCode(qos) ?: MqttQos.AT_LEAST_ONCE)
-                    .retain(retained)
-                    .build()
-                
-                mqttClient.publish(publishMessage)
-                    .whenComplete { _, throwable ->
-                        if (throwable != null) {
-                            Log.e(TAG, "Publish failed: ${throwable.message}")
-                            // Enqueue for retry
-                            MqttMessageQueue.enqueue(topic, payload, qos, retained)
-                        } else {
-                            Log.d(TAG, "Message published successfully to $topic")
-                        }
+                mqttClient.publish(topic, message, null, object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        Log.d(TAG, "Message published successfully to $topic")
                     }
-                    
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                        Log.e(TAG, "Publish failed, enqueuing: ${exception?.message}")
+                        MqttMessageQueue.enqueue(topic, payload, qos, retained)
+                    }
+                })
             } catch (e: Exception) {
                 Log.e(TAG, "Publish exception, enqueuing: ${e.message}")
                 MqttMessageQueue.enqueue(topic, payload, qos, retained)
@@ -132,23 +118,18 @@ class MqttService : Service() {
 
     fun subscribeToTopics(topics: List<String>) {
         val validTopics = topics.filter { isValidTopic(it) }
-        if (::mqttClient.isInitialized && mqttClient.state == MqttClientState.CONNECTED) {
+        if (::mqttClient.isInitialized && mqttClient.isConnected) {
             validTopics.forEach { topic ->
                 try {
                     Log.d(TAG, "Subscribing to topic: $topic")
-                    
-                    mqttClient.subscribeWith()
-                        .topicFilter(topic)
-                        .qos(MqttQos.fromCode(1) ?: MqttQos.AT_LEAST_ONCE)
-                        .send()
-                        .whenComplete { subAck: Mqtt5SubAck?, throwable: Throwable? ->
-                            if (throwable != null) {
-                                Log.e(TAG, "Failed to subscribe to $topic: ${throwable.message}")
-                            } else {
-                                Log.i(TAG, "Successfully subscribed to $topic")
-                            }
+                    mqttClient.subscribe(topic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Successfully subscribed to $topic")
                         }
-                        
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to $topic: ${exception?.message}")
+                        }
+                    })
                 } catch (e: Exception) {
                     Log.e(TAG, "Subscribe exception for $topic: ${e.message}")
                 }
@@ -166,7 +147,7 @@ class MqttService : Service() {
     }
 
     private fun retryQueuedMessages() {
-        if (::mqttClient.isInitialized && mqttClient.state == MqttClientState.CONNECTED) {
+        if (::mqttClient.isInitialized && mqttClient.isConnected) {
             Log.d(TAG, "Retrying queued messages...")
             MqttMessageQueue.retryAll { topic, payload, qos, retained ->
                 try {
@@ -196,38 +177,68 @@ class MqttService : Service() {
             Log.i(TAG, "Attempting to connect to MQTT broker: ${MqttConfig.getBrokerUrl()}")
             connectionState.postValue(ConnectionState.CONNECTING)
             
-            // Connect using HiveMQ client
-            mqttClient.connectWith()
-                .cleanStart(true)
-                .keepAlive(MqttConfig.KEEP_ALIVE_INTERVAL.toInt())
-                .send()
-                .whenComplete { connAck: Mqtt5ConnAck?, throwable: Throwable? ->
-                    if (throwable != null) {
-                        Log.e(TAG, "Failed to connect to MQTT broker: ${throwable.message}")
-                        connectionState.postValue(ConnectionState.DISCONNECTED)
-                        
-                        // Schedule reconnection attempt
-                        if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS) {
-                            scheduleReconnect()
-                        }
-                    } else {
-                        Log.i(TAG, "Successfully connected to MQTT broker!")
-                        connectionState.postValue(ConnectionState.CONNECTED)
-                        reconnectAttempts = 0
-                        isReconnecting = false
-                        
-                        // Set up message callback
-                        setupMessageCallback()
-                        
-                        // Retry any queued messages
-                        retryQueuedMessages()
-                        
-                        // Subscribe for pending role if any
-                        pendingRole?.let { role ->
-                            subscribeForRole(role, pendingIncidentId)
-                        }
+            val options = MqttConnectOptions().apply {
+                isAutomaticReconnect = true
+                isCleanSession = true
+                connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
+                keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
+                if (MqttConfig.USERNAME.isNotEmpty()) {
+                    userName = MqttConfig.USERNAME
+                    password = MqttConfig.PASSWORD.toCharArray()
+                }
+            }
+            
+            mqttClient.setCallback(object : MqttCallback {
+                override fun connectionLost(cause: Throwable?) {
+                    Log.w(TAG, "MQTT connection lost: ${cause?.message}")
+                    connectionState.postValue(ConnectionState.DISCONNECTED)
+                    
+                    // Attempt reconnection if not already trying
+                    if (!isReconnecting && reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS) {
+                        scheduleReconnect()
                     }
                 }
+                
+                override fun messageArrived(topic: String?, message: MqttMessage?) {
+                    Log.d(TAG, "Message arrived: $topic -> ${message?.toString()}")
+                    if (topic != null && topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                        val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                        intent.putExtra("alert_json", message.toString())
+                        sendBroadcast(intent)
+                    }
+                }
+                
+                override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                    Log.d(TAG, "Delivery complete: ${token?.message}")
+                }
+            })
+            
+            mqttClient.connect(options, null, object : IMqttActionListener {
+                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    Log.i(TAG, "Successfully connected to MQTT broker!")
+                    connectionState.postValue(ConnectionState.CONNECTED)
+                    reconnectAttempts = 0
+                    isReconnecting = false
+                    
+                    // Retry any queued messages
+                    retryQueuedMessages()
+                    
+                    // Subscribe for pending role if any
+                    pendingRole?.let { role ->
+                        subscribeForRole(role, pendingIncidentId)
+                    }
+                }
+                
+                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
+                    connectionState.postValue(ConnectionState.DISCONNECTED)
+                    
+                    // Schedule reconnection attempt
+                    if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS) {
+                        scheduleReconnect()
+                    }
+                }
+            })
             
         } catch (e: Exception) {
             Log.e(TAG, "Exception during MQTT connection: ${e.message}")
@@ -236,19 +247,6 @@ class MqttService : Service() {
             // Schedule reconnection attempt
             if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS) {
                 scheduleReconnect()
-            }
-        }
-    }
-    
-    private fun setupMessageCallback() {
-        // Set up message callback using basic HiveMQ API
-        mqttClient.toAsync().publishes { publish ->
-            Log.d(TAG, "Message received: ${publish.topic} -> ${String(publish.payloadAsBytes)}")
-            
-            if (publish.topic.toString().startsWith(MqttTopics.EMERGENCY_ALERTS)) {
-                val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                intent.putExtra("alert_json", String(publish.payloadAsBytes))
-                sendBroadcast(intent)
             }
         }
     }
@@ -263,7 +261,7 @@ class MqttService : Service() {
         
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             isReconnecting = false
-            if (::mqttClient.isInitialized && mqttClient.state != MqttClientState.CONNECTED) {
+            if (::mqttClient.isInitialized && !mqttClient.isConnected) {
                 connect()
             }
         }, MqttConfig.RECONNECT_DELAY)
@@ -308,7 +306,7 @@ class MqttService : Service() {
                         pendingRole = role
                         pendingIncidentId = incidentId
                         
-                        if (::mqttClient.isInitialized && mqttClient.state == MqttClientState.CONNECTED) {
+                        if (::mqttClient.isInitialized && mqttClient.isConnected) {
                             Log.i(TAG, "Received start with role=$role, subscribing immediately")
                             subscribeForRole(role, incidentId)
                         } else {
@@ -329,12 +327,8 @@ class MqttService : Service() {
         try {
             unregisterReceiver(networkReceiver)
             if (::mqttClient.isInitialized) {
-                mqttClient.disconnectWith()
-                    .reasonString("Service destroyed")
-                    .send()
-                    .whenComplete { _, _ ->
-                        Log.i(TAG, "MQTT client disconnected")
-                    }
+                mqttClient.unregisterResources()
+                mqttClient.disconnect()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error disconnecting MQTT: ${e.message}")
