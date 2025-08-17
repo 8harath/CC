@@ -9,6 +9,7 @@ import com.example.cc.data.model.UserRole
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.ui.publisher.PublisherActivity
 import com.example.cc.ui.subscriber.SubscriberActivity
+import com.example.cc.util.CrashHandler
 import com.example.cc.util.DatabaseTest
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
@@ -26,6 +27,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel: MainViewModel by viewModels()
     
     override fun getViewBinding(): ActivityMainBinding = ActivityMainBinding.inflate(layoutInflater)
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        try {
+            // Initialize crash handler
+            CrashHandler.getInstance().init(this)
+            Log.d(TAG, "Crash handler initialized")
+            
+            super.onCreate(savedInstanceState)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in onCreate: ${e.message}", e)
+            // Fallback to prevent crashes
+            super.onCreate(savedInstanceState)
+            setContentView(android.R.layout.simple_list_item_1)
+            Toast.makeText(this, "Error initializing app: ${e.message}", Toast.LENGTH_LONG).show()
+            finish()
+        }
+    }
     
     override fun setupViews() {
         try {
