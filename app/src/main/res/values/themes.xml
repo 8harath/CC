@@ -190,7 +190,6 @@
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
-        <item name="stateListAnimator">@animator/card_state_list_anim</item>
     </style>
 
 </resources>
