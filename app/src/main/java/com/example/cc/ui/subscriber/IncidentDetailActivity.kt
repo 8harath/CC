@@ -127,20 +127,12 @@ class IncidentDetailActivity : BaseActivity<ActivityIncidentDetailBinding>() {
                 }
                 binding.tvMedications.text = "Medications: $medicationsText"
                 
-                // Vehicle information
-                binding.tvVehicleMake.text = "Make: ${incident.vehicleInfo.make}"
-                binding.tvVehicleModel.text = "Model: ${incident.vehicleInfo.model}"
-                binding.tvVehicleYear.text = "Year: ${incident.vehicleInfo.year}"
-                binding.tvLicensePlate.text = "License: ${incident.vehicleInfo.licensePlate}"
-                
-                // Impact data
-                binding.tvImpactForce.text = "Impact Force: ${String.format("%.1f", incident.impactData.force)}g"
-                binding.tvImpactDirection.text = "Direction: ${incident.impactData.direction}"
-                
-                // Show/hide sections based on data availability
-                binding.sectionMedical.visibility = if (incident.medicalInfo.bloodType.isNotEmpty()) View.VISIBLE else View.GONE
-                binding.sectionVehicle.visibility = if (incident.vehicleInfo.make.isNotEmpty()) View.VISIBLE else View.GONE
-                binding.sectionImpact.visibility = if (incident.impactData.force > 0) View.VISIBLE else View.GONE
+                val conditionsText = if (incident.medicalInfo.conditions.isNotEmpty()) {
+                    incident.medicalInfo.conditions.joinToString(", ")
+                } else {
+                    "None"
+                }
+                binding.tvConditions.text = "Conditions: $conditionsText"
                 
             } ?: run {
                 Log.w("IncidentDetailActivity", "No incident data to populate")
