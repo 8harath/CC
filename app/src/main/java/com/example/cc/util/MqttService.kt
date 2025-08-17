@@ -27,6 +27,7 @@ class MqttService : Service() {
     companion object {
         val connectionState = MutableLiveData(ConnectionState.DISCONNECTED)
         const val ACTION_PUBLISH = "com.example.cc.mqtt.ACTION_PUBLISH"
+        const val ACTION_ENABLE = "com.example.cc.mqtt.ACTION_ENABLE"
         const val EXTRA_TOPIC = "extra_topic"
         const val EXTRA_PAYLOAD = "extra_payload"
         const val EXTRA_QOS = "extra_qos"
@@ -40,14 +41,13 @@ class MqttService : Service() {
 
     private var pendingRole: String? = null
     private var pendingIncidentId: String? = null
+    private var isMqttEnabled = false
 
     private val networkReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (isNetworkAvailable()) {
-                Log.i(TAG, "Network available, (re)connecting MQTT...")
-                if (::mqttClient.isInitialized && !mqttClient.isConnected) {
-                    connect()
-                }
+                Log.i(TAG, "Network available, but MQTT will only connect when user enables it")
+                // Don't auto-connect - only connect when user explicitly requests
             } else {
                 Log.w(TAG, "Network unavailable, MQTT will disconnect if active.")
             }
@@ -62,16 +62,16 @@ class MqttService : Service() {
             // Generate unique client ID
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
-            // Initialize MQTT client
+            // Initialize MQTT client but DON'T connect automatically
             mqttClient = MqttAndroidClient(applicationContext, MqttConfig.getBrokerUrl(), clientId)
             
             // Register network receiver
             registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
             
-            // Set initial connection state
+            // Set initial connection state - DISCONNECTED until user explicitly enables
             connectionState.postValue(ConnectionState.DISCONNECTED)
             
-            Log.i(TAG, "MQTT client initialized with ID: $clientId")
+            Log.i(TAG, "MQTT client initialized with ID: $clientId - waiting for user to enable")
             
         } catch (e: Exception) {
             Log.e(TAG, "Error in MQTT service onCreate: ${e.message}")
@@ -162,6 +162,11 @@ class MqttService : Service() {
     }
 
     private fun connect() {
+        if (!isMqttEnabled) {
+            Log.i(TAG, "MQTT is not enabled by user, skipping connection")
+            return
+        }
+        
         if (isReconnecting) {
             Log.d(TAG, "Already attempting to reconnect, skipping...")
             return
@@ -290,6 +295,12 @@ class MqttService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let { inIntent ->
             when (inIntent.action) {
+                ACTION_ENABLE -> {
+                    Log.i(TAG, "User explicitly enabled MQTT service")
+                    isMqttEnabled = true
+                    // Now attempt to connect
+                    connect()
+                }
                 ACTION_PUBLISH -> {
                     val topic = inIntent.getStringExtra(EXTRA_TOPIC)
                     val payload = inIntent.getStringExtra(EXTRA_PAYLOAD)
@@ -306,12 +317,17 @@ class MqttService : Service() {
                         pendingRole = role
                         pendingIncidentId = incidentId
                         
-                        if (::mqttClient.isInitialized && mqttClient.isConnected) {
-                            Log.i(TAG, "Received start with role=$role, subscribing immediately")
-                            subscribeForRole(role, incidentId)
+                        // Only connect if MQTT is enabled
+                        if (isMqttEnabled) {
+                            if (::mqttClient.isInitialized && mqttClient.isConnected) {
+                                Log.i(TAG, "Received start with role=$role, subscribing immediately")
+                                subscribeForRole(role, incidentId)
+                            } else {
+                                Log.i(TAG, "Received start with role=$role, attempting to connect")
+                                connect()
+                            }
                         } else {
-                            Log.i(TAG, "Received start with role=$role, attempting to connect")
-                            connect()
+                            Log.i(TAG, "MQTT not enabled, storing role for later: $role")
                         }
                     }
                 }
@@ -340,5 +356,42 @@ class MqttService : Service() {
     override fun onBind(intent: Intent?): IBinder? {
         // Not a bound service
         return null
+    }
+    
+    /**
+     * Enable MQTT service - this should be called when user explicitly wants MQTT
+     */
+    fun enableMqtt() {
+        Log.i(TAG, "Enabling MQTT service as requested by user")
+        isMqttEnabled = true
+        
+        // If we have pending role, try to connect now
+        if (pendingRole != null) {
+            Log.i(TAG, "Connecting with pending role: $pendingRole")
+            connect()
+        }
+    }
+    
+    /**
+     * Disable MQTT service - this will disconnect and stop auto-reconnection
+     */
+    fun disableMqtt() {
+        Log.i(TAG, "Disabling MQTT service as requested by user")
+        isMqttEnabled = false
+        
+        // Disconnect if connected
+        if (::mqttClient.isInitialized && mqttClient.isConnected) {
+            try {
+                mqttClient.disconnect()
+                Log.i(TAG, "MQTT disconnected due to user disabling")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error disconnecting MQTT: ${e.message}")
+            }
+        }
+        
+        // Reset connection state
+        connectionState.postValue(ConnectionState.DISCONNECTED)
+        isReconnecting = false
+        reconnectAttempts = 0
     }
 }

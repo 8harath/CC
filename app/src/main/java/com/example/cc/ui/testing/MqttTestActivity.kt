@@ -68,6 +68,7 @@ class MqttTestActivity : AppCompatActivity() {
         
         try {
             val intent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
                 putExtra("role", "PUBLISHER")
             }
             startService(intent)
@@ -86,6 +87,7 @@ class MqttTestActivity : AppCompatActivity() {
         
         try {
             val intent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
                 putExtra("role", "SUBSCRIBER")
             }
             startService(intent)

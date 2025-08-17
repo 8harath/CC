@@ -405,8 +405,9 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         try {
             Log.i("PublisherActivity", "Enabling MQTT service for publisher role")
             
-            // Start MQTT service
+            // Start MQTT service with explicit enable action
             val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
                 putExtra("role", "PUBLISHER")
             }
             startService(serviceIntent)

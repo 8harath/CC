@@ -205,6 +205,8 @@ dependencies {
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     // LocalBroadcastManager replacement - ensure this is available
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    // Additional support for MQTT service compatibility
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
     // Additional AndroidX support libraries that might be needed
     implementation("androidx.annotation:annotation:1.7.1")
     // Force AndroidX compatibility

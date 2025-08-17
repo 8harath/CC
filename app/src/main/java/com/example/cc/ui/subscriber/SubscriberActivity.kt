@@ -271,8 +271,9 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         try {
             Log.i("SubscriberActivity", "Enabling MQTT service for subscriber role")
             
-            // Start MQTT service
+            // Start MQTT service with explicit enable action
             val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
                 putExtra("role", "SUBSCRIBER")
             }
             startService(serviceIntent)
