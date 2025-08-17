@@ -125,6 +125,7 @@ class MqttTestActivity : AppCompatActivity() {
                     logMessage("1. Mosquitto is running on your laptop")
                     logMessage("2. Firewall allows port 1883")
                     logMessage("3. IP address is correct")
+                    logMessage("4. Try using localhost instead of IP address")
                 }
                 
             } catch (e: Exception) {
