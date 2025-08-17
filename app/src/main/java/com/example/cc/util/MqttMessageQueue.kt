@@ -3,7 +3,7 @@ package com.example.cc.util
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object MqttMessageQueue {
-    internal data class QueuedMessage(
+    data class QueuedMessage(
         val topic: String,
         val payload: String,
         val qos: Int,
