@@ -91,8 +91,9 @@ class SubscriberViewModel(application: Application) : AndroidViewModel(applicati
         try {
             Log.i("SubscriberViewModel", "Initializing MQTT for subscriber role")
             
-            // Start MQTT service with subscriber role
+            // Start MQTT service with subscriber role and explicit enable
             val intent = Intent(context, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
                 putExtra("role", "SUBSCRIBER")
             }
             context.startService(intent)

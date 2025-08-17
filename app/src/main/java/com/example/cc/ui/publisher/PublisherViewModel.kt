@@ -72,8 +72,9 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
         try {
             Log.i("PublisherViewModel", "Initializing MQTT for publisher role")
             
-            // Start MQTT service with publisher role
+            // Start MQTT service with publisher role and explicit enable
             val intent = Intent(context, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
                 putExtra("role", "PUBLISHER")
             }
             context.startService(intent)

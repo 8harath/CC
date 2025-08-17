@@ -28,10 +28,50 @@ class MqttService : Service() {
         val connectionState = MutableLiveData(ConnectionState.DISCONNECTED)
         const val ACTION_PUBLISH = "com.example.cc.mqtt.ACTION_PUBLISH"
         const val ACTION_ENABLE = "com.example.cc.mqtt.ACTION_ENABLE"
+        const val ACTION_DISABLE = "com.example.cc.mqtt.ACTION_DISABLE"
         const val EXTRA_TOPIC = "extra_topic"
         const val EXTRA_PAYLOAD = "extra_payload"
         const val EXTRA_QOS = "extra_qos"
         const val EXTRA_RETAINED = "extra_retained"
+        
+        // Track if MQTT is enabled globally
+        private var isMqttEnabledGlobal = false
+        
+        fun isMqttEnabled(): Boolean = isMqttEnabledGlobal
+        
+        fun setMqttEnabled(enabled: Boolean) {
+            isMqttEnabledGlobal = enabled
+        }
+        
+        /**
+         * Check if MQTT service is currently enabled and ready to use
+         */
+        fun isServiceEnabled(): Boolean {
+            return isMqttEnabledGlobal
+        }
+        
+        /**
+         * Enable MQTT service from outside - sends intent to service
+         */
+        fun enableService(context: Context, role: String? = null) {
+            val intent = Intent(context, MqttService::class.java).apply {
+                action = ACTION_ENABLE
+                if (role != null) {
+                    putExtra("role", role)
+                }
+            }
+            context.startService(intent)
+        }
+        
+        /**
+         * Disable MQTT service from outside - sends intent to service
+         */
+        fun disableService(context: Context) {
+            val intent = Intent(context, MqttService::class.java).apply {
+                action = ACTION_DISABLE
+            }
+            context.startService(intent)
+        }
     }
     
     private lateinit var mqttClient: MqttAndroidClient
@@ -89,6 +129,11 @@ class MqttService : Service() {
             return
         }
         
+        if (!isMqttEnabled) {
+            Log.w(TAG, "MQTT is not enabled by user, cannot publish message to: $topic")
+            return
+        }
+        
         val message = MqttMessage(payload.toByteArray()).apply {
             this.qos = qos
             this.isRetained = retained
@@ -117,6 +162,11 @@ class MqttService : Service() {
     }
 
     fun subscribeToTopics(topics: List<String>) {
+        if (!isMqttEnabled) {
+            Log.w(TAG, "MQTT is not enabled by user, cannot subscribe to topics")
+            return
+        }
+        
         val validTopics = topics.filter { isValidTopic(it) }
         if (::mqttClient.isInitialized && mqttClient.isConnected) {
             validTopics.forEach { topic ->
@@ -298,8 +348,13 @@ class MqttService : Service() {
                 ACTION_ENABLE -> {
                     Log.i(TAG, "User explicitly enabled MQTT service")
                     isMqttEnabled = true
+                    setMqttEnabled(true)
                     // Now attempt to connect
                     connect()
+                }
+                ACTION_DISABLE -> {
+                    Log.i(TAG, "User explicitly disabled MQTT service")
+                    disableMqtt()
                 }
                 ACTION_PUBLISH -> {
                     val topic = inIntent.getStringExtra(EXTRA_TOPIC)
@@ -328,6 +383,9 @@ class MqttService : Service() {
                             }
                         } else {
                             Log.i(TAG, "MQTT not enabled, storing role for later: $role")
+                            // Store the role and incident ID for when MQTT is enabled
+                            pendingRole = role
+                            pendingIncidentId = incidentId
                         }
                     }
                 }
@@ -364,6 +422,7 @@ class MqttService : Service() {
     fun enableMqtt() {
         Log.i(TAG, "Enabling MQTT service as requested by user")
         isMqttEnabled = true
+        setMqttEnabled(true)
         
         // If we have pending role, try to connect now
         if (pendingRole != null) {
@@ -378,14 +437,15 @@ class MqttService : Service() {
     fun disableMqtt() {
         Log.i(TAG, "Disabling MQTT service as requested by user")
         isMqttEnabled = false
+        setMqttEnabled(false)
         
         // Disconnect if connected
         if (::mqttClient.isInitialized && mqttClient.isConnected) {
             try {
                 mqttClient.disconnect()
                 Log.i(TAG, "MQTT disconnected due to user disabling")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error disconnecting MQTT: ${e.message}")
+            } catch (j: Exception) {
+                Log.e(TAG, "Error disconnecting MQTT: ${j.message}")
             }
         }
         
