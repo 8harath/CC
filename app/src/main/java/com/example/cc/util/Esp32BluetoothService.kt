@@ -244,9 +244,11 @@ class Esp32BluetoothService(private val context: Context) {
         }
         
         override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
-            if (characteristic?.uuid == ESP32_CHARACTERISTIC_UUID) {
-                val data = characteristic.value
-                parseSensorData(data)
+            characteristic?.let { char ->
+                if (char.uuid == ESP32_CHARACTERISTIC_UUID) {
+                    val data = char.value
+                    parseSensorData(data)
+                }
             }
         }
     }

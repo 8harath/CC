@@ -18,12 +18,12 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.example.cc"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.cc"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 2
         versionName = "1.1.0"
 
@@ -43,11 +43,14 @@ android {
 
     signingConfigs {
         create("release") {
-            if (keystoreProperties.isNotEmpty()) {
-                keyAlias = keystoreProperties["keyAlias"] as String?
-                keyPassword = keystoreProperties["keyPassword"] as String?
-                storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-                storePassword = keystoreProperties["storePassword"] as String?
+            if (keystoreProperties.isNotEmpty() && keystoreProperties["storeFile"] != null) {
+                val keystoreFile = file(keystoreProperties["storeFile"] as String)
+                if (keystoreFile.exists()) {
+                    keyAlias = keystoreProperties["keyAlias"] as String?
+                    keyPassword = keystoreProperties["keyPassword"] as String?
+                    storeFile = keystoreFile
+                    storePassword = keystoreProperties["storePassword"] as String?
+                }
             }
         }
     }
@@ -56,7 +59,10 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            // Only use release signing if keystore exists
+            if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -68,7 +74,6 @@ android {
         }
         debug {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -149,9 +154,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     
     // Room Database
-    implementation("androidx.room:room-runtime:2.7.0")
-    implementation("androidx.room:room-ktx:2.7.0")
-    kapt("androidx.room:room-compiler:2.7.0")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
     
     // Navigation Component
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
