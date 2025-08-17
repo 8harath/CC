@@ -44,16 +44,8 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         super.onCreate(savedInstanceState)
         try {
             registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
-            // Start MQTT service with role for dynamic subscriptions
-            try {
-                val serviceIntent = Intent(this, MqttService::class.java).apply {
-                    putExtra("role", "SUBSCRIBER")
-                }
-                startService(serviceIntent)
-            } catch (e: Exception) {
-                // Log error but don't crash the app
-                Log.e("SubscriberActivity", "Failed to start MQTT service: ${e.message}")
-            }
+            // MQTT service will be started manually when user enables it
+            Log.i("SubscriberActivity", "MQTT service auto-start disabled for stability")
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in onCreate: ${e.message}", e)
             showToast("Error initializing Emergency Responder mode")
@@ -75,8 +67,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         try {
             setupToolbar()
             setupAlertHistoryList()
-            // Temporarily disable MQTT initialization to prevent crashes
-            // viewModel.initializeMqtt(this)
+            // MQTT initialization disabled since service is not auto-started
             Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
             
             // Add sample data for demonstration

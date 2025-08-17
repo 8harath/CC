@@ -41,16 +41,8 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 viewModel.startGpsUpdates()
             }
             
-            // Start MQTT service to manage background connection and topic subscriptions for publisher if needed
-            try {
-                val serviceIntent = Intent(this, MqttService::class.java).apply {
-                    putExtra("role", "PUBLISHER")
-                }
-                startService(serviceIntent)
-            } catch (e: Exception) {
-                // Log error but don't crash the app
-                Log.e("PublisherActivity", "Failed to start MQTT service: ${e.message}")
-            }
+            // MQTT service will be started manually when user enables it
+            Log.i("PublisherActivity", "MQTT service auto-start disabled for stability")
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error setting up views: ${e.message}", e)
             showToast("Error setting up app: ${e.message}")
@@ -92,20 +84,8 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 }
             }
 
-            // Observe connection state from service
-            MqttService.connectionState.observe(this, Observer { state ->
-                try {
-                    val statusText = when (state) {
-                        ConnectionState.CONNECTING -> "Connecting..."
-                        ConnectionState.CONNECTED -> "Connected"
-                        ConnectionState.DISCONNECTED -> "Disconnected"
-                        else -> state.toString()
-                    }
-                    binding.tvStatus.text = "MQTT: $statusText"
-                } catch (e: Exception) {
-                    Log.e("PublisherActivity", "Error updating MQTT status: ${e.message}")
-                }
-            })
+            // MQTT status observation disabled since service is not auto-started
+            binding.tvStatus.text = "MQTT: Disabled"
             
             // Observe ESP32 states
             lifecycleScope.launch {
