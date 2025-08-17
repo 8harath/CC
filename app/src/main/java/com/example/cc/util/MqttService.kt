@@ -112,7 +112,7 @@ class MqttService : Service() {
             }
         } else {
             Log.w(TAG, "Not connected, enqueuing message for $topic")
-            MqttMessageQueue.add(topic, payload, qos, retained)
+            MqttMessageQueue.enqueue(topic, payload, qos, retained)
         }
     }
 
