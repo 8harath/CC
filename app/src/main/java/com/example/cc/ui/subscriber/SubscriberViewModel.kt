@@ -3,7 +3,6 @@ package com.example.cc.ui.subscriber
 import com.example.cc.ui.base.BaseViewModel
 import android.content.Context
 import com.example.cc.util.EmergencyAlertMessage
-import com.example.cc.util.MqttClient
 import com.example.cc.util.MqttTopics
 import com.example.cc.util.ResponseAckMessage
 import com.example.cc.util.MqttService
@@ -22,8 +21,6 @@ import kotlinx.serialization.json.Json
 import android.util.Log
 
 class SubscriberViewModel(application: Application) : AndroidViewModel(application) {
-    
-    private var mqttClient: MqttClient? = null
     
     // State properties
     private val _connectionStatus = MutableStateFlow("Disconnected")
