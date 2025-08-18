@@ -183,6 +183,12 @@ void setup() {
 void loop() {
   unsigned long currentTime = millis();
   
+  // Maintain MQTT connection
+  if (!client.connected()) {
+    reconnectMQTT();
+  }
+  client.loop();
+  
   // Read sensor data at specified rate
   if (currentTime - lastSensorRead >= (1000 / SAMPLE_RATE)) {
     readSensorData();
@@ -341,4 +347,56 @@ void calibrateSensors() {
   }
   
   Serial.println("Calibration complete");
+}
+
+// MQTT Functions
+void setupWiFi() {
+  Serial.println("Connecting to WiFi...");
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void setupMQTT() {
+  client.setServer(mqtt_server, mqtt_port);
+  Serial.println("MQTT client configured");
+}
+
+void reconnectMQTT() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = String(mqtt_client_id) + "-" + String(random(0xffff), HEX);
+    
+    // Attempt to connect
+    if (client.connect(clientId.c_str(), mqtt_username, mqtt_password)) {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      publishMQTTMessage(mqtt_topic_status, "ESP32 Crash Detector Reconnected");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
+void publishMQTTMessage(const char* topic, const char* message) {
+  if (client.connected()) {
+    client.publish(topic, message);
+    Serial.println("MQTT Published to " + String(topic) + ": " + String(message));
+  } else {
+    Serial.println("MQTT not connected, cannot publish");
+  }
 }
