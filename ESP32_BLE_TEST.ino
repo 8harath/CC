@@ -23,6 +23,16 @@
 #error Bluetooth is not enabled! Please run `make menuconfig` to enable it
 #endif
 
+// Forward declarations
+void handleCommand(String command);
+void readSensorData();
+void detectCrash();
+void transmitSensorData();
+String createSensorDataString();
+String createCrashAlert();
+void calibrateSensors();
+void updateGPS();
+
 // Bluetooth Classic
 BluetoothSerial SerialBT;
 
@@ -79,14 +89,12 @@ class MyServerCallbacks: public BLEServerCallbacks {
 // BLE Characteristic Callback
 class MyCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-      std::string rxValue = pCharacteristic->getValue();
+      // Get the value as a string
+      String rxValue = pCharacteristic->getValue().c_str();
       if (rxValue.length() > 0) {
-        Serial.println("Received Value: ");
-        for (int i = 0; i < rxValue.length(); i++)
-          Serial.print(rxValue[i]);
-        Serial.println();
+        Serial.println("Received Value: " + rxValue);
         
-        // Handle commands from Android app
+        // Handle command directly
         handleCommand(rxValue);
       }
     }
