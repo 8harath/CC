@@ -1,12 +1,14 @@
 /*
  * ESP32 Car Crash Detection System
  * Bluetooth Classic and BLE Communication with Android App
+ * MQTT Integration for Local Testing
  * 
  * Features:
  * - Bluetooth Classic for reliable communication
  * - BLE for low-power operation
  * - Accelerometer-based crash detection
  * - Sensor data transmission to Android app
+ * - MQTT integration for local testing
  */
 
 #include "BluetoothSerial.h"
@@ -16,11 +18,34 @@
 #include "BLE2902.h"
 #include "Wire.h"
 #include "MPU6050.h"
+#include <WiFi.h>
+#include <PubSubClient.h>
 
 // Check if Bluetooth is available
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to enable it
 #endif
+
+// WiFi Configuration
+const char* ssid = "YOUR_WIFI_SSID";  // Replace with your WiFi SSID
+const char* password = "YOUR_WIFI_PASSWORD";  // Replace with your WiFi password
+
+// MQTT Configuration
+const char* mqtt_server = "192.168.1.100";  // Replace with your local Mosquitto broker IP
+const int mqtt_port = 1883;
+const char* mqtt_client_id = "ESP32_CrashDetector";
+const char* mqtt_username = "";  // Leave empty if no authentication
+const char* mqtt_password = "";  // Leave empty if no authentication
+
+// MQTT Topics
+const char* mqtt_topic_sensor = "esp32/sensor_data";
+const char* mqtt_topic_crash = "esp32/crash_alert";
+const char* mqtt_topic_status = "esp32/status";
+const char* mqtt_topic_test = "esp32/test";
+
+// WiFi and MQTT objects
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 // Forward declarations
 void handleCommand(String command);
@@ -30,6 +55,10 @@ void transmitSensorData();
 String createSensorDataString();
 String createCrashAlert();
 void calibrateSensors();
+void setupWiFi();
+void setupMQTT();
+void reconnectMQTT();
+void publishMQTTMessage(const char* topic, const char* message);
 
 // Bluetooth Classic
 BluetoothSerial SerialBT;
@@ -105,6 +134,10 @@ void setup() {
     Serial.println("MPU6050 connection failed");
   }
   
+  // Setup WiFi and MQTT
+  setupWiFi();
+  setupMQTT();
+  
   // Initialize Bluetooth Classic
   SerialBT.begin(DEVICE_NAME);
   Serial.println("Bluetooth Classic started");
@@ -142,6 +175,9 @@ void setup() {
   for (int i = 0; i < BUFFER_SIZE; i++) {
     accelBuffer[i] = 0.0;
   }
+  
+  // Send initial status via MQTT
+  publishMQTTMessage(mqtt_topic_status, "ESP32 Crash Detector Online");
 }
 
 void loop() {
