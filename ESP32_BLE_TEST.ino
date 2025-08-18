@@ -339,6 +339,10 @@ void handleCommand(String command) {
     Serial.println("Simulating crash detection...");
     detectCrash();
   }
+  else if (command.startsWith("MQTT_TEST")) {
+    Serial.println("Sending MQTT test message...");
+    publishMQTTMessage(mqtt_topic_test, "Hello from ESP32! MQTT test successful!");
+  }
 }
 
 void calibrateSensors() {
