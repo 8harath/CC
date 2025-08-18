@@ -6,7 +6,6 @@
  * - Bluetooth Classic for reliable communication
  * - BLE for low-power operation
  * - Accelerometer-based crash detection
- * - GPS location data (if GPS module connected)
  * - Sensor data transmission to Android app
  */
 
@@ -31,7 +30,6 @@ void transmitSensorData();
 String createSensorDataString();
 String createCrashAlert();
 void calibrateSensors();
-void updateGPS();
 
 // Bluetooth Classic
 BluetoothSerial SerialBT;
@@ -60,11 +58,6 @@ float impactForce = 0.0;
 float accelBuffer[BUFFER_SIZE];
 int bufferIndex = 0;
 
-// GPS data (if GPS module is connected)
-float latitude = 0.0;
-float longitude = 0.0;
-bool gpsAvailable = false;
-
 // Timing
 unsigned long lastSensorRead = 0;
 unsigned long lastDataTransmission = 0;
@@ -89,12 +82,10 @@ class MyServerCallbacks: public BLEServerCallbacks {
 // BLE Characteristic Callback
 class MyCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
-      // Get the value as a string
-      String rxValue = pCharacteristic->getValue().c_str();
+      // Get the value and convert to Arduino String
+      String rxValue = String(pCharacteristic->getValue().c_str());
       if (rxValue.length() > 0) {
         Serial.println("Received Value: " + rxValue);
-        
-        // Handle command directly
         handleCommand(rxValue);
       }
     }
@@ -262,11 +253,6 @@ String createSensorDataString() {
   String data = "SENSOR:";
   data += "ACCEL:" + String(accelX, 3) + "," + String(accelY, 3) + "," + String(accelZ, 3);
   data += "|IMPACT:" + String(impactForce, 3);
-  
-  if (gpsAvailable) {
-    data += "|GPS:" + String(latitude, 6) + "," + String(longitude, 6);
-  }
-  
   data += "|TIME:" + String(millis());
   return data;
 }
@@ -276,11 +262,6 @@ String createCrashAlert() {
   alert += "SEVERITY:" + String(impactForce > 10.0 ? "CRITICAL" : "HIGH");
   alert += "|IMPACT:" + String(impactForce, 3);
   alert += "|ACCEL:" + String(accelX, 3) + "," + String(accelY, 3) + "," + String(accelZ, 3);
-  
-  if (gpsAvailable) {
-    alert += "|GPS:" + String(latitude, 6) + "," + String(longitude, 6);
-  }
-  
   alert += "|TIME:" + String(millis());
   return alert;
 }
@@ -295,17 +276,14 @@ void handleCommand(String command) {
   else if (command.startsWith("SET_THRESHOLD:")) {
     float newThreshold = command.substring(14).toFloat();
     if (newThreshold > 0) {
-      // IMPACT_THRESHOLD = newThreshold; // Would need to make this variable
       SerialBT.println("THRESHOLD_SET:" + String(newThreshold));
     }
   }
   else if (command.startsWith("CALIBRATE")) {
-    // Perform sensor calibration
     calibrateSensors();
     SerialBT.println("CALIBRATION_COMPLETE");
   }
   else if (command.startsWith("TEST_CRASH")) {
-    // Simulate crash detection for testing
     Serial.println("Simulating crash detection...");
     detectCrash();
   }
@@ -327,13 +305,4 @@ void calibrateSensors() {
   }
   
   Serial.println("Calibration complete");
-}
-
-// GPS functions (if GPS module is connected)
-void updateGPS() {
-  // This would be implemented if you have a GPS module
-  // For now, we'll use dummy coordinates
-  latitude = 40.7128;  // New York coordinates as example
-  longitude = -74.0060;
-  gpsAvailable = true;
 }
