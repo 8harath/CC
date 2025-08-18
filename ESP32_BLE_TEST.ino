@@ -269,6 +269,9 @@ void detectCrash() {
       pCharacteristic->notify();
     }
     
+    // Send via MQTT
+    publishMQTTMessage(mqtt_topic_crash, crashAlert.c_str());
+    
     // Flash LED or other indicator
     digitalWrite(2, HIGH);
     delay(100);
@@ -288,6 +291,13 @@ void transmitSensorData() {
   if (deviceConnected) {
     pCharacteristic->setValue(sensorData.c_str());
     pCharacteristic->notify();
+  }
+  
+  // Send via MQTT (less frequently to avoid flooding)
+  static unsigned long lastMQTTSensorPublish = 0;
+  if (millis() - lastMQTTSensorPublish >= 5000) { // Publish sensor data every 5 seconds
+    publishMQTTMessage(mqtt_topic_sensor, sensorData.c_str());
+    lastMQTTSensorPublish = millis();
   }
 }
 
