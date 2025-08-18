@@ -1,0 +1,176 @@
+package com.example.cc.ui.settings
+
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
+import com.example.cc.R
+import com.example.cc.ui.base.BaseActivity
+import com.example.cc.databinding.ActivityMqttSettingsBinding
+import com.example.cc.util.MqttConfig
+import com.example.cc.util.MqttService
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
+
+class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
+    
+    private val viewModel: MqttSettingsViewModel by viewModels()
+    
+    override fun getViewBinding(): ActivityMqttSettingsBinding = ActivityMqttSettingsBinding.inflate(layoutInflater)
+    
+    override fun setupViews() {
+        try {
+            setupToolbar()
+            setupMqttSettings()
+            setupTestConnectionButton()
+            setupSaveButton()
+            
+            // Load current settings
+            viewModel.loadCurrentSettings()
+            
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error setting up views: ${e.message}", e)
+            showToast("Error setting up MQTT settings: ${e.message}")
+        }
+    }
+    
+    override fun setupObservers() {
+        try {
+            lifecycleScope.launch {
+                viewModel.brokerIp.collect { ip ->
+                    binding.etBrokerIp.setText(ip)
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.brokerPort.collect { port ->
+                    binding.etBrokerPort.setText(port.toString())
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.connectionStatus.collect { status ->
+                    binding.tvConnectionStatus.text = status
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.isLoading.collect { isLoading ->
+                    binding.btnTestConnection.isEnabled = !isLoading
+                    binding.btnSaveSettings.isEnabled = !isLoading
+                    binding.progressBar.visibility = if (isLoading) android.view.View.VISIBLE else android.view.View.GONE
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.errorMessage.collect { error ->
+                    error?.let { showToast(it) }
+                }
+            }
+            
+            lifecycleScope.launch {
+                viewModel.successMessage.collect { message ->
+                    message?.let { showToast(it) }
+                }
+            }
+            
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error setting up observers: ${e.message}", e)
+        }
+    }
+    
+    private fun setupToolbar() {
+        try {
+            setSupportActionBar(binding.toolbar)
+            supportActionBar?.title = "MQTT Settings"
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error setting up toolbar: ${e.message}")
+        }
+    }
+    
+    private fun setupMqttSettings() {
+        try {
+            // Set up input validation
+            binding.etBrokerIp.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    viewModel.updateBrokerIp(s?.toString() ?: "")
+                }
+            })
+            
+            binding.etBrokerPort.addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: android.text.Editable?) {
+                    val port = s?.toString()?.toIntOrNull() ?: 1883
+                    viewModel.updateBrokerPort(port)
+                }
+            })
+            
+            // Set up quick IP buttons
+            binding.btnLocalhost.setOnClickListener {
+                binding.etBrokerIp.setText("localhost")
+            }
+            
+            binding.btnLocalIp.setOnClickListener {
+                binding.etBrokerIp.setText("192.168.1.100")
+            }
+            
+            binding.btnCustomIp.setOnClickListener {
+                showCustomIpDialog()
+            }
+            
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error setting up MQTT settings: ${e.message}")
+        }
+    }
+    
+    private fun setupTestConnectionButton() {
+        try {
+            binding.btnTestConnection.setOnClickListener {
+                viewModel.testConnection()
+            }
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error setting up test connection button: ${e.message}")
+        }
+    }
+    
+    private fun setupSaveButton() {
+        try {
+            binding.btnSaveSettings.setOnClickListener {
+                viewModel.saveSettings()
+            }
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error setting up save button: ${e.message}")
+        }
+    }
+    
+    private fun showCustomIpDialog() {
+        try {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_custom_ip, null)
+            val etCustomIp = dialogView.findViewById<android.widget.EditText>(R.id.etCustomIp)
+            
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Enter Custom IP Address")
+                .setView(dialogView)
+                .setPositiveButton("Set") { _, _ ->
+                    val customIp = etCustomIp.text.toString().trim()
+                    if (customIp.isNotEmpty()) {
+                        binding.etBrokerIp.setText(customIp)
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+                
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error showing custom IP dialog: ${e.message}")
+        }
+    }
+    
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
+    }
+}
