@@ -424,46 +424,62 @@
                         android:fontFamily="sans-serif-medium"
                         android:letterSpacing="-0.01" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:spacing="12dp">
+                                         <LinearLayout
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:orientation="vertical"
+                         android:spacing="12dp">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnTestMqttConnection"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Test MQTT Connection"
-                            android:textSize="14sp"
-                            android:paddingVertical="12dp"
-                            android:layout_marginBottom="12dp"
-                            app:cornerRadius="16dp"
-                            android:backgroundTint="@color/info"
-                            android:textColor="@color/white"
-                            android:enabled="false"
-                            app:icon="@drawable/ic_mqtt"
-                            app:iconGravity="start"
-                            app:iconSize="20dp"
-                            app:iconTint="@color/white" />
+                         <com.google.android.material.button.MaterialButton
+                             android:id="@+id/btnTestMqttConnection"
+                             android:layout_width="match_parent"
+                             android:layout_height="wrap_content"
+                             android:text="Test MQTT Connection"
+                             android:textSize="14sp"
+                             android:paddingVertical="12dp"
+                             android:layout_marginBottom="12dp"
+                             app:cornerRadius="16dp"
+                             android:backgroundTint="@color/info"
+                             android:textColor="@color/white"
+                             android:enabled="false"
+                             app:icon="@drawable/ic_mqtt"
+                             app:iconGravity="start"
+                             app:iconSize="20dp"
+                             app:iconTint="@color/white" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSendTestMessage"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Send Test Message"
-                            android:textSize="14sp"
-                            android:paddingVertical="12dp"
-                            app:cornerRadius="16dp"
-                            android:backgroundTint="@color/success"
-                            android:textColor="@color/white"
-                            android:enabled="false"
-                            app:icon="@drawable/ic_send"
-                            app:iconGravity="start"
-                            app:iconSize="20dp"
-                            app:iconTint="@color/white" />
+                         <com.google.android.material.button.MaterialButton
+                             android:id="@+id/btnSendTestMessage"
+                             android:layout_width="match_parent"
+                             android:layout_height="wrap_content"
+                             android:text="Send Test Message"
+                             android:textSize="14sp"
+                             android:paddingVertical="12dp"
+                             android:layout_marginBottom="12dp"
+                             app:cornerRadius="16dp"
+                             android:backgroundTint="@color/success"
+                             android:textColor="@color/white"
+                             android:enabled="false"
+                             app:icon="@drawable/ic_send"
+                             app:iconGravity="start"
+                             app:iconSize="20dp"
+                             app:iconTint="@color/white" />
 
-                    </LinearLayout>
+                         <com.google.android.material.button.MaterialButton
+                             android:id="@+id/btnMqttSettings"
+                             android:layout_width="match_parent"
+                             android:layout_height="wrap_content"
+                             android:text="MQTT Settings"
+                             android:textSize="14sp"
+                             android:paddingVertical="12dp"
+                             app:cornerRadius="16dp"
+                             android:backgroundTint="@color/surface_secondary"
+                             android:textColor="@color/text_primary"
+                             app:icon="@drawable/ic_settings"
+                             app:iconGravity="start"
+                             app:iconSize="20dp"
+                             app:iconTint="@color/text_secondary" />
+
+                     </LinearLayout>
 
                 </LinearLayout>
 

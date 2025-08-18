@@ -324,6 +324,21 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         binding.btnCheckReceivedMessages.setOnClickListener {
             checkReceivedMessages()
         }
+        
+        // MQTT Settings
+        binding.btnMqttSettings.setOnClickListener {
+            openMqttSettings()
+        }
+    }
+    
+    private fun openMqttSettings() {
+        try {
+            val intent = Intent(this, com.example.cc.ui.settings.MqttSettingsActivity::class.java)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("SubscriberActivity", "Error opening MQTT settings: ${e.message}")
+            showToast("Error opening MQTT settings: ${e.message}")
+        }
     }
     
     private fun testMqttConnection() {
