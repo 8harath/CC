@@ -36,6 +36,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             setupEsp32Buttons()
             setupMedicalProfileButton()
             setupEmergencyModeButtons()
+            setupMqttTestButtons()
             viewModel.initializeMqtt(this)
             
             // Start GPS updates if permissions are granted
