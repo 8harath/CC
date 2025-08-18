@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter the IP address of your MQTT broker:"
+        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="16dp"
+        android:lineSpacingExtra="2dp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="IP Address (e.g., 192.168.1.100)"
+        app:startIconDrawable="@drawable/ic_network"
+        app:startIconTint="@color/info"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCustomIp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1"
+            android:hint="192.168.1.100" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</LinearLayout>
