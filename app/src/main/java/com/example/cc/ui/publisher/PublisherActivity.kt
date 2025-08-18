@@ -427,6 +427,10 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                         else -> "MQTT: ${state.toString()}"
                     }
                     binding.tvStatus.text = statusText
+                    
+                    // Enable/disable MQTT test buttons based on connection state
+                    binding.btnTestMqttConnection.isEnabled = state == ConnectionState.CONNECTED
+                    binding.btnSendTestMessage.isEnabled = state == ConnectionState.CONNECTED
                 } catch (e: Exception) {
                     Log.e("PublisherActivity", "Error updating MQTT status: ${e.message}")
                 }
@@ -437,6 +441,72 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error enabling MQTT service: ${e.message}")
             showToast("Failed to enable MQTT service: ${e.message}")
+        }
+    }
+    
+    private fun setupMqttTestButtons() {
+        // Test MQTT Connection
+        binding.btnTestMqttConnection.setOnClickListener {
+            testMqttConnection()
+        }
+        
+        // Send Test Message
+        binding.btnSendTestMessage.setOnClickListener {
+            sendTestMessage()
+        }
+    }
+    
+    private fun testMqttConnection() {
+        try {
+            val isConnected = MqttService.isConnected()
+            val status = MqttService.getStatusString()
+            
+            val message = if (isConnected) {
+                "✅ MQTT Connection Test: SUCCESS\nStatus: $status"
+            } else {
+                "❌ MQTT Connection Test: FAILED\nStatus: $status"
+            }
+            
+            showToast(message)
+            Log.i("PublisherActivity", "MQTT Connection Test: $message")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error testing MQTT connection: ${e.message}")
+            showToast("Error testing MQTT connection: ${e.message}")
+        }
+    }
+    
+    private fun sendTestMessage() {
+        try {
+            val testMessage = """
+                {
+                    "type": "test_message",
+                    "sender": "publisher_phone",
+                    "timestamp": "${System.currentTimeMillis()}",
+                    "message": "Hello from Publisher! This is a test message.",
+                    "location": {
+                        "latitude": 0.0,
+                        "longitude": 0.0
+                    }
+                }
+            """.trimIndent()
+            
+            // Publish to test topic
+            val intent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_PUBLISH
+                putExtra(MqttService.EXTRA_TOPIC, "emergency/test")
+                putExtra(MqttService.EXTRA_PAYLOAD, testMessage)
+                putExtra(MqttService.EXTRA_QOS, 1)
+                putExtra(MqttService.EXTRA_RETAINED, false)
+            }
+            startService(intent)
+            
+            showToast("✅ Test message sent to 'emergency/test' topic")
+            Log.i("PublisherActivity", "Test message sent: $testMessage")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error sending test message: ${e.message}")
+            showToast("Error sending test message: ${e.message}")
         }
     }
 } 
