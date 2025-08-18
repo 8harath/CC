@@ -32,9 +32,9 @@ class Esp32BluetoothService(private val context: Context) {
         private const val TAG = "Esp32BluetoothService"
         private const val IMPACT_THRESHOLD = 5.0f // Adjust based on ESP32 calibration
         
-        // ESP32 Service UUIDs (standard BLE service)
-        private val ESP32_SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
-        private val ESP32_CHARACTERISTIC_UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
+        // ESP32 Service UUIDs - MUST MATCH ESP32 CODE
+        private val ESP32_SERVICE_UUID = UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b")
+        private val ESP32_CHARACTERISTIC_UUID = UUID.fromString("beb5483e-36e1-4688-b7f5-ea07361b26a8")
         
         // Bluetooth Classic UUID for ESP32
         private val ESP32_CLASSIC_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
