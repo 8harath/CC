@@ -26,7 +26,7 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             setupSaveButton()
             
             // Load current settings
-            viewModel.loadCurrentSettings()
+            viewModel.loadCurrentSettings(this)
             
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error setting up views: ${e.message}", e)
@@ -140,7 +140,7 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
     private fun setupSaveButton() {
         try {
             binding.btnSaveSettings.setOnClickListener {
-                viewModel.saveSettings()
+                viewModel.saveSettings(this)
             }
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error setting up save button: ${e.message}")

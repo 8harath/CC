@@ -189,14 +189,28 @@ class MqttSettingsViewModel : ViewModel() {
         return 1883
     }
     
-    private fun saveBrokerSettings(ip: String, port: Int) {
-        // For now, just log. In a real app, you'd save to SharedPreferences
-        Log.i("MqttSettingsViewModel", "Saving broker settings: $ip:$port")
+    private fun saveBrokerSettings(context: Context, ip: String, port: Int) {
+        try {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                .putString(KEY_BROKER_IP, ip)
+                .putInt(KEY_BROKER_PORT, port)
+                .apply()
+            Log.i("MqttSettingsViewModel", "Saved broker settings to SharedPreferences: $ip:$port")
+        } catch (e: Exception) {
+            Log.e("MqttSettingsViewModel", "Error saving to SharedPreferences: ${e.message}")
+            throw e
+        }
     }
     
     private fun updateMqttConfig(ip: String, port: Int) {
-        // Update the MqttConfig object with new settings
-        // This would require modifying MqttConfig to be mutable or using a different approach
-        Log.i("MqttSettingsViewModel", "Updating MQTT config: $ip:$port")
+        try {
+            // Update the MqttConfig object with new settings
+            MqttConfig.setCustomBroker(ip, port)
+            Log.i("MqttSettingsViewModel", "Updated MQTT config: $ip:$port")
+        } catch (e: Exception) {
+            Log.e("MqttSettingsViewModel", "Error updating MQTT config: ${e.message}")
+            throw e
+        }
     }
 }
