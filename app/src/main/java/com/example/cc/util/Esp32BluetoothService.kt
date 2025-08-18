@@ -80,8 +80,45 @@ class Esp32BluetoothService(private val context: Context) {
     // Thread pool for background operations
     private val executor = Executors.newCachedThreadPool()
     
+    // BroadcastReceiver for device discovery
+    private val discoveryReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    val device = intent.getParcelableExtra<BluetoothDevice>(
+                        BluetoothDevice.EXTRA_DEVICE
+                    )
+                    device?.let { 
+                        val currentList = _discoveredDevices.value.toMutableList()
+                        if (!currentList.contains(it)) {
+                            currentList.add(it)
+                            _discoveredDevices.value = currentList
+                            Log.d(TAG, "Discovered device: ${it.name ?: "Unknown"} (${it.address})")
+                        }
+                    }
+                }
+                BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
+                    Log.i(TAG, "Bluetooth discovery started")
+                }
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                    Log.i(TAG, "Bluetooth discovery finished")
+                }
+            }
+        }
+    }
+    
     init {
         initializeBluetooth()
+        registerDiscoveryReceiver()
+    }
+    
+    private fun registerDiscoveryReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_FOUND)
+            addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+            addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        }
+        context.registerReceiver(discoveryReceiver, filter)
     }
     
     private fun initializeBluetooth() {
@@ -114,6 +151,10 @@ class Esp32BluetoothService(private val context: Context) {
             Log.w(TAG, "Bluetooth scan permission not granted")
             return
         }
+        
+        // Clear previous discoveries
+        _discoveredDevices.value = emptyList()
+        Log.i(TAG, "Cleared previous device discoveries")
         
         executor.execute {
             try {
@@ -387,6 +428,19 @@ class Esp32BluetoothService(private val context: Context) {
             
         } catch (e: Exception) {
             Log.e(TAG, "Error during disconnect: ${e.message}")
+        }
+    }
+    
+    /**
+     * Cleanup resources
+     */
+    fun cleanup() {
+        try {
+            disconnect()
+            context.unregisterReceiver(discoveryReceiver)
+            Log.i(TAG, "Bluetooth service cleaned up")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during cleanup: ${e.message}")
         }
     }
     

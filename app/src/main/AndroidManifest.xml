@@ -69,6 +69,10 @@
             android:name=".util.MqttService"
             android:exported="false" />
 
+        <service
+            android:name=".util.Esp32BluetoothService"
+            android:exported="false" />
+
     </application>
 
 </manifest>
