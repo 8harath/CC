@@ -23,6 +23,12 @@ class MqttSettingsViewModel : ViewModel() {
     private val _brokerPort = MutableStateFlow(1883)
     val brokerPort: StateFlow<Int> = _brokerPort.asStateFlow()
     
+    companion object {
+        private const val PREFS_NAME = "mqtt_settings"
+        private const val KEY_BROKER_IP = "broker_ip"
+        private const val KEY_BROKER_PORT = "broker_port"
+    }
+    
     private val _connectionStatus = MutableStateFlow("Not tested")
     val connectionStatus: StateFlow<String> = _connectionStatus.asStateFlow()
     
@@ -54,6 +60,25 @@ class MqttSettingsViewModel : ViewModel() {
                 _brokerPort.value = currentPort
                 
                 Log.i("MqttSettingsViewModel", "Loaded settings: $currentIp:$currentPort")
+                
+            } catch (e: Exception) {
+                Log.e("MqttSettingsViewModel", "Error loading settings: ${e.message}")
+                _errorMessage.value = "Error loading settings: ${e.message}"
+            }
+        }
+    }
+    
+    fun loadCurrentSettings(context: Context) {
+        viewModelScope.launch {
+            try {
+                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val currentIp = prefs.getString(KEY_BROKER_IP, "192.168.1.100") ?: "192.168.1.100"
+                val currentPort = prefs.getInt(KEY_BROKER_PORT, 1883)
+                
+                _brokerIp.value = currentIp
+                _brokerPort.value = currentPort
+                
+                Log.i("MqttSettingsViewModel", "Loaded settings from SharedPreferences: $currentIp:$currentPort")
                 
             } catch (e: Exception) {
                 Log.e("MqttSettingsViewModel", "Error loading settings: ${e.message}")
@@ -97,7 +122,7 @@ class MqttSettingsViewModel : ViewModel() {
         }
     }
     
-    fun saveSettings() {
+    fun saveSettings(context: Context) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
@@ -118,9 +143,9 @@ class MqttSettingsViewModel : ViewModel() {
                 }
                 
                 // Save to SharedPreferences
-                saveBrokerSettings(ip, port)
+                saveBrokerSettings(context, ip, port)
                 
-                // Update MqttConfig if service is running
+                // Update MqttConfig
                 updateMqttConfig(ip, port)
                 
                 _successMessage.value = "Settings saved successfully"
