@@ -423,6 +423,8 @@ class MqttService : Service() {
                     val retained = inIntent.getBooleanExtra(EXTRA_RETAINED, false)
                     if (!topic.isNullOrEmpty() && payload != null) {
                         publish(topic, payload, qos, retained)
+                    } else {
+                        Log.w(TAG, "Invalid topic or payload for publishing")
                     }
                 }
                 ACTION_UPDATE_SETTINGS -> {
@@ -459,6 +461,8 @@ class MqttService : Service() {
                             pendingRole = role
                             pendingIncidentId = incidentId
                         }
+                    } else {
+                        Log.w(TAG, "No role provided in intent")
                     }
                 }
             }
