@@ -212,6 +212,10 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
                     showToast("Please enter both IP address and port before testing")
                 }
             }
+            
+            binding.btnEnableMqttService.setOnClickListener {
+                enableMqttService()
+            }
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error setting up test connection button: ${e.message}")
         }
@@ -351,6 +355,49 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
                 .show()
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error showing save confirmation dialog: ${e.message}")
+        }
+    }
+    
+    /**
+     * Enable MQTT service for testing
+     */
+    private fun enableMqttService() {
+        try {
+            // Get current input values
+            val currentIp = binding.etBrokerIp.text.toString()
+            val currentPort = binding.etBrokerPort.text.toString()
+            
+            if (currentIp.isEmpty() || currentPort.isEmpty()) {
+                showToast("Please enter both IP address and port before enabling MQTT service")
+                return
+            }
+            
+            // Update ViewModel with current values
+            viewModel.updateBrokerIp(currentIp)
+            viewModel.updateBrokerPort(currentPort.toIntOrNull() ?: 1883)
+            
+            // Save settings first
+            viewModel.saveSettings(this)
+            
+            // Enable MQTT service
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
+                putExtra("role", "TESTER")
+            }
+            startService(serviceIntent)
+            
+            // Update button state
+            binding.btnEnableMqttService.text = "MQTT Service Enabled"
+            binding.btnEnableMqttService.isEnabled = false
+            binding.btnEnableMqttService.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                android.graphics.Color.parseColor("#4CAF50") // Green color
+            )
+            
+            showToast("MQTT service enabled! You can now test publisher/subscriber functionality.")
+            
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error enabling MQTT service: ${e.message}")
+            showToast("Error enabling MQTT service: ${e.message}")
         }
     }
     
