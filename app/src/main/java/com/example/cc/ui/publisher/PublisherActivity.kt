@@ -494,31 +494,10 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
     private fun sendTestMessage() {
         try {
-            val testMessage = """
-                {
-                    "type": "test_message",
-                    "sender": "publisher_phone",
-                    "timestamp": "${System.currentTimeMillis()}",
-                    "message": "Hello from Publisher! This is a test message.",
-                    "location": {
-                        "latitude": 0.0,
-                        "longitude": 0.0
-                    }
-                }
-            """.trimIndent()
+            // Use the ViewModel's sendTestMessage function which creates a proper EmergencyAlertMessage
+            viewModel.sendTestMessage("Test emergency alert from Publisher")
             
-            // Publish to test topic
-            val intent = Intent(this, MqttService::class.java).apply {
-                action = MqttService.ACTION_PUBLISH
-                putExtra(MqttService.EXTRA_TOPIC, "emergency/test")
-                putExtra(MqttService.EXTRA_PAYLOAD, testMessage)
-                putExtra(MqttService.EXTRA_QOS, 1)
-                putExtra(MqttService.EXTRA_RETAINED, false)
-            }
-            startService(intent)
-            
-            showToast("✅ Test message sent to 'emergency/test' topic")
-            Log.i("PublisherActivity", "Test message sent: $testMessage")
+            Log.i("PublisherActivity", "Test message sent via ViewModel")
             
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error sending test message: ${e.message}")

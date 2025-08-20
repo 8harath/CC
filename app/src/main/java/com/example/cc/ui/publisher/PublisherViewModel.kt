@@ -373,6 +373,97 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
     
+    /**
+     * Send a custom test message for testing publisher-subscriber communication
+     */
+    fun sendTestMessage(customMessage: String = "Test emergency alert") {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _errorMessage.value = null
+                
+                val incidentId = "test_incident_${System.currentTimeMillis()}"
+                val timestamp = System.currentTimeMillis()
+                
+                // Create a test message
+                val message = EmergencyAlertMessage(
+                    incidentId = incidentId,
+                    victimId = "test_user",
+                    victimName = "Test User",
+                    location = EmergencyAlertMessage.Location(
+                        latitude = 40.7128, // New York coordinates for testing
+                        longitude = -74.0060
+                    ),
+                    timestamp = timestamp,
+                    severity = "TEST",
+                    medicalInfo = EmergencyAlertMessage.MedicalInfo(
+                        bloodType = "O+",
+                        allergies = listOf("None"),
+                        medications = listOf("None"),
+                        conditions = listOf("None")
+                    )
+                )
+                
+                val json = Json.encodeToString(message)
+                val topic = MqttTopics.alertIncident(incidentId)
+                
+                Log.i("PublisherViewModel", "Sending test message: $json")
+                
+                // Send via MQTT service
+                val ctx = getApplication<Application>()
+                val publishIntent = Intent(ctx, MqttService::class.java).apply {
+                    action = MqttService.ACTION_PUBLISH
+                    putExtra(MqttService.EXTRA_TOPIC, topic)
+                    putExtra(MqttService.EXTRA_PAYLOAD, json)
+                    putExtra(MqttService.EXTRA_QOS, 1)
+                    putExtra(MqttService.EXTRA_RETAINED, false)
+                }
+                ctx.startService(publishIntent)
+                
+                _successMessage.value = "Test message sent successfully!"
+                
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to send test message: ${e.message}"
+                Log.e("PublisherViewModel", "Failed to send test message", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Send a simple text message to a specific topic
+     */
+    fun sendSimpleMessage(topic: String, message: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _errorMessage.value = null
+                
+                Log.i("PublisherViewModel", "Sending simple message to $topic: $message")
+                
+                // Send via MQTT service
+                val ctx = getApplication<Application>()
+                val publishIntent = Intent(ctx, MqttService::class.java).apply {
+                    action = MqttService.ACTION_PUBLISH
+                    putExtra(MqttService.EXTRA_TOPIC, topic)
+                    putExtra(MqttService.EXTRA_PAYLOAD, message)
+                    putExtra(MqttService.EXTRA_QOS, 1)
+                    putExtra(MqttService.EXTRA_RETAINED, false)
+                }
+                ctx.startService(publishIntent)
+                
+                _successMessage.value = "Message sent to $topic"
+                
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to send message: ${e.message}"
+                Log.e("PublisherViewModel", "Failed to send simple message", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
     override fun onCleared() {
         super.onCleared()
         esp32Manager?.cleanup()
