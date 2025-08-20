@@ -21,6 +21,7 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttMessage
 // Import our custom AndroidX-compatible MQTT client
 import com.example.cc.util.AndroidXMqttClient
+import com.example.cc.util.MqttConfig
 
 class MqttService : Service() {
     enum class ConnectionState { CONNECTING, CONNECTED, DISCONNECTED }
@@ -30,6 +31,7 @@ class MqttService : Service() {
         const val ACTION_PUBLISH = "com.example.cc.mqtt.ACTION_PUBLISH"
         const val ACTION_ENABLE = "com.example.cc.mqtt.ACTION_ENABLE"
         const val ACTION_DISABLE = "com.example.cc.mqtt.ACTION_DISABLE"
+        const val ACTION_UPDATE_SETTINGS = "UPDATE_SETTINGS"
         const val EXTRA_TOPIC = "extra_topic"
         const val EXTRA_PAYLOAD = "extra_payload"
         const val EXTRA_QOS = "extra_qos"
@@ -361,15 +363,7 @@ class MqttService : Service() {
      * Get the current broker URL from SharedPreferences
      */
     private fun getCurrentBrokerUrl(): String {
-        return try {
-            val prefs = getSharedPreferences("mqtt_settings", Context.MODE_PRIVATE)
-            val ip = prefs.getString("broker_ip", "192.168.1.100") ?: "192.168.1.100"
-            val port = prefs.getInt("broker_port", 1883)
-            "tcp://$ip:$port"
-        } catch (e: Exception) {
-            Log.e(TAG, "Error reading broker settings, using default: ${e.message}")
-            "tcp://192.168.1.100:1883"
-        }
+        return MqttConfig.getBrokerUrlFromPrefs(this)
     }
 
     private fun scheduleReconnect() {
@@ -431,7 +425,7 @@ class MqttService : Service() {
                         publish(topic, payload, qos, retained)
                     }
                 }
-                "UPDATE_SETTINGS" -> {
+                ACTION_UPDATE_SETTINGS -> {
                     Log.i(TAG, "Settings updated, reconnecting with new broker configuration")
                     if (::mqttClient.isInitialized && mqttClient.isConnected()) {
                         mqttClient.disconnect()

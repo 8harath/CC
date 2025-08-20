@@ -137,6 +137,12 @@ class MqttSettingsViewModel : ViewModel() {
                     return@launch
                 }
                 
+                // Validate IP address format
+                if (!isValidIpAddress(ip) && ip != "localhost") {
+                    _errorMessage.value = "Invalid IP address format. Use format like 192.168.1.100 or localhost"
+                    return@launch
+                }
+                
                 if (port < 1 || port > 65535) {
                     _errorMessage.value = "Port must be between 1 and 65535"
                     return@launch
@@ -210,7 +216,7 @@ class MqttSettingsViewModel : ViewModel() {
         try {
             // Update the MqttConfig object with new settings
             MqttConfig.setCustomBroker(ip, port)
-            Log.i("MqttSettingsViewModel", "Updated MQTT config: $ip:$port")
+            Log.i("MqttSettingsViewModel", "Notified MQTT service of settings change")
         } catch (e: Exception) {
             Log.e("MqttSettingsViewModel", "Error updating MQTT config: ${e.message}")
             throw e
@@ -223,12 +229,29 @@ class MqttSettingsViewModel : ViewModel() {
     private fun notifyMqttServiceSettingsChanged(context: Context) {
         try {
             val intent = android.content.Intent(context, com.example.cc.util.MqttService::class.java).apply {
-                action = "UPDATE_SETTINGS"
+                action = com.example.cc.util.MqttService.ACTION_UPDATE_SETTINGS
             }
             context.startService(intent)
-            Log.i("MqttSettingsViewModel", "Updated MQTT config: $ip:$port")
+            Log.i("MqttSettingsViewModel", "Notified MQTT service of settings change")
         } catch (e: Exception) {
             Log.e("MqttSettingsViewModel", "Error notifying MQTT service: ${e.message}")
+        }
+    }
+    
+    /**
+     * Validate IP address format
+     */
+    private fun isValidIpAddress(ip: String): Boolean {
+        return try {
+            val parts = ip.split(".")
+            if (parts.size != 4) return false
+            
+            parts.all { part ->
+                val num = part.toInt()
+                num in 0..255
+            }
+        } catch (e: Exception) {
+            false
         }
     }
 }

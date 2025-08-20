@@ -45,6 +45,21 @@ object MqttConfig {
         return BROKER_URL
     }
     
+    /**
+     * Get broker URL from SharedPreferences (for MQTT service)
+     */
+    fun getBrokerUrlFromPrefs(context: android.content.Context): String {
+        return try {
+            val prefs = context.getSharedPreferences("mqtt_settings", android.content.Context.MODE_PRIVATE)
+            val ip = prefs.getString("broker_ip", "192.168.1.100") ?: "192.168.1.100"
+            val port = prefs.getInt("broker_port", 1883)
+            "tcp://$ip:$port"
+        } catch (e: Exception) {
+            Log.e("MqttConfig", "Error reading broker settings, using default: ${e.message}")
+            "tcp://192.168.1.100:1883"
+        }
+    }
+    
     // Get broker URL with fallback options
     fun getBrokerUrlWithFallback(): String {
         val primaryUrl = BROKER_URL
