@@ -202,6 +202,32 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         viewModel.onEmergencyAlertReceived(json)
         showEmergencyNotification()
     }
+    
+    // Call this when a simple MQTT message is received
+    fun onMqttSimpleMessage(topic: String, message: String) {
+        viewModel.onSimpleMessageReceived(topic, message)
+        showSimpleMessageNotification(message)
+    }
+    
+    private fun showSimpleMessageNotification(message: String) {
+        val channelId = "simple_messages"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Simple Messages", NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
+        }
+        val intent = Intent(this, SubscriberActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("📨 Test Message Received")
+            .setContentText(message)
+            .setSmallIcon(R.drawable.ic_message)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+    }
 
     private fun showEmergencyNotification() {
         val channelId = "emergency_alerts"

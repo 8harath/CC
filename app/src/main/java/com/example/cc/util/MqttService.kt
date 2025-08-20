@@ -277,6 +277,17 @@ class MqttService : Service() {
                             Log.e(TAG, "Failed to subscribe to alert topic: ${exception?.message}")
                         }
                     })
+                    
+                    // Also subscribe to test messages
+                    val testTopic = "emergency/test/#"
+                    mqttClient.subscribe(testTopic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Subscribed to test topic: $testTopic")
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to test topic: ${exception?.message}")
+                        }
+                    })
                 }
                 else -> {
                     Log.w(TAG, "Unknown role: $role")

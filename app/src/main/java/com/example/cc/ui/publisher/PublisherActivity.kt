@@ -432,6 +432,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                     // Enable/disable MQTT test buttons based on connection state
                     binding.btnTestMqttConnection.isEnabled = state == ConnectionState.CONNECTED
                     binding.btnSendTestMessage.isEnabled = state == ConnectionState.CONNECTED
+                    binding.btnSendSimpleMessage.isEnabled = state == ConnectionState.CONNECTED
                 } catch (e: Exception) {
                     Log.e("PublisherActivity", "Error updating MQTT status: ${e.message}")
                 }
@@ -454,6 +455,11 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         // Send Test Message
         binding.btnSendTestMessage.setOnClickListener {
             sendTestMessage()
+        }
+        
+        // Send Simple Message
+        binding.btnSendSimpleMessage.setOnClickListener {
+            sendSimpleMessage()
         }
         
         // MQTT Settings
@@ -502,6 +508,19 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error sending test message: ${e.message}")
             showToast("Error sending test message: ${e.message}")
+        }
+    }
+    
+    private fun sendSimpleMessage() {
+        try {
+            // Use the ViewModel's sendSimpleTestMessage function
+            viewModel.sendSimpleTestMessage()
+            
+            Log.i("PublisherActivity", "Simple message sent via ViewModel")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error sending simple message: ${e.message}")
+            showToast("Error sending simple message: ${e.message}")
         }
     }
 } 
