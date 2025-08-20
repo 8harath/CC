@@ -278,7 +278,9 @@ class MqttService : Service() {
                 return
             }
             
-            Log.i(TAG, "Attempting to connect to MQTT broker: ${MqttConfig.getBrokerUrl()}")
+            // Get current broker settings from SharedPreferences
+            val brokerUrl = getCurrentBrokerUrl()
+            Log.i(TAG, "Attempting to connect to MQTT broker: $brokerUrl")
             connectionState.postValue(ConnectionState.CONNECTING)
             
             val options = MqttConnectOptions().apply {
@@ -354,6 +356,21 @@ class MqttService : Service() {
             }
         }
     }
+    
+    /**
+     * Get the current broker URL from SharedPreferences
+     */
+    private fun getCurrentBrokerUrl(): String {
+        return try {
+            val prefs = getSharedPreferences("mqtt_settings", Context.MODE_PRIVATE)
+            val ip = prefs.getString("broker_ip", "192.168.1.100") ?: "192.168.1.100"
+            val port = prefs.getInt("broker_port", 1883)
+            "tcp://$ip:$port"
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading broker settings, using default: ${e.message}")
+            "tcp://192.168.1.100:1883"
+        }
+    }
 
     private fun scheduleReconnect() {
         if (isReconnecting) return
@@ -413,6 +430,16 @@ class MqttService : Service() {
                     if (!topic.isNullOrEmpty() && payload != null) {
                         publish(topic, payload, qos, retained)
                     }
+                }
+                "UPDATE_SETTINGS" -> {
+                    Log.i(TAG, "Settings updated, reconnecting with new broker configuration")
+                    if (::mqttClient.isInitialized && mqttClient.isConnected()) {
+                        mqttClient.disconnect()
+                    }
+                    // Small delay to ensure disconnect is complete
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        connect()
+                    }, 1000)
                 }
                 else -> {
                     val role = inIntent.getStringExtra("role")

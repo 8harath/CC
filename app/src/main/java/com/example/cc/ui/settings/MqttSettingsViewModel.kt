@@ -148,6 +148,9 @@ class MqttSettingsViewModel : ViewModel() {
                 // Update MqttConfig
                 updateMqttConfig(ip, port)
                 
+                // Notify MQTT service to reconnect with new settings
+                notifyMqttServiceSettingsChanged(context)
+                
                 _successMessage.value = "Settings saved successfully"
                 Log.i("MqttSettingsViewModel", "Settings saved: $ip:$port")
                 
@@ -211,6 +214,21 @@ class MqttSettingsViewModel : ViewModel() {
         } catch (e: Exception) {
             Log.e("MqttSettingsViewModel", "Error updating MQTT config: ${e.message}")
             throw e
+        }
+    }
+    
+    /**
+     * Notify MQTT service that settings have changed
+     */
+    private fun notifyMqttServiceSettingsChanged(context: Context) {
+        try {
+            val intent = android.content.Intent(context, com.example.cc.util.MqttService::class.java).apply {
+                action = "UPDATE_SETTINGS"
+            }
+            context.startService(intent)
+            Log.i("MqttSettingsViewModel", "Updated MQTT config: $ip:$port")
+        } catch (e: Exception) {
+            Log.e("MqttSettingsViewModel", "Error notifying MQTT service: ${e.message}")
         }
     }
 }
