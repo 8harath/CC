@@ -23,6 +23,7 @@ import com.example.cc.databinding.ActivityPublisherBinding
 import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
 import android.content.Context
+import android.graphics.Color
 import android.content.IntentFilter
 import android.content.BroadcastReceiver
 import android.view.LayoutInflater
@@ -545,9 +546,6 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                     .start()
             }
             .start()
-        
-        // Add ripple effect
-        view.performClick()
     }
     
     private fun showCustomMessageDialog() {
