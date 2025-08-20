@@ -357,10 +357,18 @@ class MqttService : Service() {
                 
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
                     Log.d(TAG, "Message arrived: $topic -> ${message?.toString()}")
-                    if (topic != null && topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
-                        val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                        intent.putExtra("alert_json", message.toString())
-                        sendBroadcast(intent)
+                    if (topic != null) {
+                        if (topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                            val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                            intent.putExtra("alert_json", message.toString())
+                            sendBroadcast(intent)
+                        } else if (topic.startsWith("emergency/test/")) {
+                            // Handle simple test messages
+                            val intent = Intent("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
+                            intent.putExtra("topic", topic)
+                            intent.putExtra("message", message.toString())
+                            sendBroadcast(intent)
+                        }
                     }
                 }
                 

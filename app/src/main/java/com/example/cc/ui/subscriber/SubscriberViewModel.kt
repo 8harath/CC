@@ -86,6 +86,38 @@ class SubscriberViewModel(application: Application) : AndroidViewModel(applicati
             Log.e("SubscriberViewModel", "Error parsing response ack: ${e.message}")
         }
     }
+    
+    fun onSimpleMessageReceived(topic: String, message: String) {
+        try {
+            Log.i("SubscriberViewModel", "Simple message received on topic $topic: $message")
+            
+            // Create a simple alert for display
+            val simpleAlert = EmergencyAlertMessage(
+                incidentId = "simple_${System.currentTimeMillis()}",
+                victimId = "test_user",
+                victimName = "Test Message",
+                location = EmergencyAlertMessage.Location(0.0, 0.0),
+                timestamp = System.currentTimeMillis(),
+                severity = "INFO",
+                medicalInfo = EmergencyAlertMessage.MedicalInfo(
+                    bloodType = "N/A",
+                    allergies = emptyList(),
+                    medications = emptyList(),
+                    conditions = emptyList()
+                )
+            )
+            
+            _alertHistory.update { currentList ->
+                currentList + simpleAlert
+            }
+            
+            _successMessage.value = "Simple message received: $message"
+            
+        } catch (e: Exception) {
+            Log.e("SubscriberViewModel", "Error handling simple message: ${e.message}")
+            _errorMessage.value = "Error handling simple message: ${e.message}"
+        }
+    }
 
     fun initializeMqtt(context: Context) {
         try {

@@ -41,6 +41,18 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             }
         }
     }
+    
+    private val simpleMessageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                val topic = intent?.getStringExtra("topic") ?: return
+                val message = intent?.getStringExtra("message") ?: return
+                onMqttSimpleMessage(topic, message)
+            } catch (e: Exception) {
+                Log.e("SubscriberActivity", "Error in simple message receiver: ${e.message}")
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
