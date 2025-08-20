@@ -482,6 +482,23 @@
                              app:iconTint="@color/white" />
 
                          <com.google.android.material.button.MaterialButton
+                             android:id="@+id/btnSendCustomMessage"
+                             android:layout_width="match_parent"
+                             android:layout_height="wrap_content"
+                             android:text="Send Custom Message"
+                             android:textSize="14sp"
+                             android:paddingVertical="12dp"
+                             android:layout_marginBottom="12dp"
+                             app:cornerRadius="16dp"
+                             android:backgroundTint="@color/subscriber_primary"
+                             android:textColor="@color/white"
+                             android:enabled="false"
+                             app:icon="@drawable/ic_edit"
+                             app:iconGravity="start"
+                             app:iconSize="20dp"
+                             app:iconTint="@color/white" />
+
+                         <com.google.android.material.button.MaterialButton
                              android:id="@+id/btnMqttSettings"
                              android:layout_width="match_parent"
                              android:layout_height="wrap_content"

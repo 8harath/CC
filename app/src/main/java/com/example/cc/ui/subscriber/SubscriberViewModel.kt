@@ -87,6 +87,38 @@ class SubscriberViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
     
+    fun onCustomMessageReceived(topic: String, message: String) {
+        try {
+            Log.i("SubscriberViewModel", "Custom message received on topic $topic: $message")
+            
+            // Create a custom alert for display
+            val customAlert = EmergencyAlertMessage(
+                incidentId = "custom_${System.currentTimeMillis()}",
+                victimId = "publisher_user",
+                victimName = "Custom Message",
+                location = EmergencyAlertMessage.Location(0.0, 0.0),
+                timestamp = System.currentTimeMillis(),
+                severity = "INFO",
+                medicalInfo = EmergencyAlertMessage.MedicalInfo(
+                    bloodType = "N/A",
+                    allergies = emptyList(),
+                    medications = emptyList(),
+                    conditions = emptyList()
+                )
+            )
+            
+            _alertHistory.update { currentList ->
+                currentList + customAlert
+            }
+            
+            _successMessage.value = "Custom message received: $message"
+            
+        } catch (e: Exception) {
+            Log.e("SubscriberViewModel", "Error handling custom message: ${e.message}")
+            _errorMessage.value = "Error handling custom message: ${e.message}"
+        }
+    }
+    
     fun onSimpleMessageReceived(topic: String, message: String) {
         try {
             Log.i("SubscriberViewModel", "Simple message received on topic $topic: $message")

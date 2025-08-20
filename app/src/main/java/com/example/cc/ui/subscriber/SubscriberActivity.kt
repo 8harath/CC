@@ -457,4 +457,32 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             showToast("Error testing MQTT connection: ${e.message}")
         }
     }
+
+    // Call this when a custom MQTT message is received
+    fun onMqttCustomMessage(topic: String, message: String) {
+        viewModel.onCustomMessageReceived(topic, message)
+        showCustomMessageNotification(message)
+    }
+    
+    private fun showCustomMessageNotification(message: String) {
+        val channelId = "custom_messages"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Custom Messages", NotificationManager.IMPORTANCE_HIGH)
+            channel.description = "Custom messages from publisher"
+            notificationManager.createNotificationChannel(channel)
+        }
+        val intent = Intent(this, SubscriberActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("💬 Custom Message Received")
+            .setContentText(message)
+            .setSmallIcon(R.drawable.ic_message)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .build()
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+    }
 } 

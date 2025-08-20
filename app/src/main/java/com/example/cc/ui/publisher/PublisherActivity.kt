@@ -484,6 +484,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                     binding.btnTestMqttConnection.isEnabled = state == ConnectionState.CONNECTED
                     binding.btnSendTestMessage.isEnabled = state == ConnectionState.CONNECTED
                     binding.btnSendSimpleMessage.isEnabled = state == ConnectionState.CONNECTED
+                    binding.btnSendCustomMessage.isEnabled = state == ConnectionState.CONNECTED
                 } catch (e: Exception) {
                     Log.e("PublisherActivity", "Error updating MQTT status: ${e.message}")
                 }
