@@ -154,9 +154,9 @@ class MqttService : Service() {
             // Generate unique client ID
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
-            // Try to find a working broker URL
-            val brokerUrl = MqttConfig.findWorkingBrokerUrl() ?: MqttConfig.getBestBrokerUrl()
-            Log.i(TAG, "Using broker URL: $brokerUrl")
+            // Use the local broker as requested (192.168.0.101:1883)
+            val brokerUrl = MqttConfig.BROKER_URL_LOCAL
+            Log.i(TAG, "Using local broker URL: $brokerUrl")
             
             // Initialize MQTT client
             mqttClient = AndroidXMqttClient(applicationContext, brokerUrl, clientId)
