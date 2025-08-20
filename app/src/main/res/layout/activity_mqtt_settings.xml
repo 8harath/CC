@@ -305,10 +305,27 @@
                         android:text="Test Connection"
                         android:textSize="14sp"
                         android:paddingVertical="12dp"
+                        android:layout_marginBottom="12dp"
                         app:cornerRadius="16dp"
                         android:backgroundTint="@color/info"
                         android:textColor="@color/white"
                         app:icon="@drawable/ic_test"
+                        app:iconGravity="start"
+                        app:iconSize="20dp"
+                        app:iconTint="@color/white" />
+                        
+                    <!-- Enable MQTT Service Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEnableMqttService"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Enable MQTT Service"
+                        android:textSize="14sp"
+                        android:paddingVertical="12dp"
+                        app:cornerRadius="16dp"
+                        android:backgroundTint="@color/success"
+                        android:textColor="@color/white"
+                        app:icon="@drawable/ic_mqtt"
                         app:iconGravity="start"
                         app:iconSize="20dp"
                         app:iconTint="@color/white" />
