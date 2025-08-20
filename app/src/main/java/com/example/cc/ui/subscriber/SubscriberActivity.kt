@@ -58,6 +58,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         super.onCreate(savedInstanceState)
         try {
             registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
+            registerReceiver(simpleMessageReceiver, IntentFilter("com.example.cc.SIMPLE_MESSAGE_RECEIVED"))
             // MQTT service will be started manually when user enables it
             Log.i("SubscriberActivity", "MQTT service auto-start disabled for stability")
         } catch (e: Exception) {
@@ -69,6 +70,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     override fun onDestroy() {
         try {
             unregisterReceiver(emergencyAlertReceiver)
+            unregisterReceiver(simpleMessageReceiver)
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in onDestroy: ${e.message}")
         }
