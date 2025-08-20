@@ -5,14 +5,12 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Enhanced App Bar with Apple-inspired design -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/surface"
-        android:elevation="2dp"
-        app:layout_scrollFlags="scroll|exitUntilCollapsed">
+        android:elevation="2dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -20,70 +18,85 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/surface"
             android:theme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="MQTT Settings"
-            app:titleTextAppearance="@style/TextAppearance.CC.TitleLarge"
-            app:titleTextColor="@color/text_primary"
-            app:titleMarginStart="16dp" />
+            app:titleTextColor="@color/text_primary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="24dp"
+        android:padding="20dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:orientation="vertical">
 
-            <!-- MQTT Broker Configuration Section -->
+            <!-- Status Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="3dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline_variant"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="28dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="MQTT Broker Configuration"
+                        android:text="MQTT Broker Settings"
+                        android:textAppearance="@style/TextAppearance.CC.TitleLarge"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/tvStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Status: No broker configured"
+                        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                        android:textColor="@color/text_secondary" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Settings Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Broker Configuration"
                         android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:layout_marginBottom="24dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="-0.01" />
+                        android:layout_marginBottom="16dp" />
 
-                    <!-- Broker IP Address -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Enter the IP address of your MQTT broker:"
-                        android:textAppearance="@style/TextAppearance.CC.BodySmall"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="8dp"
-                        android:fontFamily="sans-serif" />
-                        
+                    <!-- Broker IP Input -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         android:hint="Broker IP Address"
-                        app:startIconDrawable="@drawable/ic_mqtt"
-                        app:startIconTint="@color/info"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -91,33 +104,16 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="text"
-                            android:text="192.168.1.100"
-                            android:maxLines="1"
-                            android:focusable="true"
-                            android:clickable="true"
-                            android:cursorVisible="true"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
+                            android:text="192.168.1.100" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Broker Port -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Enter the port number (default: 1883):"
-                        android:textAppearance="@style/TextAppearance.CC.BodySmall"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="8dp"
-                        android:fontFamily="sans-serif" />
-                        
+                    <!-- Broker Port Input -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"
+                        android:layout_marginBottom="16dp"
                         android:hint="Broker Port"
-                        app:startIconDrawable="@drawable/ic_settings"
-                        app:startIconTint="@color/info"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -125,266 +121,74 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:text="1883"
-                            android:maxLines="1"
-                            android:focusable="true"
-                            android:clickable="true"
-                            android:cursorVisible="true"
-                            android:textColor="@color/text_primary"
-                            android:textSize="16sp" />
+                            android:text="1883" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Quick IP Selection Buttons -->
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <!-- Auto Detect Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAutoDetect"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Quick Selection"
-                        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                        android:textColor="@color/text_secondary"
+                        android:text="Auto Detect IP"
                         android:layout_marginBottom="12dp"
-                        android:fontFamily="sans-serif-medium" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnLocalhost"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="localhost"
-                            android:textSize="12sp"
-                            android:paddingVertical="8dp"
-                            android:layout_marginEnd="6dp"
-                            app:cornerRadius="16dp"
-                            android:backgroundTint="@color/surface_secondary"
-                            android:textColor="@color/text_primary"
-                            app:icon="@drawable/ic_computer"
-                            app:iconGravity="start"
-                            app:iconSize="16dp"
-                            app:iconTint="@color/text_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnLocalIp"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="192.168.1.100"
-                            android:textSize="12sp"
-                            android:paddingVertical="8dp"
-                            android:layout_marginStart="6dp"
-                            app:cornerRadius="16dp"
-                            android:backgroundTint="@color/surface_secondary"
-                            android:textColor="@color/text_primary"
-                            app:icon="@drawable/ic_network"
-                            app:iconGravity="start"
-                            app:iconSize="16dp"
-                            app:iconTint="@color/text_secondary" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCustomIp"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Enter Custom IP"
-                            android:textSize="12sp"
-                            android:paddingVertical="8dp"
-                            android:layout_marginEnd="6dp"
-                            app:cornerRadius="16dp"
-                            android:backgroundTint="@color/surface_secondary"
-                            android:textColor="@color/text_primary"
-                            app:icon="@drawable/ic_edit"
-                            app:iconGravity="start"
-                            app:iconSize="16dp"
-                            app:iconTint="@color/text_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnClearIp"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Clear"
-                            android:textSize="12sp"
-                            android:paddingVertical="8dp"
-                            android:layout_marginStart="6dp"
-                            app:cornerRadius="16dp"
-                            android:backgroundTint="@color/error"
-                            android:textColor="@color/white"
-                            app:icon="@drawable/ic_edit"
-                            app:iconGravity="start"
-                            app:iconSize="16dp"
-                            app:iconTint="@color/white" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Connection Testing Section -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="3dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline_variant"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="28dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Connection Testing"
-                        android:textAppearance="@style/TextAppearance.CC.TitleMedium"
-                        android:textColor="@color/text_primary"
-                        android:layout_marginBottom="24dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="-0.01" />
-
-                    <!-- Connection Status -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="20dp"
-                        android:padding="16dp"
-                        android:background="@drawable/enhanced_status_background"
-                        android:backgroundTint="@color/surface_secondary">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_mqtt"
-                            android:tint="@color/info"
-                            android:contentDescription="Connection status icon" />
-
-                        <TextView
-                            android:id="@+id/tvConnectionStatus"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="16dp"
-                            android:text="Not tested"
-                            android:textAppearance="@style/TextAppearance.CC.BodyMedium"
-                            android:textColor="@color/text_primary" />
-
-                        <ProgressBar
-                            android:id="@+id/progressBar"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:visibility="gone"
-                            android:indeterminateTint="@color/info" />
-
-                    </LinearLayout>
+                        app:icon="@drawable/ic_network"
+                        app:iconGravity="start"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     <!-- Test Connection Button -->
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnTestConnection"
+                        android:id="@+id/btnTest"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Test Connection"
-                        android:textSize="14sp"
-                        android:paddingVertical="12dp"
                         android:layout_marginBottom="12dp"
-                        app:cornerRadius="16dp"
-                        android:backgroundTint="@color/info"
-                        android:textColor="@color/white"
                         app:icon="@drawable/ic_test"
                         app:iconGravity="start"
-                        app:iconSize="20dp"
-                        app:iconTint="@color/white" />
-                        
-                    <!-- Enable MQTT Service Button -->
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                    <!-- Save Button -->
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEnableMqttService"
+                        android:id="@+id/btnSave"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Enable MQTT Service"
-                        android:textSize="14sp"
-                        android:paddingVertical="12dp"
-                        app:cornerRadius="16dp"
-                        android:backgroundTint="@color/success"
-                        android:textColor="@color/white"
-                        app:icon="@drawable/ic_mqtt"
-                        app:iconGravity="start"
-                        app:iconSize="20dp"
-                        app:iconTint="@color/white" />
+                        android:text="Save Settings"
+                        app:icon="@drawable/ic_save"
+                        app:iconGravity="start" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Save Settings Section -->
+            <!-- Help Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="3dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/outline_variant"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="28dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Save Configuration"
+                        android:text="Help"
                         android:textAppearance="@style/TextAppearance.CC.TitleMedium"
                         android:textColor="@color/text_primary"
-                        android:layout_marginBottom="24dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="-0.01" />
+                        android:layout_marginBottom="12dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Save your MQTT broker settings. These settings will be used for all MQTT connections in the app."
-                        android:textAppearance="@style/TextAppearance.CC.BodyMedium"
+                        android:text="• Enter the IP address of your MQTT broker\n• Default port is 1883\n• Use 'Auto Detect' to find your local IP\n• Test the connection before saving\n• Make sure your broker is running"
+                        android:textAppearance="@style/TextAppearance.CC.BodySmall"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="20dp"
-                        android:lineSpacingExtra="2dp" />
-
-                    <!-- Save Button -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSaveSettings"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Save Settings"
-                        android:textSize="14sp"
-                        android:paddingVertical="12dp"
-                        app:cornerRadius="16dp"
-                        android:backgroundTint="@color/success"
-                        android:textColor="@color/white"
-                        app:icon="@drawable/ic_save"
-                        app:iconGravity="start"
-                        app:iconSize="20dp"
-                        app:iconTint="@color/white" />
+                        android:lineSpacingExtra="4dp" />
 
                 </LinearLayout>
 
