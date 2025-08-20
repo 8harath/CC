@@ -102,6 +102,15 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Broker Port -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enter the port number (default: 1883):"
+                        android:textAppearance="@style/TextAppearance.CC.BodySmall"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginBottom="8dp"
+                        android:fontFamily="sans-serif" />
+                        
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
