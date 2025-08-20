@@ -189,6 +189,19 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
         }
     }
     
+    private fun showCurrentSettingsInfo() {
+        try {
+            // Show a toast with current settings
+            val currentIp = binding.etBrokerIp.text.toString()
+            val currentPort = binding.etBrokerPort.text.toString()
+            if (currentIp.isNotEmpty() && currentPort.isNotEmpty()) {
+                showToast("Current settings: $currentIp:$currentPort")
+            }
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error showing current settings info: ${e.message}")
+        }
+    }
+    
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
