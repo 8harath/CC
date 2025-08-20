@@ -153,8 +153,12 @@ class MqttService : Service() {
             // Generate unique client ID
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
-            // Initialize MQTT client but DON'T connect automatically
-            mqttClient = AndroidXMqttClient(applicationContext, MqttConfig.getBrokerUrl(), clientId)
+            // Get the best available broker URL
+            val brokerUrl = MqttConfig.getBestBrokerUrl()
+            Log.i(TAG, "Using broker URL: $brokerUrl")
+            
+            // Initialize MQTT client
+            mqttClient = AndroidXMqttClient(applicationContext, brokerUrl, clientId)
             
             // Register network receiver
             registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))

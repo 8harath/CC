@@ -41,8 +41,8 @@ object MqttConfig {
         val recommendedUrl = NetworkHelper.getRecommendedBrokerUrl()
         Log.d("MqttConfig", "Recommended broker URL: $recommendedUrl")
         
-        // For now, return the hardcoded URL, but you can change this to use recommendedUrl
-        return BROKER_URL
+        // Return the recommended URL instead of hardcoded one
+        return recommendedUrl
     }
     
     /**
@@ -51,34 +51,78 @@ object MqttConfig {
     fun getBrokerUrlFromPrefs(context: android.content.Context): String {
         return try {
             val prefs = context.getSharedPreferences("mqtt_settings", android.content.Context.MODE_PRIVATE)
-            val ip = prefs.getString("broker_ip", "192.168.1.100") ?: "192.168.1.100"
+            val ip = prefs.getString("broker_ip", "") ?: ""
             val port = prefs.getInt("broker_port", 1883)
+            
+            // If no IP is set in preferences, try to auto-detect
+            if (ip.isEmpty()) {
+                val autoDetectedIp = NetworkHelper.getLocalIpAddress()
+                if (autoDetectedIp != null) {
+                    Log.i("MqttConfig", "Auto-detected broker IP: $autoDetectedIp")
+                    return "tcp://$autoDetectedIp:$port"
+                } else {
+                    Log.w("MqttConfig", "Could not auto-detect IP, using localhost")
+                    return "tcp://localhost:$port"
+                }
+            }
+            
             "tcp://$ip:$port"
         } catch (e: Exception) {
-            Log.e("MqttConfig", "Error reading broker settings, using default: ${e.message}")
-            "tcp://192.168.1.100:1883"
+            Log.e("MqttConfig", "Error reading broker settings, using auto-detection: ${e.message}")
+            val autoDetectedIp = NetworkHelper.getLocalIpAddress()
+            if (autoDetectedIp != null) {
+                "tcp://$autoDetectedIp:1883"
+            } else {
+                "tcp://localhost:1883"
+            }
         }
     }
     
     // Get broker URL with fallback options
     fun getBrokerUrlWithFallback(): String {
-        val primaryUrl = BROKER_URL
-        val fallbackUrl = BROKER_URL_LOCALHOST
-        
-        // Test primary URL first
-        if (NetworkHelper.testBrokerConnectivity("192.168.1.100", 1883)) {
-            Log.i("MqttConfig", "Using primary broker: $primaryUrl")
-            return primaryUrl
+        // First try auto-detected IP
+        val autoDetectedIp = NetworkHelper.getLocalIpAddress()
+        if (autoDetectedIp != null) {
+            val autoUrl = "tcp://$autoDetectedIp:1883"
+            Log.i("MqttConfig", "Using auto-detected broker: $autoUrl")
+            return autoUrl
         }
         
-        // Test fallback URL
+        // Try localhost
         if (NetworkHelper.testBrokerConnectivity("localhost", 1883)) {
-            Log.i("MqttConfig", "Using fallback broker: $fallbackUrl")
-            return fallbackUrl
+            Log.i("MqttConfig", "Using localhost broker: $BROKER_URL_LOCALHOST")
+            return BROKER_URL_LOCALHOST
         }
         
-        // If neither works, return primary and let connection fail
-        Log.w("MqttConfig", "No broker accessible, using primary: $primaryUrl")
-        return primaryUrl
+        // Try hardcoded IP
+        if (NetworkHelper.testBrokerConnectivity("192.168.1.100", 1883)) {
+            Log.i("MqttConfig", "Using hardcoded broker: $BROKER_URL")
+            return BROKER_URL
+        }
+        
+        // If nothing works, return auto-detected or localhost
+        Log.w("MqttConfig", "No broker accessible, using auto-detected or localhost")
+        return if (autoDetectedIp != null) {
+            "tcp://$autoDetectedIp:1883"
+        } else {
+            BROKER_URL_LOCALHOST
+        }
+    }
+    
+    /**
+     * Get the best available broker URL for the current network
+     */
+    fun getBestBrokerUrl(): String {
+        // Priority order: Custom > Auto-detected > Localhost > Hardcoded
+        if (customBrokerIp != null) {
+            return "tcp://$customBrokerIp:$customBrokerPort"
+        }
+        
+        val autoDetectedIp = NetworkHelper.getLocalIpAddress()
+        if (autoDetectedIp != null) {
+            return "tcp://$autoDetectedIp:1883"
+        }
+        
+        return BROKER_URL_LOCALHOST
     }
 }
