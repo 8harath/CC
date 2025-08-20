@@ -28,6 +28,9 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             // Load current settings
             viewModel.loadCurrentSettings(this)
             
+            // Show current settings info
+            showCurrentSettingsInfo()
+            
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error setting up views: ${e.message}", e)
             showToast("Error setting up MQTT settings: ${e.message}")
@@ -124,6 +127,11 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             
             binding.btnCustomIp.setOnClickListener {
                 showCustomIpDialog()
+            }
+            
+            binding.btnClearIp.setOnClickListener {
+                binding.etBrokerIp.setText("")
+                binding.etBrokerIp.requestFocus()
             }
             
             // Add clear button functionality
