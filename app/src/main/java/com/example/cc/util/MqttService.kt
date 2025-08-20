@@ -472,6 +472,8 @@ class MqttService : Service() {
             unregisterReceiver(networkReceiver)
             if (::mqttClient.isInitialized) {
                 mqttClient.close()
+            } else {
+                // MQTT client not initialized, nothing to close
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error disconnecting MQTT: ${e.message}")
@@ -497,6 +499,9 @@ class MqttService : Service() {
         if (pendingRole != null) {
             Log.i(TAG, "Connecting with pending role: $pendingRole")
             connect()
+        } else {
+            // No pending role, just connect normally
+            connect()
         }
     }
     
@@ -516,6 +521,9 @@ class MqttService : Service() {
             } catch (j: Exception) {
                 Log.e(TAG, "Error disconnecting MQTT: ${j.message}")
             }
+        } else {
+            // Not connected, just update state
+            Log.i(TAG, "MQTT not connected, updating state only")
         }
         
         // Reset connection state
