@@ -58,7 +58,11 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         super.onCreate(savedInstanceState)
         try {
             // Register broadcast receiver for message publish feedback
-            registerReceiver(messagePublishReceiver, IntentFilter("com.example.cc.MESSAGE_PUBLISHED"))
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(messagePublishReceiver, IntentFilter("com.example.cc.MESSAGE_PUBLISHED"), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(messagePublishReceiver, IntentFilter("com.example.cc.MESSAGE_PUBLISHED"))
+            }
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error in onCreate: ${e.message}", e)
         }

@@ -70,9 +70,15 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         super.onCreate(savedInstanceState)
         try {
             // Register broadcast receivers for different message types
-            registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
-            registerReceiver(simpleMessageReceiver, IntentFilter("com.example.cc.SIMPLE_MESSAGE_RECEIVED"))
-            registerReceiver(customMessageReceiver, IntentFilter("com.example.cc.CUSTOM_MESSAGE_RECEIVED"))
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"), Context.RECEIVER_NOT_EXPORTED)
+                registerReceiver(simpleMessageReceiver, IntentFilter("com.example.cc.SIMPLE_MESSAGE_RECEIVED"), Context.RECEIVER_NOT_EXPORTED)
+                registerReceiver(customMessageReceiver, IntentFilter("com.example.cc.CUSTOM_MESSAGE_RECEIVED"), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
+                registerReceiver(simpleMessageReceiver, IntentFilter("com.example.cc.SIMPLE_MESSAGE_RECEIVED"))
+                registerReceiver(customMessageReceiver, IntentFilter("com.example.cc.CUSTOM_MESSAGE_RECEIVED"))
+            }
             
             // Initialize MQTT service immediately for subscriber
             Log.i("SubscriberActivity", "Initializing MQTT service for subscriber")
