@@ -97,19 +97,29 @@ class MqttSettingsViewModel : ViewModel() {
                 val ip = _brokerIp.value
                 val port = _brokerPort.value
                 
-                Log.i("MqttSettingsViewModel", "Testing connection to $ip:$port")
+                Log.i("MqttSettingsViewModel", "Testing MQTT connection to $ip:$port")
                 
-                // Test basic network connectivity
+                // First test basic network connectivity
                 val isReachable = testNetworkConnectivity(ip, port)
                 
-                if (isReachable) {
-                    _connectionStatus.value = "✅ Connection successful"
-                    _successMessage.value = "Successfully connected to $ip:$port"
-                    Log.i("MqttSettingsViewModel", "Connection test successful")
-                } else {
-                    _connectionStatus.value = "❌ Connection failed"
+                if (!isReachable) {
+                    _connectionStatus.value = "❌ Network unreachable"
                     _errorMessage.value = "Cannot reach $ip:$port. Check if Mosquitto broker is running."
-                    Log.w("MqttSettingsViewModel", "Connection test failed")
+                    Log.w("MqttSettingsViewModel", "Network connectivity test failed")
+                    return@launch
+                }
+                
+                // Now test actual MQTT connection
+                val mqttTestResult = testMqttConnection(ip, port)
+                
+                if (mqttTestResult) {
+                    _connectionStatus.value = "✅ MQTT Connection successful"
+                    _successMessage.value = "Successfully connected to MQTT broker at $ip:$port"
+                    Log.i("MqttSettingsViewModel", "MQTT connection test successful")
+                } else {
+                    _connectionStatus.value = "❌ MQTT Connection failed"
+                    _errorMessage.value = "Cannot connect to MQTT broker at $ip:$port. Check if Mosquitto is running and accessible."
+                    Log.w("MqttSettingsViewModel", "MQTT connection test failed")
                 }
                 
             } catch (e: Exception) {
