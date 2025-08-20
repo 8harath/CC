@@ -125,4 +125,59 @@ object MqttConfig {
         
         return BROKER_URL_LOCALHOST
     }
+    
+    /**
+     * Get a list of potential broker URLs to try
+     */
+    fun getBrokerUrlCandidates(): List<String> {
+        val candidates = mutableListOf<String>()
+        
+        // 1. Custom broker (if set)
+        if (customBrokerIp != null) {
+            candidates.add("tcp://$customBrokerIp:$customBrokerPort")
+        }
+        
+        // 2. Auto-detected IP
+        val autoDetectedIp = NetworkHelper.getLocalIpAddress()
+        if (autoDetectedIp != null) {
+            candidates.add("tcp://$autoDetectedIp:1883")
+        }
+        
+        // 3. Common local IPs
+        candidates.addAll(listOf(
+            "tcp://192.168.1.100:1883",
+            "tcp://192.168.0.100:1883",
+            "tcp://10.0.0.100:1883",
+            "tcp://172.16.0.100:1883"
+        ))
+        
+        // 4. Localhost
+        candidates.add("tcp://localhost:1883")
+        
+        return candidates.distinct()
+    }
+    
+    /**
+     * Test multiple broker URLs and return the first working one
+     */
+    fun findWorkingBrokerUrl(): String? {
+        val candidates = getBrokerUrlCandidates()
+        
+        for (url in candidates) {
+            try {
+                val host = url.replace("tcp://", "").split(":")[0]
+                val port = url.split(":")[1].toInt()
+                
+                if (NetworkHelper.testBrokerConnectivity(host, port)) {
+                    Log.i("MqttConfig", "Found working broker: $url")
+                    return url
+                }
+            } catch (e: Exception) {
+                Log.w("MqttConfig", "Error testing broker URL $url: ${e.message}")
+            }
+        }
+        
+        Log.w("MqttConfig", "No working broker found")
+        return null
+    }
 }

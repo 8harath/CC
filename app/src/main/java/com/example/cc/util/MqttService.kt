@@ -153,8 +153,8 @@ class MqttService : Service() {
             // Generate unique client ID
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
-            // Get the best available broker URL
-            val brokerUrl = MqttConfig.getBestBrokerUrl()
+            // Try to find a working broker URL
+            val brokerUrl = MqttConfig.findWorkingBrokerUrl() ?: MqttConfig.getBestBrokerUrl()
             Log.i(TAG, "Using broker URL: $brokerUrl")
             
             // Initialize MQTT client
@@ -512,6 +512,119 @@ class MqttService : Service() {
         } else {
             // No pending role, just connect normally
             connect()
+        }
+    }
+    
+    /**
+     * Connect to MQTT broker with improved error handling and retry logic
+     */
+    private fun connect() {
+        if (!isMqttEnabled) {
+            Log.w(TAG, "MQTT not enabled, skipping connection attempt")
+            return
+        }
+        
+        if (isReconnecting) {
+            Log.w(TAG, "Already attempting to reconnect, skipping")
+            return
+        }
+        
+        if (!isNetworkAvailable()) {
+            Log.w(TAG, "Network not available, cannot connect to MQTT")
+            connectionState.postValue(ConnectionState.DISCONNECTED)
+            return
+        }
+        
+        try {
+            Log.i(TAG, "Attempting to connect to MQTT broker...")
+            connectionState.postValue(ConnectionState.CONNECTING)
+            isReconnecting = true
+            
+            // Create connection options
+            val options = MqttConnectOptions().apply {
+                isCleanSession = true
+                connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
+                keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
+                isAutomaticReconnect = false // We'll handle reconnection manually
+                
+                // Set username and password if provided
+                if (MqttConfig.USERNAME.isNotEmpty()) {
+                    userName = MqttConfig.USERNAME
+                    password = MqttConfig.PASSWORD.toCharArray()
+                }
+            }
+            
+            // Set up callback for connection events
+            mqttClient.setCallback(object : MqttCallback {
+                override fun connectionLost(cause: Throwable?) {
+                    Log.w(TAG, "MQTT connection lost: ${cause?.message}")
+                    isConnected = false
+                    connectionState.postValue(ConnectionState.DISCONNECTED)
+                    
+                    // Attempt reconnection if MQTT is still enabled
+                    if (isMqttEnabled && !isReconnecting) {
+                        Log.i(TAG, "Attempting to reconnect...")
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            connect()
+                        }, MqttConfig.RECONNECT_DELAY)
+                    }
+                }
+                
+                override fun messageArrived(topic: String?, message: MqttMessage?) {
+                    Log.d(TAG, "Message received on topic: $topic")
+                    message?.let { msg ->
+                        val payload = String(msg.payload)
+                        Log.d(TAG, "Message payload: $payload")
+                        // Handle incoming messages here
+                    }
+                }
+                
+                override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                    Log.d(TAG, "Message delivery complete")
+                }
+            })
+            
+            // Attempt connection
+            mqttClient.connect(options, null, object : IMqttActionListener {
+                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    Log.i(TAG, "Successfully connected to MQTT broker!")
+                    isConnected = true
+                    isReconnecting = false
+                    reconnectAttempts = 0
+                    connectionState.postValue(ConnectionState.CONNECTED)
+                    
+                    // Subscribe to topics based on role
+                    pendingRole?.let { role ->
+                        subscribeForRole(role, pendingIncidentId)
+                    }
+                }
+                
+                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
+                    isConnected = false
+                    isReconnecting = false
+                    connectionState.postValue(ConnectionState.DISCONNECTED)
+                    
+                    // Increment reconnect attempts
+                    reconnectAttempts++
+                    
+                    // Try to reconnect if we haven't exceeded max attempts
+                    if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS && isMqttEnabled) {
+                        Log.i(TAG, "Reconnect attempt $reconnectAttempts of ${MqttConfig.MAX_RECONNECT_ATTEMPTS}")
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            connect()
+                        }, MqttConfig.RECONNECT_DELAY)
+                    } else {
+                        Log.w(TAG, "Max reconnect attempts reached or MQTT disabled")
+                    }
+                }
+            })
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during MQTT connection: ${e.message}")
+            isConnected = false
+            isReconnecting = false
+            connectionState.postValue(ConnectionState.DISCONNECTED)
         }
     }
     
