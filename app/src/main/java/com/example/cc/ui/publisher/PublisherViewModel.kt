@@ -453,6 +453,30 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 ctx.startService(publishIntent)
                 
+                _successMessage.value = "Simple message sent to $topic"
+                
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to send simple message: ${e.message}"
+                Log.e("PublisherViewModel", "Failed to send simple message", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Send a simple test message for publisher-subscriber communication
+     */
+    fun sendSimpleTestMessage() {
+        val topic = "emergency/test/message"
+        val message = "Hello from Publisher! Test message at ${System.currentTimeMillis()}"
+        sendSimpleMessage(topic, message)
+    }
+                    putExtra(MqttService.EXTRA_QOS, 1)
+                    putExtra(MqttService.EXTRA_RETAINED, false)
+                }
+                ctx.startService(publishIntent)
+                
                 _successMessage.value = "Message sent to $topic"
                 
             } catch (e: Exception) {
