@@ -188,7 +188,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
                 }
             }
             
-            binding.rvAlertHistory.apply {
+            binding.recyclerViewAlerts.apply {
                 layoutManager = LinearLayoutManager(this@SubscriberActivity)
                 adapter = alertAdapter
             }
