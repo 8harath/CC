@@ -284,8 +284,8 @@ class MqttService : Service() {
                 return
             }
             
-            // Get current broker settings from SharedPreferences
-            val brokerUrl = getCurrentBrokerUrl()
+            // Get current broker settings - use the best available URL
+            val brokerUrl = MqttConfig.getBestBrokerUrl()
             Log.i(TAG, "Attempting to connect to MQTT broker: $brokerUrl")
             connectionState.postValue(ConnectionState.CONNECTING)
             
@@ -367,7 +367,7 @@ class MqttService : Service() {
      * Get the current broker URL from SharedPreferences
      */
     private fun getCurrentBrokerUrl(): String {
-        return MqttConfig.getBrokerUrlFromPrefs(this)
+        return MqttConfig.getBestBrokerUrl()
     }
 
     private fun scheduleReconnect() {
