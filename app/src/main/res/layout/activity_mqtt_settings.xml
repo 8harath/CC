@@ -187,20 +187,47 @@
 
                     </LinearLayout>
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnCustomIp"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Enter Custom IP"
-                        android:textSize="12sp"
-                        android:paddingVertical="8dp"
-                        app:cornerRadius="16dp"
-                        android:backgroundTint="@color/surface_secondary"
-                        android:textColor="@color/text_primary"
-                        app:icon="@drawable/ic_edit"
-                        app:iconGravity="start"
-                        app:iconSize="16dp"
-                        app:iconTint="@color/text_secondary" />
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCustomIp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Enter Custom IP"
+                            android:textSize="12sp"
+                            android:paddingVertical="8dp"
+                            android:layout_marginEnd="6dp"
+                            app:cornerRadius="16dp"
+                            android:backgroundTint="@color/surface_secondary"
+                            android:textColor="@color/text_primary"
+                            app:icon="@drawable/ic_edit"
+                            app:iconGravity="start"
+                            app:iconSize="16dp"
+                            app:iconTint="@color/text_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearIp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Clear"
+                            android:textSize="12sp"
+                            android:paddingVertical="8dp"
+                            android:layout_marginStart="6dp"
+                            app:cornerRadius="16dp"
+                            android:backgroundTint="@color/error"
+                            android:textColor="@color/white"
+                            app:icon="@drawable/ic_edit"
+                            app:iconGravity="start"
+                            app:iconSize="16dp"
+                            app:iconTint="@color/white" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 

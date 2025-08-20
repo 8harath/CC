@@ -112,14 +112,26 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             // Set up quick IP buttons
             binding.btnLocalhost.setOnClickListener {
                 binding.etBrokerIp.setText("localhost")
+                binding.etBrokerIp.requestFocus()
+                binding.etBrokerIp.setSelection(binding.etBrokerIp.text.length)
             }
             
             binding.btnLocalIp.setOnClickListener {
                 binding.etBrokerIp.setText("192.168.1.100")
+                binding.etBrokerIp.requestFocus()
+                binding.etBrokerIp.setSelection(binding.etBrokerIp.text.length)
             }
             
             binding.btnCustomIp.setOnClickListener {
                 showCustomIpDialog()
+            }
+            
+            // Add clear button functionality
+            binding.etBrokerIp.setOnFocusChangeListener { _, hasFocus ->
+                if (hasFocus) {
+                    // Show clear button or highlight the field
+                    binding.etBrokerIp.setSelection(binding.etBrokerIp.text.length)
+                }
             }
             
         } catch (e: Exception) {
