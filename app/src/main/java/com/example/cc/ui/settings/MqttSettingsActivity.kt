@@ -99,7 +99,19 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 override fun afterTextChanged(s: android.text.Editable?) {
-                    viewModel.updateBrokerIp(s?.toString() ?: "")
+                    val ip = s?.toString() ?: ""
+                    viewModel.updateBrokerIp(ip)
+                    
+                    // Validate IP format in real-time
+                    if (ip.isNotEmpty() && ip != "localhost") {
+                        if (!isValidIpFormat(ip)) {
+                            binding.etBrokerIp.error = "Invalid IP format. Use format like 192.168.1.100"
+                        } else {
+                            binding.etBrokerIp.error = null
+                        }
+                    } else {
+                        binding.etBrokerIp.error = null
+                    }
                 }
             })
             
@@ -107,8 +119,18 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                 override fun afterTextChanged(s: android.text.Editable?) {
-                    val port = s?.toString()?.toIntOrNull() ?: 1883
-                    viewModel.updateBrokerPort(port)
+                    val portStr = s?.toString() ?: ""
+                    if (portStr.isNotEmpty()) {
+                        val port = portStr.toIntOrNull()
+                        if (port != null && port in 1..65535) {
+                            viewModel.updateBrokerPort(port)
+                            binding.etBrokerPort.error = null
+                        } else {
+                            binding.etBrokerPort.error = "Port must be between 1 and 65535"
+                        }
+                    } else {
+                        binding.etBrokerPort.error = null
+                    }
                 }
             })
             
@@ -150,7 +172,20 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
     private fun setupTestConnectionButton() {
         try {
             binding.btnTestConnection.setOnClickListener {
-                viewModel.testConnection()
+                // Get current input values for testing
+                val currentIp = binding.etBrokerIp.text.toString()
+                val currentPort = binding.etBrokerPort.text.toString()
+                
+                if (currentIp.isNotEmpty() && currentPort.isNotEmpty()) {
+                    // Update ViewModel with current values
+                    viewModel.updateBrokerIp(currentIp)
+                    viewModel.updateBrokerPort(currentPort.toIntOrNull() ?: 1883)
+                    
+                    // Test connection with current settings
+                    viewModel.testConnection()
+                } else {
+                    showToast("Please enter both IP address and port before testing")
+                }
             }
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error setting up test connection button: ${e.message}")
@@ -160,7 +195,20 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
     private fun setupSaveButton() {
         try {
             binding.btnSaveSettings.setOnClickListener {
-                viewModel.saveSettings(this)
+                // Get current input values for saving
+                val currentIp = binding.etBrokerIp.text.toString()
+                val currentPort = binding.etBrokerPort.text.toString()
+                
+                if (currentIp.isNotEmpty() && currentPort.isNotEmpty()) {
+                    // Update ViewModel with current values
+                    viewModel.updateBrokerIp(currentIp)
+                    viewModel.updateBrokerPort(currentPort.toIntOrNull() ?: 1883)
+                    
+                    // Save settings
+                    viewModel.saveSettings(this)
+                } else {
+                    showToast("Please enter both IP address and port before saving")
+                }
             }
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error setting up save button: ${e.message}")
@@ -199,6 +247,23 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             }
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error showing current settings info: ${e.message}")
+        }
+    }
+    
+    /**
+     * Validate IP address format
+     */
+    private fun isValidIpFormat(ip: String): Boolean {
+        return try {
+            val parts = ip.split(".")
+            if (parts.size != 4) return false
+            
+            parts.all { part ->
+                val num = part.toInt()
+                num in 0..255
+            }
+        } catch (e: Exception) {
+            false
         }
     }
     
