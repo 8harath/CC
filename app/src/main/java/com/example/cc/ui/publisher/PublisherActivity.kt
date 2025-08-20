@@ -22,10 +22,52 @@ import android.util.Log
 import com.example.cc.databinding.ActivityPublisherBinding
 import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
+import android.content.Context
+import android.content.IntentFilter
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
     private val viewModel: PublisherViewModel by viewModels()
+    
+    private val messagePublishReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                val topic = intent?.getStringExtra("topic") ?: return
+                val success = intent.getBooleanExtra("success", false)
+                val error = intent.getStringExtra("error")
+                val payload = intent.getStringExtra("payload")
+                
+                if (success) {
+                    Log.i("PublisherActivity", "✅ Message published successfully to $topic")
+                    showToast("✅ Message sent successfully to $topic")
+                } else {
+                    Log.e("PublisherActivity", "❌ Failed to publish message to $topic: $error")
+                    showToast("❌ Failed to send message: $error")
+                }
+            } catch (e: Exception) {
+                Log.e("PublisherActivity", "Error in message publish receiver: ${e.message}")
+            }
+        }
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        try {
+            // Register broadcast receiver for message publish feedback
+            registerReceiver(messagePublishReceiver, IntentFilter("com.example.cc.MESSAGE_PUBLISHED"))
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error in onCreate: ${e.message}", e)
+        }
+    }
+    
+    override fun onDestroy() {
+        try {
+            unregisterReceiver(messagePublishReceiver)
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error in onDestroy: ${e.message}")
+        }
+        super.onDestroy()
+    }
     
     override fun getViewBinding(): ActivityPublisherBinding = ActivityPublisherBinding.inflate(layoutInflater)
     
