@@ -373,9 +373,9 @@ class MqttService : Service() {
                 return
             }
             
-            // Get current broker settings - use the best available URL
-            val brokerUrl = MqttConfig.getBestBrokerUrl()
-            Log.i(TAG, "Attempting to connect to MQTT broker: $brokerUrl")
+            // Use the local broker URL directly as requested
+            val brokerUrl = MqttConfig.BROKER_URL_LOCAL
+            Log.i(TAG, "Attempting to connect to local MQTT broker: $brokerUrl")
             connectionState.postValue(ConnectionState.CONNECTING)
             isReconnecting = true
             
@@ -441,7 +441,7 @@ class MqttService : Service() {
             
             mqttClient.connect(options, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    Log.i(TAG, "Successfully connected to MQTT broker!")
+                    Log.i(TAG, "✅ Successfully connected to local MQTT broker!")
                     isConnected = true
                     connectionState.postValue(ConnectionState.CONNECTED)
                     reconnectAttempts = 0
@@ -457,7 +457,7 @@ class MqttService : Service() {
                 }
                 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
+                    Log.e(TAG, "❌ Failed to connect to local MQTT broker: ${exception?.message}")
                     isConnected = false
                     connectionState.postValue(ConnectionState.DISCONNECTED)
                     isReconnecting = false

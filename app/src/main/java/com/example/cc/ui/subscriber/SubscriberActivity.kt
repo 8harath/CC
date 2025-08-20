@@ -84,10 +84,16 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             setupToolbar()
             setupAlertHistoryList()
             setupMqttTestButtons()
-            // MQTT initialization disabled since service is not auto-started
-            Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
             
-            // Setup MQTT enable button
+            // Initialize MQTT service immediately for subscriber
+            Log.i("SubscriberActivity", "Initializing MQTT service for subscriber")
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
+                putExtra("role", "SUBSCRIBER")
+            }
+            startService(serviceIntent)
+            
+            // Setup MQTT enable button (for manual control if needed)
             binding.btnEnableMqtt.setOnClickListener {
                 enableMqttService()
             }
@@ -175,13 +181,38 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     }
     
     private fun setupAlertHistoryList() {
-        alertAdapter = AlertHistoryAdapter()
-        alertAdapter.onIncidentClick = { incident ->
-            openIncidentDetails(incident)
-        }
-        binding.recyclerViewAlerts.apply {
-            layoutManager = LinearLayoutManager(this@SubscriberActivity)
-            adapter = alertAdapter
+        try {
+            alertAdapter = AlertHistoryAdapter().apply {
+                onIncidentClick = { incident ->
+                    openIncidentDetails(incident)
+                }
+            }
+            
+            binding.rvAlertHistory.apply {
+                layoutManager = LinearLayoutManager(this@SubscriberActivity)
+                adapter = alertAdapter
+            }
+            
+            // Observe alert history from ViewModel
+            lifecycleScope.launch {
+                viewModel.alertHistory.collect { alerts ->
+                    try {
+                        Log.i("SubscriberActivity", "Updating alert history with ${alerts.size} alerts")
+                        alertAdapter.submitList(alerts)
+                        
+                        // Update dashboard stats
+                        updateDashboardStats(alerts.size)
+                        updateActiveResponses(alerts.count { it.severity == "HIGH" })
+                        
+                    } catch (e: Exception) {
+                        Log.e("SubscriberActivity", "Error updating alert history: ${e.message}")
+                    }
+                }
+            }
+            
+            Log.i("SubscriberActivity", "Alert history list setup completed")
+        } catch (e: Exception) {
+            Log.e("SubscriberActivity", "Error setting up alert history list: ${e.message}")
         }
     }
     

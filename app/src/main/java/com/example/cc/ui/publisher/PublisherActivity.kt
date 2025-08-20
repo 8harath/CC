@@ -80,15 +80,21 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             setupMedicalProfileButton()
             setupEmergencyModeButtons()
             setupMqttTestButtons()
-            viewModel.initializeMqtt(this)
+            
+            // Initialize MQTT service immediately
+            Log.i("PublisherActivity", "Initializing MQTT service for publisher")
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
+                putExtra("role", "PUBLISHER")
+            }
+            startService(serviceIntent)
             
             // Start GPS updates if permissions are granted
             if (PermissionManager.hasRequiredPermissions(this)) {
                 viewModel.startGpsUpdates()
             }
             
-            // MQTT service will be started manually when user enables it
-            Log.i("PublisherActivity", "MQTT service auto-start disabled for stability")
+            Log.i("PublisherActivity", "MQTT service started for publisher role")
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error setting up views: ${e.message}", e)
             showToast("Error setting up app: ${e.message}")
