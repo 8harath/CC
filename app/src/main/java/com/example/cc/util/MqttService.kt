@@ -429,6 +429,8 @@ class MqttService : Service() {
                     Log.i(TAG, "Settings updated, reconnecting with new broker configuration")
                     if (::mqttClient.isInitialized && mqttClient.isConnected()) {
                         mqttClient.disconnect()
+                    } else {
+                        // Not connected, proceed with reconnection
                     }
                     // Small delay to ensure disconnect is complete
                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
