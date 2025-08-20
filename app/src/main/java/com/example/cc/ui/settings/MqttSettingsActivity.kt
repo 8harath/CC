@@ -31,6 +31,9 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             // Show current settings info
             showCurrentSettingsInfo()
             
+            // Add settings summary
+            addSettingsSummary()
+            
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error setting up views: ${e.message}", e)
             showToast("Error setting up MQTT settings: ${e.message}")
@@ -54,6 +57,13 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             lifecycleScope.launch {
                 viewModel.connectionStatus.collect { status ->
                     binding.tvConnectionStatus.text = status
+                    
+                    // Show additional connection info
+                    val currentIp = binding.etBrokerIp.text.toString()
+                    val currentPort = binding.etBrokerPort.text.toString()
+                    if (currentIp.isNotEmpty() && currentPort.isNotEmpty()) {
+                        binding.tvConnectionStatus.text = "$status\nBroker: $currentIp:$currentPort"
+                    }
                 }
             }
             
@@ -298,6 +308,24 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             }
         } catch (e: Exception) {
             false
+        }
+    }
+    
+    /**
+     * Add settings summary information
+     */
+    private fun addSettingsSummary() {
+        try {
+            // Add a small info text below the settings
+            val summaryText = "💡 Tip: You can edit the IP address and port above. " +
+                            "Use the quick selection buttons or enter a custom IP address. " +
+                            "The settings will be saved and used for all MQTT connections."
+            
+            // You can add this as a TextView in the layout or show it as a toast
+            // For now, we'll show it as a toast
+            showToast(summaryText)
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error adding settings summary: ${e.message}")
         }
     }
     
