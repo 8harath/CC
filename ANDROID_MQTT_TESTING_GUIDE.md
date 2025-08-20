@@ -1,219 +1,230 @@
 # Android MQTT Testing Guide
 
-This guide will help you test MQTT communication between two Android devices using the Car Crash Detection app.
-
 ## Overview
-
-The app now includes MQTT testing functionality in both Publisher and Subscriber modes:
-
-- **Publisher Mode**: Can send test messages to MQTT topics
-- **Subscriber Mode**: Can receive and display messages from MQTT topics
+This guide explains how to set up and test MQTT communication between the Android app and a local Mosquitto broker running on your laptop.
 
 ## Prerequisites
+1. **Mosquitto Broker** installed and running on your laptop
+2. **Two Android devices** (or one device + emulator) for testing publisher/subscriber
+3. **Same WiFi network** for all devices (laptop + phones)
 
-1. **Two Android devices** (or one device + emulator)
-2. **Local Mosquitto MQTT Broker** running on your network
-3. **Car Crash Detection App** installed on both devices
-4. **Network connectivity** between devices and MQTT broker
+## Step 1: Set Up Mosquitto Broker on Laptop
 
-## Step 1: Setup MQTT Broker
-
-### Install Mosquitto (if not already installed):
-
-**Windows:**
-```cmd
-# Download from https://mosquitto.org/download/
-# Install and start service
-net start mosquitto
+### Install Mosquitto (Windows)
+```bash
+# Download from: https://mosquitto.org/download/
+# Or use chocolatey:
+choco install mosquitto
 ```
 
-**Linux:**
+### Install Mosquitto (macOS)
 ```bash
-sudo apt install mosquitto mosquitto-clients
+brew install mosquitto
+```
+
+### Install Mosquitto (Linux)
+```bash
+sudo apt-get install mosquitto mosquitto-clients
+```
+
+### Start Mosquitto Broker
+```bash
+# Start the broker (it will run on port 1883 by default)
+mosquitto
+
+# Or start as a service
 sudo systemctl start mosquitto
 ```
 
-**macOS:**
+### Verify Broker is Running
 ```bash
-brew install mosquitto
-brew services start mosquitto
+# Test if broker is listening on port 1883
+netstat -an | grep 1883
+# Should show: tcp 0 0 0.0.0.0:1883 0.0.0.0:* LISTEN
 ```
 
-### Verify Broker is Running:
-```bash
-mosquitto_sub -h localhost -t "test" -v
+## Step 2: Find Your Laptop's IP Address
+
+### Windows
+```cmd
+ipconfig
+# Look for "IPv4 Address" under your WiFi adapter
 ```
 
-## Step 2: Configure App Settings
-
-### Update MQTT Configuration:
-
-In the app's MQTT service, ensure the broker IP is correct:
-
-```kotlin
-// In MqttConfig.kt or similar
-const val BROKER_URL = "tcp://YOUR_BROKER_IP:1883"
+### macOS/Linux
+```bash
+ifconfig
+# Look for "inet" followed by your IP address
 ```
 
-Replace `YOUR_BROKER_IP` with:
-- `localhost` or `127.0.0.1` if testing on same machine
-- Your actual broker IP address if on different machine
+**Note down your laptop's IP address** (e.g., `192.168.1.100`)
 
-## Step 3: Testing Process
+## Step 3: Configure MQTT Settings in Android App
 
-### Device 1: Publisher Mode
+### Open MQTT Settings
+1. Launch the Android app
+2. Navigate to **MQTT Settings** (from main menu or publisher/subscriber screens)
 
-1. **Open the app** and select **"Emergency Alert Publisher"**
-2. **Enable MQTT** by tapping the "Enable" button in the Connection Status section
-3. **Wait for connection** - Status should show "MQTT: Connected"
-4. **Test MQTT Connection** by tapping "Test MQTT Connection"
-   - Should show: "✅ MQTT Connection Test: SUCCESS"
-5. **Send Test Message** by tapping "Send Test Message"
-   - Should show: "✅ Test message sent to 'emergency/test' topic"
+### Configure Broker Settings
+1. **Enter your laptop's IP address** in the "Broker IP Address" field
+   - Use the IP address you found in Step 2
+   - Example: `192.168.1.100`
+2. **Set port to 1883** (default MQTT port)
+3. **Click "Test Connection"** to verify connectivity
+   - Should show: "✅ MQTT Connection successful"
+4. **Click "Save Settings"** to save the configuration
 
-### Device 2: Subscriber Mode
+### Enable MQTT Service
+1. **Click "Enable MQTT Service"** in the MQTT Settings
+2. This will start the MQTT service and connect to your broker
+3. The button should change to "MQTT Service Enabled" (green)
 
-1. **Open the app** and select **"Emergency Response Dashboard"**
-2. **Enable MQTT** by tapping the "Enable MQTT" button
-3. **Wait for connection** - Status should show "MQTT: Connected"
-4. **Test MQTT Connection** by tapping "Test Connection"
-   - Should show: "✅ MQTT Connection Test: SUCCESS"
-5. **Check Received Messages** by tapping "Check Messages"
-   - Should show received message count and details
+## Step 4: Test Publisher Functionality
 
-## Step 4: Message Flow Testing
+### Set Up Publisher Device
+1. **Install the app** on the first Android device
+2. **Open MQTT Settings** and configure with your laptop's IP
+3. **Enable MQTT Service**
+4. **Navigate to Publisher screen**
 
-### Test 1: Basic Message Sending
+### Enable MQTT in Publisher
+1. **Click "Enable MQTT"** button
+2. Status should change to "MQTT: Connected"
+3. **Test buttons should become enabled**
 
-1. **Publisher Device**: Tap "Send Test Message"
-2. **Subscriber Device**: Tap "Check Messages"
-3. **Expected Result**: Subscriber should show received message
+### Send Test Message
+1. **Click "Send Test Message"**
+2. Should show: "✅ Test message sent to 'emergency/test' topic"
+3. **Check MQTT logs** on your laptop to see the message
 
-### Test 2: Connection Status
+## Step 5: Test Subscriber Functionality
 
-1. **Both Devices**: Tap "Test MQTT Connection"
-2. **Expected Result**: Both should show "SUCCESS" status
+### Set Up Subscriber Device
+1. **Install the app** on the second Android device
+2. **Open MQTT Settings** and configure with your laptop's IP
+3. **Enable MQTT Service**
+4. **Navigate to Subscriber screen**
 
-### Test 3: Real-time Message Reception
+### Enable MQTT in Subscriber
+1. **Click "Enable MQTT"** button
+2. Status should change to "MQTT: Connected"
+3. **Test buttons should become enabled**
 
-1. **Publisher Device**: Send multiple test messages
-2. **Subscriber Device**: Check messages after each send
-3. **Expected Result**: Message count should increase
+### Receive Messages
+1. **Click "Check Received Messages"** to see current status
+2. **Send a test message from Publisher**
+3. **Check if message appears** in Subscriber's alert list
 
-## Step 5: Advanced Testing
+## Step 6: Monitor MQTT Traffic
 
-### Using Command Line Tools:
-
-**Subscribe to all emergency topics:**
+### On Your Laptop (Optional)
 ```bash
+# Subscribe to all emergency topics to monitor traffic
 mosquitto_sub -h localhost -t "emergency/#" -v
+
+# This will show all messages published to emergency topics
 ```
 
-**Publish test message manually:**
-```bash
-mosquitto_pub -h localhost -t "emergency/test" -m '{"type":"test","message":"Hello from command line"}'
-```
-
-### Using MQTT Explorer (GUI):
-
-1. Download MQTT Explorer from https://mqtt-explorer.com/
-2. Connect to your local broker
-3. Subscribe to `emergency/#` topic
-4. Monitor messages in real-time
+### In Android App
+- **Publisher**: Check "Test MQTT Connection" button for status
+- **Subscriber**: Check "Check Received Messages" for received alerts
 
 ## Troubleshooting
 
-### Connection Issues:
+### Connection Issues
+1. **Verify broker is running**:
+   ```bash
+   # Check if mosquitto is running
+   ps aux | grep mosquitto
+   ```
 
-**"MQTT Connection Test: FAILED"**
-- Check if Mosquitto broker is running
-- Verify broker IP address in app configuration
-- Ensure devices are on same network as broker
-- Check firewall settings
+2. **Check firewall settings**:
+   - Ensure port 1883 is open on your laptop
+   - Windows: Check Windows Firewall
+   - macOS: Check System Preferences > Security & Privacy
 
-**"No messages received"**
-- Verify both devices are connected to MQTT
-- Check topic names match between publisher and subscriber
-- Ensure QoS settings are compatible
+3. **Verify network connectivity**:
+   - All devices must be on the same WiFi network
+   - Try pinging your laptop's IP from the phone
 
-### Common Error Messages:
+### App Issues
+1. **MQTT Service not connecting**:
+   - Check IP address is correct
+   - Ensure MQTT service is enabled in settings
+   - Restart the app
 
-**"Connection refused"**
-- Broker not running or wrong IP address
+2. **Messages not received**:
+   - Verify both devices are connected
+   - Check if subscriber is listening to correct topics
+   - Try sending test message again
 
-**"Network unavailable"**
-- Check WiFi connectivity
-- Verify network permissions
-
-**"Authentication failed"**
-- Check username/password if authentication is enabled
-
-## Expected Message Format
-
-The app sends test messages in JSON format:
-
-```json
-{
-    "type": "test_message",
-    "sender": "publisher_phone",
-    "timestamp": "1234567890",
-    "message": "Hello from Publisher! This is a test message.",
-    "location": {
-        "latitude": 0.0,
-        "longitude": 0.0
-    }
-}
-```
+3. **App crashes**:
+   - Check logcat for error messages
+   - Ensure all permissions are granted
 
 ## Testing Scenarios
 
-### Scenario 1: Basic Communication
-- ✅ Publisher sends message
-- ✅ Subscriber receives message
-- ✅ Connection status shows "Connected"
+### Scenario 1: Basic Message Exchange
+1. Set up Publisher and Subscriber
+2. Send test message from Publisher
+3. Verify message received in Subscriber
 
-### Scenario 2: Multiple Messages
-- ✅ Publisher sends multiple messages
-- ✅ Subscriber receives all messages
-- ✅ Message count increases correctly
+### Scenario 2: Emergency Alert Simulation
+1. In Publisher, simulate a car crash detection
+2. Send emergency alert with location data
+3. Verify alert appears in Subscriber's emergency list
 
-### Scenario 3: Network Interruption
-- ✅ Disconnect one device from network
-- ✅ Reconnect device
-- ✅ MQTT reconnects automatically
-- ✅ Messages resume flowing
+### Scenario 3: Multiple Subscribers
+1. Set up multiple subscriber devices
+2. Send message from Publisher
+3. Verify all subscribers receive the message
 
-### Scenario 4: Emergency Alert Flow
-- ✅ Publisher sends emergency alert
-- ✅ Subscriber receives emergency alert
-- ✅ Alert appears in subscriber's alert list
+### Scenario 4: Network Interruption
+1. Disconnect Publisher from WiFi
+2. Try to send message (should queue)
+3. Reconnect WiFi
+4. Verify message is sent when connection restored
 
-## Success Criteria
+## Expected Behavior
 
-Your MQTT testing is successful when:
+### Publisher
+- ✅ MQTT status shows "Connected"
+- ✅ Test message sends successfully
+- ✅ Emergency alerts are published to broker
 
-1. **Both devices connect** to MQTT broker successfully
-2. **Publisher can send** test messages
-3. **Subscriber can receive** and display messages
-4. **Connection status** shows "Connected" on both devices
-5. **Real-time communication** works between devices
+### Subscriber
+- ✅ MQTT status shows "Connected"
+- ✅ Receives messages from Publisher
+- ✅ Alert list updates with new messages
+- ✅ Can view message details
+
+### Broker (Laptop)
+- ✅ Accepts connections from both devices
+- ✅ Routes messages between Publisher and Subscriber
+- ✅ Logs show message traffic
+
+## Success Indicators
+
+When everything is working correctly, you should see:
+
+1. **Publisher**: "✅ Test message sent to 'emergency/test' topic"
+2. **Subscriber**: New alert appears in the list
+3. **Broker logs**: Show connection and message activity
+4. **Both devices**: MQTT status shows "Connected"
 
 ## Next Steps
 
-Once MQTT testing is working:
+Once basic MQTT communication is working:
 
-1. **Test emergency alerts** between devices
-2. **Add more message types** (location updates, status updates)
-3. **Implement message persistence** for offline scenarios
-4. **Add message encryption** for security
-5. **Scale to multiple devices** for real-world testing
+1. **Test emergency scenarios** with real sensor data
+2. **Implement message persistence** for offline scenarios
+3. **Add message encryption** for security
+4. **Scale to multiple devices** for real-world testing
 
 ## Support
 
 If you encounter issues:
-
-1. Check the app logs for detailed error messages
-2. Verify Mosquitto broker logs
-3. Test with command-line MQTT tools first
-4. Ensure all network connectivity is working
-5. Check app permissions for network access
+1. Check the troubleshooting section above
+2. Verify all prerequisites are met
+3. Check Android logcat for detailed error messages
+4. Ensure Mosquitto broker is properly configured and running
