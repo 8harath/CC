@@ -92,8 +92,8 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
                 enableMqttService()
             }
             
-            // Add sample data for demonstration
-            addSampleAlerts()
+            // Don't add sample data - let real messages populate the list
+            Log.i("SubscriberActivity", "Ready to receive real MQTT messages")
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in setupViews: ${e.message}", e)
             showToast("Error setting up Emergency Responder interface")
@@ -256,50 +256,24 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         startActivity(intent)
     }
     
-    private fun addSampleAlerts() {
+    private fun checkReceivedMessages() {
         try {
-            // Create sample emergency alerts for demonstration
-            val sampleAlert1 = com.example.cc.util.EmergencyAlertMessage(
-                incidentId = "INC_001",
-                victimId = "VICTIM_001",
-                victimName = "John Smith",
-                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7128, -74.0060),
-                timestamp = System.currentTimeMillis() - 300000, // 5 minutes ago
-                severity = "HIGH",
-                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
-                    bloodType = "O+",
-                    allergies = listOf("Penicillin"),
-                    medications = listOf("Aspirin"),
-                    conditions = listOf("Hypertension")
-                )
-            )
+            // Get the current list of alerts from the ViewModel
+            val currentAlerts = viewModel.alertHistory.value ?: emptyList()
             
-            val sampleAlert2 = com.example.cc.util.EmergencyAlertMessage(
-                incidentId = "INC_002",
-                victimId = "VICTIM_002",
-                victimName = "Sarah Johnson",
-                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7589, -73.9851),
-                timestamp = System.currentTimeMillis() - 600000, // 10 minutes ago
-                severity = "MEDIUM",
-                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
-                    bloodType = "A-",
-                    allergies = listOf("None"),
-                    medications = listOf("None"),
-                    conditions = listOf("None")
-                )
-            )
+            val message = if (currentAlerts.isNotEmpty()) {
+                val latestAlert = currentAlerts.maxByOrNull { it.timestamp }
+                "📨 Received Messages: ${currentAlerts.size} alerts\nLatest: ${latestAlert?.victimName ?: "Unknown"}"
+            } else {
+                "📨 No messages received yet\nWaiting for emergency alerts..."
+            }
             
-            // Add sample alerts to the adapter
-            alertAdapter.submitList(listOf(sampleAlert1, sampleAlert2))
+            showToast(message)
+            Log.i("SubscriberActivity", "Check Received Messages: $message")
             
-            // Update dashboard stats
-            updateDashboardStats(2)
-            updateActiveResponses(1)
-            updateConnectionStatus("Demo Mode")
-            
-            Log.i("SubscriberActivity", "Sample alerts added for demonstration")
         } catch (e: Exception) {
-            Log.e("SubscriberActivity", "Error adding sample alerts: ${e.message}", e)
+            Log.e("SubscriberActivity", "Error checking received messages: ${e.message}")
+            showToast("Error checking received messages: ${e.message}")
         }
     }
     
@@ -398,26 +372,6 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error testing MQTT connection: ${e.message}")
             showToast("Error testing MQTT connection: ${e.message}")
-        }
-    }
-    
-    private fun checkReceivedMessages() {
-        try {
-            // Get the current list of alerts from the adapter
-            val currentAlerts = alertAdapter.currentList
-            
-            val message = if (currentAlerts.isNotEmpty()) {
-                "📨 Received Messages: ${currentAlerts.size} alerts\nLatest: ${currentAlerts.first().victimName}"
-            } else {
-                "📨 No messages received yet\nWaiting for emergency alerts..."
-            }
-            
-            showToast(message)
-            Log.i("SubscriberActivity", "Check Received Messages: $message")
-            
-        } catch (e: Exception) {
-            Log.e("SubscriberActivity", "Error checking received messages: ${e.message}")
-            showToast("Error checking received messages: ${e.message}")
         }
     }
 } 

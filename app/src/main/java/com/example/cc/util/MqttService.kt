@@ -182,11 +182,23 @@ class MqttService : Service() {
     fun publish(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
         if (!isValidTopic(topic)) {
             Log.e(TAG, "Invalid topic: $topic")
+            // Send broadcast to notify UI of invalid topic
+            val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+            intent.putExtra("topic", topic)
+            intent.putExtra("success", false)
+            intent.putExtra("error", "Invalid topic: $topic")
+            sendBroadcast(intent)
             return
         }
         
         if (!isMqttEnabled) {
             Log.w(TAG, "MQTT is not enabled by user, cannot publish message to: $topic")
+            // Send broadcast to notify UI that MQTT is not enabled
+            val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+            intent.putExtra("topic", topic)
+            intent.putExtra("success", false)
+            intent.putExtra("error", "MQTT not enabled")
+            sendBroadcast(intent)
             return
         }
         
@@ -197,23 +209,47 @@ class MqttService : Service() {
         
         if (::mqttClient.isInitialized && mqttClient.isConnected()) {
             try {
-                Log.d(TAG, "Publishing message to $topic: $payload")
+                Log.i(TAG, "📤 Publishing message to $topic: $payload")
                 mqttClient.publish(topic, message, null, object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        Log.d(TAG, "Message published successfully to $topic")
+                        Log.i(TAG, "✅ Message published successfully to $topic")
+                        // Send broadcast to notify UI of successful publish
+                        val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+                        intent.putExtra("topic", topic)
+                        intent.putExtra("success", true)
+                        intent.putExtra("payload", payload)
+                        sendBroadcast(intent)
                     }
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                        Log.e(TAG, "Publish failed, enqueuing: ${exception?.message}")
+                        Log.e(TAG, "❌ Publish failed for $topic: ${exception?.message}")
                         MqttMessageQueue.enqueue(topic, payload, qos, retained)
+                        // Send broadcast to notify UI of failed publish
+                        val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+                        intent.putExtra("topic", topic)
+                        intent.putExtra("success", false)
+                        intent.putExtra("error", exception?.message ?: "Unknown error")
+                        sendBroadcast(intent)
                     }
                 })
             } catch (e: Exception) {
-                Log.e(TAG, "Publish exception, enqueuing: ${e.message}")
+                Log.e(TAG, "❌ Publish exception for $topic: ${e.message}")
                 MqttMessageQueue.enqueue(topic, payload, qos, retained)
+                // Send broadcast to notify UI of failed publish
+                val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+                intent.putExtra("topic", topic)
+                intent.putExtra("success", false)
+                intent.putExtra("error", e.message ?: "Unknown exception")
+                sendBroadcast(intent)
             }
         } else {
-            Log.w(TAG, "Not connected, enqueuing message for $topic")
+            Log.w(TAG, "❌ Not connected, enqueuing message for $topic")
             MqttMessageQueue.enqueue(topic, payload, qos, retained)
+            // Send broadcast to notify UI that message was queued
+            val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+            intent.putExtra("topic", topic)
+            intent.putExtra("success", false)
+            intent.putExtra("error", "MQTT not connected - message queued")
+            sendBroadcast(intent)
         }
     }
 
@@ -367,19 +403,34 @@ class MqttService : Service() {
                 }
                 
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    Log.d(TAG, "Message arrived: $topic -> ${message?.toString()}")
-                    if (topic != null) {
-                        if (topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
-                            val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                            intent.putExtra("alert_json", message.toString())
-                            sendBroadcast(intent)
-                        } else if (topic.startsWith("emergency/test/")) {
-                            // Handle simple test messages
-                            val intent = Intent("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
-                            intent.putExtra("topic", topic)
-                            intent.putExtra("message", message.toString())
-                            sendBroadcast(intent)
+                    Log.i(TAG, "📨 Message arrived: $topic -> ${message?.toString()}")
+                    if (topic != null && message != null) {
+                        try {
+                            if (topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                                Log.i(TAG, "🚨 Emergency alert received on topic: $topic")
+                                val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                                intent.putExtra("alert_json", message.toString())
+                                sendBroadcast(intent)
+                            } else if (topic.startsWith("emergency/test/")) {
+                                Log.i(TAG, "📝 Simple test message received on topic: $topic")
+                                // Handle simple test messages
+                                val intent = Intent("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
+                                intent.putExtra("topic", topic)
+                                intent.putExtra("message", message.toString())
+                                sendBroadcast(intent)
+                            } else {
+                                Log.i(TAG, "📨 General message received on topic: $topic")
+                                // Handle other messages
+                                val intent = Intent("com.example.cc.GENERAL_MESSAGE_RECEIVED")
+                                intent.putExtra("topic", topic)
+                                intent.putExtra("message", message.toString())
+                                sendBroadcast(intent)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Error processing received message on topic $topic: ${e.message}")
                         }
+                    } else {
+                        Log.w(TAG, "⚠️ Received message with null topic or payload")
                     }
                 }
                 
