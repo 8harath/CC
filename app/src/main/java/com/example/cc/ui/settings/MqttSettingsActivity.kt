@@ -156,6 +156,15 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
                 binding.etBrokerIp.requestFocus()
             }
             
+            // Add reset to defaults button functionality
+            binding.btnLocalIp.setOnLongClickListener {
+                // Long press to reset to defaults
+                binding.etBrokerIp.setText("192.168.1.100")
+                binding.etBrokerPort.setText("1883")
+                showToast("Reset to default settings")
+                true
+            }
+            
             // Add clear button functionality
             binding.etBrokerIp.setOnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
@@ -220,17 +229,42 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             val dialogView = layoutInflater.inflate(R.layout.dialog_custom_ip, null)
             val etCustomIp = dialogView.findViewById<android.widget.EditText>(R.id.etCustomIp)
             
-            MaterialAlertDialogBuilder(this)
+            // Pre-fill with current IP if available
+            val currentIp = binding.etBrokerIp.text.toString()
+            if (currentIp.isNotEmpty()) {
+                etCustomIp.setText(currentIp)
+                etCustomIp.setSelection(currentIp.length)
+            }
+            
+            val dialog = MaterialAlertDialogBuilder(this)
                 .setTitle("Enter Custom IP Address")
                 .setView(dialogView)
-                .setPositiveButton("Set") { _, _ ->
-                    val customIp = etCustomIp.text.toString().trim()
-                    if (customIp.isNotEmpty()) {
-                        binding.etBrokerIp.setText(customIp)
-                    }
-                }
+                .setPositiveButton("Set", null) // We'll set the listener after creating the dialog
                 .setNegativeButton("Cancel", null)
-                .show()
+                .create()
+            
+            // Set up validation for the positive button
+            dialog.setOnShowListener {
+                val positiveButton = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE)
+                positiveButton.setOnClickListener {
+                    val customIp = etCustomIp.text.toString().trim()
+                    if (customIp.isEmpty()) {
+                        etCustomIp.error = "IP address cannot be empty"
+                        return@setOnClickListener
+                    }
+                    
+                    if (customIp != "localhost" && !isValidIpFormat(customIp)) {
+                        etCustomIp.error = "Invalid IP format. Use format like 192.168.1.100"
+                        return@setOnClickListener
+                    }
+                    
+                    // IP is valid, set it and dismiss
+                    binding.etBrokerIp.setText(customIp)
+                    dialog.dismiss()
+                }
+            }
+            
+            dialog.show()
                 
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error showing custom IP dialog: ${e.message}")
