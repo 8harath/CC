@@ -423,9 +423,6 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
                     .start()
             }
             .start()
-        
-        // Add ripple effect
-        view.performClick()
     }
     
     private fun openMqttSettings() {
