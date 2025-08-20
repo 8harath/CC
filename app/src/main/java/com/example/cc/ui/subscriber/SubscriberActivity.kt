@@ -69,6 +69,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         try {
             setupToolbar()
             setupAlertHistoryList()
+            setupMqttTestButtons()
             // MQTT initialization disabled since service is not auto-started
             Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
             
@@ -286,11 +287,97 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             // Update connection status
             binding.tvConnectionStatus.text = "MQTT: Enabled"
             
+            // Start observing MQTT connection state
+            MqttService.connectionState.observe(this, Observer { state ->
+                try {
+                    val statusText = when (state) {
+                        ConnectionState.CONNECTING -> "MQTT: Connecting..."
+                        ConnectionState.CONNECTED -> "MQTT: Connected"
+                        ConnectionState.DISCONNECTED -> "MQTT: Disconnected"
+                        else -> "MQTT: ${state.toString()}"
+                    }
+                    binding.tvConnectionStatus.text = statusText
+                    
+                    // Enable/disable MQTT test buttons based on connection state
+                    binding.btnTestMqttConnection.isEnabled = state == ConnectionState.CONNECTED
+                    binding.btnCheckReceivedMessages.isEnabled = state == ConnectionState.CONNECTED
+                } catch (e: Exception) {
+                    Log.e("SubscriberActivity", "Error updating MQTT status: ${e.message}")
+                }
+            })
+            
             showToast("MQTT service enabled for subscriber role")
             
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error enabling MQTT service: ${e.message}")
             showToast("Failed to enable MQTT service: ${e.message}")
+        }
+    }
+    
+    private fun setupMqttTestButtons() {
+        // Test MQTT Connection
+        binding.btnTestMqttConnection.setOnClickListener {
+            testMqttConnection()
+        }
+        
+        // Check Received Messages
+        binding.btnCheckReceivedMessages.setOnClickListener {
+            checkReceivedMessages()
+        }
+        
+        // MQTT Settings
+        binding.btnMqttSettings.setOnClickListener {
+            openMqttSettings()
+        }
+    }
+    
+    private fun openMqttSettings() {
+        try {
+            val intent = Intent(this, com.example.cc.ui.settings.MqttSettingsActivity::class.java)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("SubscriberActivity", "Error opening MQTT settings: ${e.message}")
+            showToast("Error opening MQTT settings: ${e.message}")
+        }
+    }
+    
+    private fun testMqttConnection() {
+        try {
+            val isConnected = MqttService.isConnected()
+            val status = MqttService.getStatusString()
+            
+            val message = if (isConnected) {
+                "✅ MQTT Connection Test: SUCCESS\nStatus: $status"
+            } else {
+                "❌ MQTT Connection Test: FAILED\nStatus: $status"
+            }
+            
+            showToast(message)
+            Log.i("SubscriberActivity", "MQTT Connection Test: $message")
+            
+        } catch (e: Exception) {
+            Log.e("SubscriberActivity", "Error testing MQTT connection: ${e.message}")
+            showToast("Error testing MQTT connection: ${e.message}")
+        }
+    }
+    
+    private fun checkReceivedMessages() {
+        try {
+            // Get the current list of alerts from the adapter
+            val currentAlerts = alertAdapter.currentList
+            
+            val message = if (currentAlerts.isNotEmpty()) {
+                "📨 Received Messages: ${currentAlerts.size} alerts\nLatest: ${currentAlerts.first().victimName}"
+            } else {
+                "📨 No messages received yet\nWaiting for emergency alerts..."
+            }
+            
+            showToast(message)
+            Log.i("SubscriberActivity", "Check Received Messages: $message")
+            
+        } catch (e: Exception) {
+            Log.e("SubscriberActivity", "Error checking received messages: ${e.message}")
+            showToast("Error checking received messages: ${e.message}")
         }
     }
 } 

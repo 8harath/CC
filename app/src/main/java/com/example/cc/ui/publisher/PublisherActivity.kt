@@ -36,6 +36,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             setupEsp32Buttons()
             setupMedicalProfileButton()
             setupEmergencyModeButtons()
+            setupMqttTestButtons()
             viewModel.initializeMqtt(this)
             
             // Start GPS updates if permissions are granted
@@ -427,6 +428,10 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                         else -> "MQTT: ${state.toString()}"
                     }
                     binding.tvStatus.text = statusText
+                    
+                    // Enable/disable MQTT test buttons based on connection state
+                    binding.btnTestMqttConnection.isEnabled = state == ConnectionState.CONNECTED
+                    binding.btnSendTestMessage.isEnabled = state == ConnectionState.CONNECTED
                 } catch (e: Exception) {
                     Log.e("PublisherActivity", "Error updating MQTT status: ${e.message}")
                 }
@@ -437,6 +442,66 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error enabling MQTT service: ${e.message}")
             showToast("Failed to enable MQTT service: ${e.message}")
+        }
+    }
+    
+    private fun setupMqttTestButtons() {
+        // Test MQTT Connection
+        binding.btnTestMqttConnection.setOnClickListener {
+            testMqttConnection()
+        }
+        
+        // Send Test Message
+        binding.btnSendTestMessage.setOnClickListener {
+            sendTestMessage()
+        }
+        
+        // MQTT Settings
+        binding.btnMqttSettings.setOnClickListener {
+            openMqttSettings()
+        }
+    }
+    
+    private fun openMqttSettings() {
+        try {
+            val intent = Intent(this, com.example.cc.ui.settings.MqttSettingsActivity::class.java)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error opening MQTT settings: ${e.message}")
+            showToast("Error opening MQTT settings: ${e.message}")
+        }
+    }
+    
+    private fun testMqttConnection() {
+        try {
+            val isConnected = MqttService.isConnected()
+            val status = MqttService.getStatusString()
+            
+            val message = if (isConnected) {
+                "✅ MQTT Connection Test: SUCCESS\nStatus: $status"
+            } else {
+                "❌ MQTT Connection Test: FAILED\nStatus: $status"
+            }
+            
+            showToast(message)
+            Log.i("PublisherActivity", "MQTT Connection Test: $message")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error testing MQTT connection: ${e.message}")
+            showToast("Error testing MQTT connection: ${e.message}")
+        }
+    }
+    
+    private fun sendTestMessage() {
+        try {
+            // Use the ViewModel's sendTestMessage function which creates a proper EmergencyAlertMessage
+            viewModel.sendTestMessage("Test emergency alert from Publisher")
+            
+            Log.i("PublisherActivity", "Test message sent via ViewModel")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error sending test message: ${e.message}")
+            showToast("Error sending test message: ${e.message}")
         }
     }
 } 
