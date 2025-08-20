@@ -654,4 +654,59 @@ class MqttService : Service() {
         isReconnecting = false
         reconnectAttempts = 0
     }
+    
+    /**
+     * Subscribe to topics based on the user's role
+     */
+    private fun subscribeForRole(role: String, incidentId: String?) {
+        if (!::mqttClient.isInitialized || !mqttClient.isConnected()) {
+            Log.w(TAG, "Cannot subscribe: MQTT client not connected")
+            return
+        }
+        
+        try {
+            when (role.uppercase()) {
+                "PUBLISHER" -> {
+                    // Publisher subscribes to response topics
+                    val responseTopic = "emergency/response/${incidentId ?: "general"}"
+                    mqttClient.subscribe(responseTopic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Subscribed to response topic: $responseTopic")
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to response topic: ${exception?.message}")
+                        }
+                    })
+                }
+                "SUBSCRIBER" -> {
+                    // Subscriber subscribes to emergency alerts
+                    val alertTopic = "emergency/alert/#"
+                    mqttClient.subscribe(alertTopic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Subscribed to alert topic: $alertTopic")
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to alert topic: ${exception?.message}")
+                        }
+                    })
+                }
+                else -> {
+                    Log.w(TAG, "Unknown role: $role")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error subscribing to topics: ${e.message}")
+        }
+    }
+    
+    /**
+     * Check if network is available
+     */
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+}
 }
