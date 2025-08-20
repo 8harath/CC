@@ -54,23 +54,52 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         }
     }
 
+    private val customMessageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                val topic = intent?.getStringExtra("topic") ?: return
+                val message = intent?.getStringExtra("message") ?: return
+                onMqttCustomMessage(topic, message)
+            } catch (e: Exception) {
+                Log.e("SubscriberActivity", "Error in custom message receiver: ${e.message}")
+            }
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
+            // Register broadcast receivers for different message types
             registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
             registerReceiver(simpleMessageReceiver, IntentFilter("com.example.cc.SIMPLE_MESSAGE_RECEIVED"))
-            // MQTT service will be started manually when user enables it
-            Log.i("SubscriberActivity", "MQTT service auto-start disabled for stability")
+            registerReceiver(customMessageReceiver, IntentFilter("com.example.cc.CUSTOM_MESSAGE_RECEIVED"))
+            
+            // Initialize MQTT service immediately for subscriber
+            Log.i("SubscriberActivity", "Initializing MQTT service for subscriber")
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
+                putExtra("role", "SUBSCRIBER")
+            }
+            startService(serviceIntent)
+            
+            // Setup MQTT enable button (for manual control if needed)
+            binding.btnEnableMqtt.setOnClickListener {
+                enableMqttService()
+            }
+            
+            // Don't add sample data - let real messages populate the list
+            Log.i("SubscriberActivity", "Ready to receive real MQTT messages")
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in onCreate: ${e.message}", e)
             showToast("Error initializing Emergency Responder mode")
         }
     }
-
+    
     override fun onDestroy() {
         try {
             unregisterReceiver(emergencyAlertReceiver)
             unregisterReceiver(simpleMessageReceiver)
+            unregisterReceiver(customMessageReceiver)
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in onDestroy: ${e.message}")
         }
@@ -362,18 +391,41 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     private fun setupMqttTestButtons() {
         // Test MQTT Connection
         binding.btnTestMqttConnection.setOnClickListener {
+            animateButtonClick(it)
             testMqttConnection()
         }
         
         // Check Received Messages
         binding.btnCheckReceivedMessages.setOnClickListener {
+            animateButtonClick(it)
             checkReceivedMessages()
         }
         
         // MQTT Settings
         binding.btnMqttSettings.setOnClickListener {
+            animateButtonClick(it)
             openMqttSettings()
         }
+    }
+    
+    private fun animateButtonClick(view: View) {
+        // Scale down animation
+        view.animate()
+            .scaleX(0.95f)
+            .scaleY(0.95f)
+            .setDuration(100)
+            .withEndAction {
+                // Scale back up
+                view.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
+        
+        // Add ripple effect
+        view.performClick()
     }
     
     private fun openMqttSettings() {

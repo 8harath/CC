@@ -418,6 +418,13 @@ class MqttService : Service() {
                                 intent.putExtra("topic", topic)
                                 intent.putExtra("message", message.toString())
                                 sendBroadcast(intent)
+                            } else if (topic.startsWith("emergency/custom/")) {
+                                Log.i(TAG, "💬 Custom message received on topic: $topic")
+                                // Handle custom messages
+                                val intent = Intent("com.example.cc.CUSTOM_MESSAGE_RECEIVED")
+                                intent.putExtra("topic", topic)
+                                intent.putExtra("message", message.toString())
+                                sendBroadcast(intent)
                             } else {
                                 Log.i(TAG, "📨 General message received on topic: $topic")
                                 // Handle other messages
@@ -533,7 +540,7 @@ class MqttService : Service() {
                     Log.i(TAG, "User explicitly enabled MQTT service")
                     isMqttEnabled = true
                     setMqttEnabled(true)
-                    // Now attempt to connect
+                    // Now attempt to connect automatically
                     connect()
                 }
                 ACTION_DISABLE -> {
@@ -570,20 +577,19 @@ class MqttService : Service() {
                         pendingRole = role
                         pendingIncidentId = incidentId
                         
-                        // Only connect if MQTT is enabled
-                        if (isMqttEnabled) {
-                            if (::mqttClient.isInitialized && mqttClient.isConnected()) {
-                                Log.i(TAG, "Received start with role=$role, subscribing immediately")
-                                subscribeForRole(role, incidentId)
-                            } else {
-                                Log.i(TAG, "Received start with role=$role, attempting to connect")
-                                connect()
-                            }
+                        // Automatically connect when role is specified
+                        if (!isMqttEnabled) {
+                            Log.i(TAG, "Auto-enabling MQTT for role: $role")
+                            isMqttEnabled = true
+                            setMqttEnabled(true)
+                        }
+                        
+                        if (::mqttClient.isInitialized && mqttClient.isConnected()) {
+                            Log.i(TAG, "Received start with role=$role, subscribing immediately")
+                            subscribeForRole(role, incidentId)
                         } else {
-                            Log.i(TAG, "MQTT not enabled, storing role for later: $role")
-                            // Store the role and incident ID for when MQTT is enabled
-                            pendingRole = role
-                            pendingIncidentId = incidentId
+                            Log.i(TAG, "Received start with role=$role, attempting to connect")
+                            connect()
                         }
                     } else {
                         Log.w(TAG, "No role provided in intent")

@@ -25,6 +25,8 @@ import androidx.core.content.ContextCompat
 import android.content.Context
 import android.content.IntentFilter
 import android.content.BroadcastReceiver
+import android.view.LayoutInflater
+import android.widget.EditText
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
@@ -498,22 +500,84 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     private fun setupMqttTestButtons() {
         // Test MQTT Connection
         binding.btnTestMqttConnection.setOnClickListener {
+            animateButtonClick(it)
             testMqttConnection()
         }
         
         // Send Test Message
         binding.btnSendTestMessage.setOnClickListener {
+            animateButtonClick(it)
             sendTestMessage()
         }
         
         // Send Simple Message
         binding.btnSendSimpleMessage.setOnClickListener {
+            animateButtonClick(it)
             sendSimpleMessage()
+        }
+        
+        // Send Custom Message
+        binding.btnSendCustomMessage.setOnClickListener {
+            animateButtonClick(it)
+            showCustomMessageDialog()
         }
         
         // MQTT Settings
         binding.btnMqttSettings.setOnClickListener {
+            animateButtonClick(it)
             openMqttSettings()
+        }
+    }
+    
+    private fun animateButtonClick(view: View) {
+        // Scale down animation
+        view.animate()
+            .scaleX(0.95f)
+            .scaleY(0.95f)
+            .setDuration(100)
+            .withEndAction {
+                // Scale back up
+                view.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
+        
+        // Add ripple effect
+        view.performClick()
+    }
+    
+    private fun showCustomMessageDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom_message, null)
+        val messageInput = dialogView.findViewById<EditText>(R.id.etCustomMessage)
+        
+        // Set default message
+        messageInput.setText("Custom message from Publisher at ${System.currentTimeMillis()}")
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle("📝 Send Custom Message")
+            .setView(dialogView)
+            .setPositiveButton("Send") { _, _ ->
+                val customMessage = messageInput.text.toString()
+                if (customMessage.isNotEmpty()) {
+                    sendCustomMessage(customMessage)
+                } else {
+                    showToast("Please enter a message")
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun sendCustomMessage(message: String) {
+        try {
+            viewModel.sendCustomMessage(message)
+            Log.i("PublisherActivity", "Custom message sent: $message")
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error sending custom message: ${e.message}")
+            showToast("Error sending custom message: ${e.message}")
         }
     }
     
