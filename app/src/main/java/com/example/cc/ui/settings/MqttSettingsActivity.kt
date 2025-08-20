@@ -219,12 +219,8 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
                 val currentPort = binding.etBrokerPort.text.toString()
                 
                 if (currentIp.isNotEmpty() && currentPort.isNotEmpty()) {
-                    // Update ViewModel with current values
-                    viewModel.updateBrokerIp(currentIp)
-                    viewModel.updateBrokerPort(currentPort.toIntOrNull() ?: 1883)
-                    
-                    // Save settings
-                    viewModel.saveSettings(this)
+                    // Show confirmation dialog
+                    showSaveConfirmationDialog(currentIp, currentPort.toIntOrNull() ?: 1883)
                 } else {
                     showToast("Please enter both IP address and port before saving")
                 }
@@ -326,6 +322,29 @@ class MqttSettingsActivity : BaseActivity<ActivityMqttSettingsBinding>() {
             showToast(summaryText)
         } catch (e: Exception) {
             Log.e("MqttSettingsActivity", "Error adding settings summary: ${e.message}")
+        }
+    }
+    
+    /**
+     * Show confirmation dialog before saving settings
+     */
+    private fun showSaveConfirmationDialog(ip: String, port: Int) {
+        try {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Save MQTT Settings")
+                .setMessage("Are you sure you want to save these settings?\n\nBroker: $ip:$port\n\nThis will update all MQTT connections in the app.")
+                .setPositiveButton("Save") { _, _ ->
+                    // Update ViewModel with current values
+                    viewModel.updateBrokerIp(ip)
+                    viewModel.updateBrokerPort(port)
+                    
+                    // Save settings
+                    viewModel.saveSettings(this)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } catch (e: Exception) {
+            Log.e("MqttSettingsActivity", "Error showing save confirmation dialog: ${e.message}")
         }
     }
     
