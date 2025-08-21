@@ -31,6 +31,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     private val viewModel: SubscriberViewModel by viewModels()
     private lateinit var alertAdapter: AlertHistoryAdapter
     private lateinit var messageReceiver: BroadcastReceiver
+    private lateinit var connectionStatusReceiver: BroadcastReceiver
     
     override fun getViewBinding(): ActivitySubscriberBinding = ActivitySubscriberBinding.inflate(layoutInflater)
     
@@ -48,8 +49,11 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             }
             startService(serviceIntent)
             
-            // Setup message receiver
-            setupMessageReceiver()
+                         // Setup message receiver
+             setupMessageReceiver()
+             
+             // Setup connection status receiver
+             setupConnectionStatusReceiver()
             
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate: ${e.message}", e)
@@ -287,24 +291,36 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
                         val topic = intent.getStringExtra("topic") ?: ""
                         Log.i(TAG, "🚨 Received emergency alert broadcast: $topic")
                         viewModel.handleEmergencyAlertReceived(alertJson, topic)
+                        
+                        // Show real-time notification
+                        showNewMessageNotification("🚨 Emergency Alert", alertJson.take(50))
                     }
                     "com.example.cc.SIMPLE_MESSAGE_RECEIVED" -> {
                         val message = intent.getStringExtra("message") ?: ""
                         val topic = intent.getStringExtra("topic") ?: ""
                         Log.i(TAG, "📝 Received test message broadcast: $topic")
                         viewModel.handleTestMessageReceived(message, topic)
+                        
+                        // Show real-time notification
+                        showNewMessageNotification("📝 New Message", message.take(50))
                     }
                     "com.example.cc.CUSTOM_MESSAGE_RECEIVED" -> {
                         val message = intent.getStringExtra("message") ?: ""
                         val topic = intent.getStringExtra("topic") ?: ""
                         Log.i(TAG, "💬 Received custom message broadcast: $topic")
                         viewModel.handleTestMessageReceived(message, topic)
+                        
+                        // Show real-time notification
+                        showNewMessageNotification("💬 Custom Message", message.take(50))
                     }
                     "com.example.cc.GENERAL_MESSAGE_RECEIVED" -> {
                         val message = intent.getStringExtra("message") ?: ""
                         val topic = intent.getStringExtra("topic") ?: ""
                         Log.i(TAG, "📨 Received general message broadcast: $topic")
                         viewModel.handleTestMessageReceived(message, topic)
+                        
+                        // Show real-time notification
+                        showNewMessageNotification("📨 New Message", message.take(50))
                     }
                 }
             }
@@ -319,8 +335,59 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         }
         registerReceiver(messageReceiver, filter)
         
-        Log.i(TAG, "📡 Message receiver registered for MQTT broadcasts")
-    }
+                 Log.i(TAG, "📡 Message receiver registered for MQTT broadcasts")
+     }
+     
+     private fun setupConnectionStatusReceiver() {
+         connectionStatusReceiver = object : BroadcastReceiver() {
+             override fun onReceive(context: Context?, intent: Intent?) {
+                 when (intent?.action) {
+                     "com.example.cc.CONNECTION_STATUS" -> {
+                         val status = intent.getStringExtra("status") ?: "DISCONNECTED"
+                         val error = intent.getStringExtra("error")
+                         
+                         Log.i(TAG, "📡 Connection status update: $status ${error ?: ""}")
+                         
+                         when (status) {
+                             "CONNECTED" -> {
+                                 binding.connectionIndicator.setBackgroundColor(android.graphics.Color.GREEN)
+                                 binding.tvConnectionStatus.text = "Connected"
+                                 Snackbar.make(binding.root, "✅ Connected to MQTT broker", Snackbar.LENGTH_SHORT).show()
+                             }
+                             "DISCONNECTED" -> {
+                                 binding.connectionIndicator.setBackgroundColor(android.graphics.Color.RED)
+                                 binding.tvConnectionStatus.text = "Disconnected"
+                                 if (error != null) {
+                                     Snackbar.make(binding.root, "❌ Connection failed: $error", Snackbar.LENGTH_LONG).show()
+                                 }
+                             }
+                             "CONNECTING" -> {
+                                 binding.connectionIndicator.setBackgroundColor(android.graphics.Color.YELLOW)
+                                 binding.tvConnectionStatus.text = "Connecting..."
+                             }
+                         }
+                     }
+                 }
+             }
+         }
+         
+         // Register the receiver
+         val filter = IntentFilter().apply {
+             addAction("com.example.cc.CONNECTION_STATUS")
+         }
+         registerReceiver(connectionStatusReceiver, filter)
+         
+         Log.i(TAG, "📡 Connection status receiver registered")
+     }
+     
+     private fun showNewMessageNotification(title: String, message: String) {
+         Snackbar.make(binding.root, "$title: $message", Snackbar.LENGTH_LONG)
+             .setAction("View") {
+                 // Scroll to the latest message
+                 binding.rvAlerts.smoothScrollToPosition(0)
+             }
+             .show()
+     }
     
     private fun updateAlertsList(alerts: List<com.example.cc.data.model.Incident>) {
         if (alerts.isEmpty()) {
@@ -333,16 +400,48 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         }
     }
     
-    override fun onDestroy() {
-        super.onDestroy()
+    private fun showNewMessageNotification(title: String, message: String) {
         try {
-            // Unregister the message receiver
-            if (::messageReceiver.isInitialized) {
-                unregisterReceiver(messageReceiver)
-                Log.i(TAG, "📡 Message receiver unregistered")
+            // Show a snackbar notification
+            val snackbar = Snackbar.make(
+                binding.root,
+                "$title: $message",
+                Snackbar.LENGTH_LONG
+            )
+            
+            // Add action to view the message
+            snackbar.setAction("View") {
+                // Scroll to the top of the list to show the latest message
+                binding.rvAlerts.smoothScrollToPosition(0)
             }
+            
+            snackbar.show()
+            
+            // Also update the alert count text
+            val count = viewModel.getMessageCount()
+            binding.tvAlertCount.text = "$count alerts received"
+            
         } catch (e: Exception) {
-            Log.e(TAG, "Error unregistering message receiver: ${e.message}", e)
+            Log.e(TAG, "Error showing message notification: ${e.message}", e)
         }
     }
+    
+         override fun onDestroy() {
+         super.onDestroy()
+         try {
+             // Unregister the message receiver
+             if (::messageReceiver.isInitialized) {
+                 unregisterReceiver(messageReceiver)
+                 Log.i(TAG, "📡 Message receiver unregistered")
+             }
+             
+             // Unregister the connection status receiver
+             if (::connectionStatusReceiver.isInitialized) {
+                 unregisterReceiver(connectionStatusReceiver)
+                 Log.i(TAG, "📡 Connection status receiver unregistered")
+             }
+         } catch (e: Exception) {
+             Log.e(TAG, "Error unregistering receivers: ${e.message}", e)
+         }
+     }
 } 

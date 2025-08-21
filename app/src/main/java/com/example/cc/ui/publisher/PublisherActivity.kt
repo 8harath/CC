@@ -297,19 +297,67 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         }
         registerReceiver(messageReceiver, filter)
         
-        Log.i(TAG, "📡 Message receiver registered for publish status updates")
-    }
+                 Log.i(TAG, "📡 Message receiver registered for publish status updates")
+     }
+     
+     private fun setupConnectionStatusReceiver() {
+         connectionStatusReceiver = object : BroadcastReceiver() {
+             override fun onReceive(context: Context?, intent: Intent?) {
+                 when (intent?.action) {
+                     "com.example.cc.CONNECTION_STATUS" -> {
+                         val status = intent.getStringExtra("status") ?: "DISCONNECTED"
+                         val error = intent.getStringExtra("error")
+                         
+                         Log.i(TAG, "📡 Connection status update: $status ${error ?: ""}")
+                         
+                         when (status) {
+                             "CONNECTED" -> {
+                                 binding.connectionIndicator.setBackgroundColor(android.graphics.Color.GREEN)
+                                 binding.tvConnectionStatus.text = "Connected"
+                                 Snackbar.make(binding.root, "✅ Connected to MQTT broker", Snackbar.LENGTH_SHORT).show()
+                             }
+                             "DISCONNECTED" -> {
+                                 binding.connectionIndicator.setBackgroundColor(android.graphics.Color.RED)
+                                 binding.tvConnectionStatus.text = "Disconnected"
+                                 if (error != null) {
+                                     Snackbar.make(binding.root, "❌ Connection failed: $error", Snackbar.LENGTH_LONG).show()
+                                 }
+                             }
+                             "CONNECTING" -> {
+                                 binding.connectionIndicator.setBackgroundColor(android.graphics.Color.YELLOW)
+                                 binding.tvConnectionStatus.text = "Connecting..."
+                             }
+                         }
+                     }
+                 }
+             }
+         }
+         
+         // Register the receiver
+         val filter = IntentFilter().apply {
+             addAction("com.example.cc.CONNECTION_STATUS")
+         }
+         registerReceiver(connectionStatusReceiver, filter)
+         
+         Log.i(TAG, "📡 Connection status receiver registered")
+     }
     
-    override fun onDestroy() {
-        super.onDestroy()
-        try {
-            // Unregister the message receiver
-            if (::messageReceiver.isInitialized) {
-                unregisterReceiver(messageReceiver)
-                Log.i(TAG, "📡 Message receiver unregistered")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error unregistering message receiver: ${e.message}", e)
-        }
-    }
+         override fun onDestroy() {
+         super.onDestroy()
+         try {
+             // Unregister the message receiver
+             if (::messageReceiver.isInitialized) {
+                 unregisterReceiver(messageReceiver)
+                 Log.i(TAG, "📡 Message receiver unregistered")
+             }
+             
+             // Unregister the connection status receiver
+             if (::connectionStatusReceiver.isInitialized) {
+                 unregisterReceiver(connectionStatusReceiver)
+                 Log.i(TAG, "📡 Connection status receiver unregistered")
+             }
+         } catch (e: Exception) {
+             Log.e(TAG, "Error unregistering receivers: ${e.message}", e)
+         }
+     }
 } 
