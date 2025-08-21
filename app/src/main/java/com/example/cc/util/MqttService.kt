@@ -162,7 +162,11 @@ class MqttService : Service() {
             mqttClient = AndroidXMqttClient(applicationContext, brokerUrl, clientId)
             
             // Register network receiver
-            registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+            }
             
             // Set initial connection state - DISCONNECTED until user explicitly enables
             connectionState.postValue(ConnectionState.DISCONNECTED)

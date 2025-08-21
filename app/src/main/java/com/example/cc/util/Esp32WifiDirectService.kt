@@ -143,7 +143,11 @@ class Esp32WifiDirectService(private val context: Context) {
             addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
             addAction("android.net.wifi.p2p.CONNECTION_STATE_CHANGE")
         }
-        context.registerReceiver(receiver, intentFilter)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, intentFilter)
+        }
     }
     
     /**

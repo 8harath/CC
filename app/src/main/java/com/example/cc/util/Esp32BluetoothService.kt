@@ -105,7 +105,11 @@ class Esp32BluetoothService(private val context: Context) {
             addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
             addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         }
-        context.registerReceiver(bluetoothReceiver, filter)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(bluetoothReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(bluetoothReceiver, filter)
+        }
     }
     
     private val bluetoothReceiver = object : BroadcastReceiver() {
