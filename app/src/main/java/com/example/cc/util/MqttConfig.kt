@@ -3,14 +3,17 @@ package com.example.cc.util
 import android.util.Log
 
 object MqttConfig {
-    // Local broker IP as requested by user
-    const val BROKER_URL_LOCAL = "tcp://192.168.0.101:1883"
+    // Local broker IP for development (localhost)
+    const val BROKER_URL_LOCAL = "tcp://localhost:1883"
+    
+    // Network broker IP as requested by user
+    const val BROKER_URL_NETWORK = "tcp://10.0.0.208:1883"
     
     // Public MQTT broker for fallback
     const val BROKER_URL_PUBLIC = "tcp://broker.hivemq.com:1883"
     
     // Legacy local Mosquitto broker for academic demonstration
-    const val BROKER_URL = "tcp://192.168.1.100:1883" // Change this to your laptop's IP address
+    const val BROKER_URL = "tcp://localhost:1883" // Updated to localhost for local development
     const val BROKER_URL_LOCALHOST = "tcp://localhost:1883" // For testing on same device
     const val CLIENT_ID_PREFIX = "car_crash_client_"
     const val USERNAME = "" // No authentication for local broker
@@ -23,26 +26,36 @@ object MqttConfig {
     // Dynamic broker configuration
     private var customBrokerIp: String? = null
     private var customBrokerPort: Int = 1883
-    private var useLocalBroker: Boolean = true // Default to local broker as requested
+    private var useLocalBroker: Boolean = true // Default to local broker for development
+    private var useNetworkBroker: Boolean = false // Option to use network broker
     
     // For SSL/TLS (if needed later)
-    // const val BROKER_URL_SSL = "ssl://192.168.0.101:8883"
+    // const val BROKER_URL_SSL = "ssl://localhost:8883"
     
     // Set custom broker configuration
     fun setCustomBroker(ip: String, port: Int) {
         customBrokerIp = ip
         customBrokerPort = port
         useLocalBroker = false
+        useNetworkBroker = false
         Log.i("MqttConfig", "Custom broker set: $ip:$port")
     }
     
     // Set broker type preference
     fun setUseLocalBroker(useLocal: Boolean) {
         useLocalBroker = useLocal
-        Log.i("MqttConfig", "Broker preference set to: ${if (useLocal) "Local" else "Public"}")
+        useNetworkBroker = !useLocal
+        Log.i("MqttConfig", "Broker preference set to: ${if (useLocal) "Local" else "Network"}")
     }
     
-    // Get the appropriate broker URL based on network
+    // Set network broker preference
+    fun setUseNetworkBroker(useNetwork: Boolean) {
+        useNetworkBroker = useNetwork
+        useLocalBroker = !useNetwork
+        Log.i("MqttConfig", "Broker preference set to: ${if (useNetwork) "Network" else "Local"}")
+    }
+    
+    // Get the appropriate broker URL based on preference
     fun getBrokerUrl(): String {
         // Use custom broker if set
         if (customBrokerIp != null) {
@@ -51,7 +64,13 @@ object MqttConfig {
             return customUrl
         }
         
-        // Use local broker by default as requested
+        // Use network broker if preferred
+        if (useNetworkBroker) {
+            Log.d("MqttConfig", "Using network broker URL: $BROKER_URL_NETWORK")
+            return BROKER_URL_NETWORK
+        }
+        
+        // Use local broker by default for development
         if (useLocalBroker) {
             Log.d("MqttConfig", "Using local broker URL: $BROKER_URL_LOCAL")
             return BROKER_URL_LOCAL
@@ -69,13 +88,18 @@ object MqttConfig {
         return try {
             val prefs = context.getSharedPreferences("mqtt_settings", android.content.Context.MODE_PRIVATE)
             val useLocal = prefs.getBoolean("use_local_broker", true) // Default to local broker
-            val ip = prefs.getString("broker_ip", "192.168.0.101") ?: "192.168.0.101" // Default to requested IP
-            val port = prefs.getInt("broker_port", 1883)
+            val useNetwork = prefs.getBoolean("use_network_broker", false)
             
-            // If local broker is preferred, use it
-            if (useLocal) {
-                Log.i("MqttConfig", "Using local broker from preferences: $ip:$port")
+            if (useNetwork) {
+                val ip = prefs.getString("broker_ip", "10.0.0.208") ?: "10.0.0.208"
+                val port = prefs.getInt("broker_port", 1883)
+                Log.i("MqttConfig", "Using network broker from preferences: $ip:$port")
                 return "tcp://$ip:$port"
+            }
+            
+            if (useLocal) {
+                Log.i("MqttConfig", "Using local broker from preferences: localhost:1883")
+                return BROKER_URL_LOCAL
             }
             
             // Fallback to public broker
@@ -90,7 +114,7 @@ object MqttConfig {
     
     // Get broker URL with fallback options
     fun getBrokerUrlWithFallback(): String {
-        // First try local broker (most reliable for local testing)
+        // First try local broker (most reliable for local development)
         Log.i("MqttConfig", "Using local broker with fallback: $BROKER_URL_LOCAL")
         return BROKER_URL_LOCAL
     }
@@ -99,14 +123,19 @@ object MqttConfig {
      * Get the best available broker URL for the current network
      */
     fun getBestBrokerUrl(): String {
-        // Priority order: Custom > Local > Public
+        // Priority order: Custom > Local > Network > Public
         if (customBrokerIp != null) {
             return "tcp://$customBrokerIp:$customBrokerPort"
         }
         
-        // Use local broker by default as requested
+        // Use local broker by default for development
         if (useLocalBroker) {
             return BROKER_URL_LOCAL
+        }
+        
+        // Use network broker if preferred
+        if (useNetworkBroker) {
+            return BROKER_URL_NETWORK
         }
         
         return BROKER_URL_PUBLIC
@@ -123,25 +152,25 @@ object MqttConfig {
             candidates.add("tcp://$customBrokerIp:$customBrokerPort")
         }
         
-        // 2. Local broker (primary choice as requested)
+        // 2. Local broker (primary choice for development)
         candidates.add(BROKER_URL_LOCAL)
         
-        // 3. Auto-detected IP
+        // 3. Network broker (if available)
+        candidates.add(BROKER_URL_NETWORK)
+        
+        // 4. Auto-detected IP
         val autoDetectedIp = NetworkHelper.getLocalIpAddress()
         if (autoDetectedIp != null) {
             candidates.add("tcp://$autoDetectedIp:1883")
         }
         
-        // 4. Common local IPs
+        // 5. Common local IPs
         candidates.addAll(listOf(
             "tcp://192.168.1.100:1883",
             "tcp://192.168.0.100:1883",
             "tcp://10.0.0.100:1883",
             "tcp://172.16.0.100:1883"
         ))
-        
-        // 5. Localhost
-        candidates.add("tcp://localhost:1883")
         
         // 6. Public broker (last resort)
         candidates.add(BROKER_URL_PUBLIC)

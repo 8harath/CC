@@ -345,7 +345,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                     medicalInfo = medicalInfo
                 )
                 val json = Json.encodeToString(message)
-                val topic = MqttTopics.alertIncident(incidentId)
+                val topic = "emergency/alerts/$incidentId"
 
                 // Prefer publishing via background service to leverage retry queue
                 val ctx = getApplication<Application>()
@@ -405,7 +405,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 )
                 
                 val json = Json.encodeToString(message)
-                val topic = MqttTopics.alertIncident(incidentId)
+                val topic = "emergency/alerts/$incidentId"
                 
                 Log.i("PublisherViewModel", "Sending test message: $json")
                 
@@ -424,7 +424,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 
             } catch (e: Exception) {
                 _errorMessage.value = "Failed to send test message: ${e.message}"
-                Log.e("PublisherViewModel", "Failed to send test message", e)
+                Log.e("PublisherViewModel", "Failed to send test message: ${e.message}")
             } finally {
                 _isLoading.value = false
             }
@@ -475,23 +475,27 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 
                 Log.i("PublisherViewModel", "Sending custom message: $message")
                 
-                // Send via MQTT service to custom topic
+                // Send via MQTT service to custom topic that subscribers are listening to
                 val topic = "emergency/custom/message"
+                val timestamp = System.currentTimeMillis()
+                val formattedMessage = "[$timestamp] $message"
+                
                 val ctx = getApplication<Application>()
                 val publishIntent = Intent(ctx, MqttService::class.java).apply {
                     action = MqttService.ACTION_PUBLISH
                     putExtra(MqttService.EXTRA_TOPIC, topic)
-                    putExtra(MqttService.EXTRA_PAYLOAD, message)
+                    putExtra(MqttService.EXTRA_PAYLOAD, formattedMessage)
                     putExtra(MqttService.EXTRA_QOS, 1)
                     putExtra(MqttService.EXTRA_RETAINED, false)
                 }
                 ctx.startService(publishIntent)
                 
                 _successMessage.value = "Custom message sent successfully!"
+                Log.i("PublisherViewModel", "Custom message sent to topic $topic: $formattedMessage")
                 
             } catch (e: Exception) {
                 _errorMessage.value = "Failed to send custom message: ${e.message}"
-                Log.e("PublisherViewModel", "Failed to send custom message", e)
+                Log.e("PublisherViewModel", "Failed to send custom message: ${e.message}")
             } finally {
                 _isLoading.value = false
             }
@@ -503,7 +507,8 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
      */
     fun sendSimpleTestMessage() {
         val topic = "emergency/test/message"
-        val message = "Hello from Publisher! Test message at ${System.currentTimeMillis()}"
+        val timestamp = System.currentTimeMillis()
+        val message = "Hello from Publisher! Test message at $timestamp"
         sendSimpleMessage(topic, message)
     }
     

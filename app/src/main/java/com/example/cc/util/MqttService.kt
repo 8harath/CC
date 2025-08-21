@@ -305,10 +305,21 @@ class MqttService : Service() {
                             Log.e(TAG, "Failed to subscribe to response topic: ${exception?.message}")
                         }
                     })
+                    
+                    // Also subscribe to system status
+                    val systemTopic = "emergency/status/system"
+                    mqttClient.subscribe(systemTopic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Subscribed to system status topic: $systemTopic")
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to system status topic: ${exception?.message}")
+                        }
+                    })
                 }
                 "SUBSCRIBER" -> {
                     // Subscriber subscribes to emergency alerts
-                    val alertTopic = "emergency/alert/#"
+                    val alertTopic = "emergency/alerts/#"
                     mqttClient.subscribe(alertTopic, 1, null, object : IMqttActionListener {
                         override fun onSuccess(asyncActionToken: IMqttToken?) {
                             Log.i(TAG, "Subscribed to alert topic: $alertTopic")
@@ -326,6 +337,28 @@ class MqttService : Service() {
                         }
                         override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                             Log.e(TAG, "Failed to subscribe to test topic: ${exception?.message}")
+                        }
+                    })
+                    
+                    // Subscribe to custom messages
+                    val customTopic = "emergency/custom/#"
+                    mqttClient.subscribe(customTopic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Subscribed to custom message topic: $customTopic")
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to custom message topic: ${exception?.message}")
+                        }
+                    })
+                    
+                    // Subscribe to response acknowledgments
+                    val ackTopic = "emergency/response/ack/#"
+                    mqttClient.subscribe(ackTopic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Subscribed to response ack topic: $ackTopic")
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to response ack topic: ${exception?.message}")
                         }
                     })
                 }
@@ -377,9 +410,9 @@ class MqttService : Service() {
                 return
             }
             
-            // Use the local broker URL directly as requested
-            val brokerUrl = MqttConfig.BROKER_URL_LOCAL
-            Log.i(TAG, "Attempting to connect to local MQTT broker: $brokerUrl")
+            // Use the broker URL from config
+            val brokerUrl = MqttConfig.getBrokerUrl()
+            Log.i(TAG, "Attempting to connect to MQTT broker: $brokerUrl")
             connectionState.postValue(ConnectionState.CONNECTING)
             isReconnecting = true
             
@@ -410,14 +443,14 @@ class MqttService : Service() {
                     Log.i(TAG, "📨 Message arrived: $topic -> ${message?.toString()}")
                     if (topic != null && message != null) {
                         try {
-                            if (topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                            if (topic.startsWith("emergency/alerts/")) {
                                 Log.i(TAG, "🚨 Emergency alert received on topic: $topic")
                                 val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
                                 intent.putExtra("alert_json", message.toString())
                                 sendBroadcast(intent)
                             } else if (topic.startsWith("emergency/test/")) {
-                                Log.i(TAG, "📝 Simple test message received on topic: $topic")
-                                // Handle simple test messages
+                                Log.i(TAG, "📝 Test message received on topic: $topic")
+                                // Handle test messages
                                 val intent = Intent("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
                                 intent.putExtra("message", message.toString())
@@ -426,6 +459,13 @@ class MqttService : Service() {
                                 Log.i(TAG, "💬 Custom message received on topic: $topic")
                                 // Handle custom messages
                                 val intent = Intent("com.example.cc.CUSTOM_MESSAGE_RECEIVED")
+                                intent.putExtra("topic", topic)
+                                intent.putExtra("message", message.toString())
+                                sendBroadcast(intent)
+                            } else if (topic.startsWith("emergency/")) {
+                                Log.i(TAG, "📨 General emergency message received on topic: $topic")
+                                // Handle other emergency messages
+                                val intent = Intent("com.example.cc.GENERAL_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
                                 intent.putExtra("message", message.toString())
                                 sendBroadcast(intent)
@@ -452,7 +492,7 @@ class MqttService : Service() {
             
             mqttClient.connect(options, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    Log.i(TAG, "✅ Successfully connected to local MQTT broker!")
+                    Log.i(TAG, "✅ Successfully connected to MQTT broker!")
                     isConnected = true
                     connectionState.postValue(ConnectionState.CONNECTED)
                     reconnectAttempts = 0
@@ -468,7 +508,7 @@ class MqttService : Service() {
                 }
                 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    Log.e(TAG, "❌ Failed to connect to local MQTT broker: ${exception?.message}")
+                    Log.e(TAG, "❌ Failed to connect to MQTT broker: ${exception?.message}")
                     isConnected = false
                     connectionState.postValue(ConnectionState.DISCONNECTED)
                     isReconnecting = false
