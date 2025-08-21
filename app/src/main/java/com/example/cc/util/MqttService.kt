@@ -1092,4 +1092,73 @@ class MqttService : Service() {
             "Error during broker validation: ${e.message}"
         }
     }
+    
+    /**
+     * Get current broker configuration details
+     */
+    fun getBrokerConfiguration(): String {
+        return try {
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            val ipValid = MqttConfig.isValidIpAddress(ip)
+            val portValid = MqttConfig.isValidPort(port)
+            
+            """
+            📋 Broker Configuration Details
+            ================================
+            IP Address: $ip (${if (ipValid) "✅ Valid" else "❌ Invalid"})
+            Port: $port (${if (portValid) "✅ Valid" else "❌ Invalid"})
+            Broker URL: $brokerUrl
+            Configuration Valid: ${if (ipValid && portValid) "✅ Yes" else "❌ No"}
+            ================================
+            """.trimIndent()
+            
+        } catch (e: Exception) {
+            "Error getting broker configuration: ${e.message}"
+        }
+    }
+    
+    /**
+     * Test network connectivity to broker using socket connection
+     */
+    fun testNetworkConnectivity(): String {
+        return try {
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            
+            if (!MqttConfig.isValidIpAddress(ip)) {
+                return "❌ Invalid IP address: $ip"
+            }
+            
+            if (!MqttConfig.isValidPort(port)) {
+                return "❌ Invalid port: $port"
+            }
+            
+            var result = "🌐 Network Connectivity Test\n"
+            result += "============================\n"
+            result += "Testing connection to $ip:$port\n"
+            
+            // Test network connectivity using socket
+            val socket = java.net.Socket()
+            val timeout = 5000 // 5 seconds timeout
+            
+            try {
+                socket.connect(java.net.InetSocketAddress(ip, port), timeout)
+                result += "✅ Network connectivity successful\n"
+                result += "✅ Broker is reachable at $ip:$port\n"
+                socket.close()
+            } catch (e: Exception) {
+                result += "❌ Network connectivity failed\n"
+                result += "❌ Cannot reach broker at $ip:$port\n"
+                result += "Error: ${e.message}\n"
+            }
+            
+            result += "============================\n"
+            result
+            
+        } catch (e: Exception) {
+            "Error during network connectivity test: ${e.message}"
+        }
+    }
 }
