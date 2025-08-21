@@ -14,6 +14,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
 import com.example.cc.databinding.ActivityPublisherBinding
+import com.example.cc.databinding.*
 import com.google.android.material.snackbar.Snackbar
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
