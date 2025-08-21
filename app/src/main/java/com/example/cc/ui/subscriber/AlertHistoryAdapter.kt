@@ -35,10 +35,10 @@ class AlertHistoryAdapter(
         fun bind(incident: Incident) {
             binding.root.setOnClickListener { onItemClick(incident) }
             
-            binding.tvAlertMessage.text = incident.message
-            binding.tvAlertLocation.text = incident.location
-            binding.tvAlertTimestamp.text = formatTimestamp(incident.timestamp)
-            binding.tvAlertSeverity.text = incident.severity
+            binding.tvVictimName.text = incident.message
+            binding.tvLocation.text = incident.location
+            binding.tvTime.text = formatTimestamp(incident.timestamp)
+            binding.tvSeverity.text = incident.severity
             
             // Set severity color
             val severityColor = when (incident.severity.uppercase()) {
@@ -49,7 +49,7 @@ class AlertHistoryAdapter(
                 else -> android.graphics.Color.GRAY
             }
             
-            binding.tvAlertSeverity.setTextColor(severityColor)
+            binding.tvSeverity.setTextColor(severityColor)
         }
         
         private fun formatTimestamp(timestamp: Long): String {

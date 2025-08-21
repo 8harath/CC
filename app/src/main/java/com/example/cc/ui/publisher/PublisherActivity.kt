@@ -210,6 +210,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     }
     
     private fun showToast(message: String) {
+        // Use Snackbar instead of overriding BaseActivity method
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 } 
