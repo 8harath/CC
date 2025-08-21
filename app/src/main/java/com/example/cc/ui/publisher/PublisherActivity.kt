@@ -188,7 +188,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         }
         
         binding.btnMedicalProfile?.setOnClickListener {
-            showToast("Medical profile feature coming soon")
+            Snackbar.make(binding.root, "Medical profile feature coming soon", Snackbar.LENGTH_SHORT).show()
         }
     }
     
