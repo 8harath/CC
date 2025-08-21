@@ -17,6 +17,7 @@ import android.view.View
 import android.util.Log
 import android.widget.Toast
 import com.example.cc.databinding.ActivityMainBinding
+import com.example.cc.databinding.*
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
     

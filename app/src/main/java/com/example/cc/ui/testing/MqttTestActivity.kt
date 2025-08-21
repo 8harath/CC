@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.cc.databinding.ActivityMqttTestBinding
+import com.example.cc.databinding.*
 import com.example.cc.util.MqttService
 import com.example.cc.util.MqttTopics
 import com.example.cc.util.NetworkHelper
@@ -116,9 +117,9 @@ class MqttTestActivity : AppCompatActivity() {
                 
                 logMessage("Testing connectivity to $host:$port...")
                 
-                val isConnected = NetworkHelper.testBrokerConnectivity(host, port)
+                val result = NetworkHelper.testBrokerConnectivity(host, port)
                 
-                if (isConnected) {
+                if (result.isSuccess) {
                     logMessage("✅ MQTT broker is accessible!")
                     logMessage("You can now test publishing and subscribing")
                 } else {

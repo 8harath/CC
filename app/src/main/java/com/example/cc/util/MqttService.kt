@@ -99,6 +99,13 @@ class MqttService : Service() {
             return isMqttEnabledGlobal && connectionState.value == ConnectionState.CONNECTED
         }
         
+        // MQTT Configuration Constants
+        const val CLIENT_ID_PREFIX = "android_client_"
+        const val CONNECTION_TIMEOUT = 30
+        const val KEEP_ALIVE_INTERVAL = 60
+        const val MAX_RECONNECT_ATTEMPTS = 5
+        const val RECONNECT_DELAY = 5000L
+        
         /**
          * Get current MQTT status as a human-readable string
          */
@@ -154,9 +161,15 @@ class MqttService : Service() {
             // Generate unique client ID
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
-            // Use the local broker as requested (192.168.0.101:1883)
-            val brokerUrl = MqttConfig.BROKER_URL_LOCAL
-            Log.i(TAG, "Using local broker URL: $brokerUrl")
+            // Get broker URL from configuration with validation
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            if (brokerUrl == null) {
+                Log.e(TAG, "Invalid broker configuration - cannot initialize MQTT client")
+                connectionState.postValue(ConnectionState.DISCONNECTED)
+                return
+            }
+            
+            Log.i(TAG, "Using broker URL: $brokerUrl")
             
             // Initialize MQTT client
             mqttClient = AndroidXMqttClient(applicationContext, brokerUrl, clientId)
@@ -181,6 +194,93 @@ class MqttService : Service() {
 
     private fun isValidTopic(topic: String): Boolean {
         return topic.startsWith("emergency/")
+    }
+    
+    /**
+     * Test broker connectivity before attempting MQTT connection
+     */
+    private fun testBrokerConnectivity(): Boolean {
+        try {
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            if (brokerUrl == null) {
+                Log.e(TAG, "Invalid broker configuration")
+                return false
+            }
+            
+            // Extract IP and port from broker URL
+            val urlParts = brokerUrl.removePrefix("tcp://").split(":")
+            if (urlParts.size != 2) {
+                Log.e(TAG, "Invalid broker URL format: $brokerUrl")
+                return false
+            }
+            
+            val ip = urlParts[0]
+            val port = urlParts[1].toIntOrNull()
+            
+            if (port == null || !MqttConfig.isValidPort(port)) {
+                Log.e(TAG, "Invalid broker port: $port")
+                return false
+            }
+            
+            if (!MqttConfig.isValidIpAddress(ip)) {
+                Log.e(TAG, "Invalid broker IP address: $ip")
+                return false
+            }
+            
+            // Test actual connectivity using socket
+            try {
+                val socket = java.net.Socket()
+                socket.connect(java.net.InetSocketAddress(ip, port), 5000) // 5 second timeout
+                socket.close()
+                Log.i(TAG, "✅ Broker connectivity test successful: $ip:$port")
+                return true
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Broker connectivity test failed: $ip:$port - ${e.message}")
+                return false
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error testing broker connectivity: ${e.message}")
+            return false
+        }
+    }
+    
+    /**
+     * Verify that the MQTT connection is actually working
+     */
+    private fun verifyConnection() {
+        try {
+            if (!::mqttClient.isInitialized || !mqttClient.isConnected()) {
+                Log.w(TAG, "Cannot verify connection - client not connected")
+                return
+            }
+            
+            // Send a test message to verify connection is working
+            val testTopic = "emergency/test/connection"
+            val testPayload = "Connection test - ${System.currentTimeMillis()}"
+            
+            Log.i(TAG, "🔍 Verifying MQTT connection with test message...")
+            
+            val message = MqttMessage(testPayload.toByteArray()).apply {
+                this.qos = 0 // QoS 0 for test message
+                this.isRetained = false
+            }
+            
+            mqttClient.publish(testTopic, message, null, object : IMqttActionListener {
+                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    Log.i(TAG, "✅ Connection verification successful - test message sent")
+                }
+                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    Log.w(TAG, "⚠️ Connection verification failed: ${exception?.message}")
+                    // Connection might not be fully working
+                    connectionState.postValue(ConnectionState.DISCONNECTED)
+                    isConnected = false
+                }
+            })
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during connection verification: ${e.message}")
+        }
     }
 
     fun publish(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
@@ -400,6 +500,23 @@ class MqttService : Service() {
         if (!isNetworkAvailable()) {
             Log.w(TAG, "Network not available, cannot connect to MQTT")
             connectionState.postValue(ConnectionState.DISCONNECTED)
+            // Send broadcast to notify UI of network error
+            val intent = Intent("com.example.cc.CONNECTION_STATUS")
+            intent.putExtra("status", "DISCONNECTED")
+            intent.putExtra("error", "Network not available")
+            sendBroadcast(intent)
+            return
+        }
+        
+        // Test broker connectivity before attempting connection
+        if (!testBrokerConnectivity()) {
+            Log.e(TAG, "Broker connectivity test failed - cannot connect")
+            connectionState.postValue(ConnectionState.DISCONNECTED)
+            // Send broadcast to notify UI of invalid IP error
+            val intent = Intent("com.example.cc.CONNECTION_STATUS")
+            intent.putExtra("status", "DISCONNECTED")
+            intent.putExtra("error", "Invalid IP address or port")
+            sendBroadcast(intent)
             return
         }
         
@@ -410,8 +527,13 @@ class MqttService : Service() {
                 return
             }
             
-            // Use the broker URL from config
-            val brokerUrl = MqttConfig.getBrokerUrl()
+            // Get broker URL from configuration with validation
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            if (brokerUrl == null) {
+                Log.e(TAG, "Invalid broker configuration - cannot connect")
+                connectionState.postValue(ConnectionState.DISCONNECTED)
+                return
+            }
             Log.i(TAG, "Attempting to connect to MQTT broker: $brokerUrl")
             connectionState.postValue(ConnectionState.CONNECTING)
             isReconnecting = true
@@ -421,9 +543,14 @@ class MqttService : Service() {
                 isCleanSession = true
                 connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
                 keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
-                if (MqttConfig.USERNAME.isNotEmpty()) {
-                    userName = MqttConfig.USERNAME
-                    password = MqttConfig.PASSWORD.toCharArray()
+                // Authentication is handled through MqttConfig methods
+                val username = MqttConfig.getUsername()
+                val password = MqttConfig.getPassword()
+                if (!username.isNullOrEmpty()) {
+                    userName = username
+                    password?.let { pwd ->
+                        this.password = pwd.toCharArray()
+                    }
                 }
             }
             
@@ -440,41 +567,45 @@ class MqttService : Service() {
                 }
                 
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    Log.i(TAG, "📨 Message arrived: $topic -> ${message?.toString()}")
+                    Log.i(TAG, "📨 Message arrived: $topic -> ${String(message?.payload ?: ByteArray(0))}")
                     if (topic != null && message != null) {
                         try {
+                            val payload = String(message.payload)
+                            Log.i(TAG, "📨 Message payload: $payload")
+                            
                             if (topic.startsWith("emergency/alerts/")) {
                                 Log.i(TAG, "🚨 Emergency alert received on topic: $topic")
                                 val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                                intent.putExtra("alert_json", message.toString())
+                                intent.putExtra("alert_json", payload)
+                                intent.putExtra("topic", topic)
                                 sendBroadcast(intent)
                             } else if (topic.startsWith("emergency/test/")) {
                                 Log.i(TAG, "📝 Test message received on topic: $topic")
                                 // Handle test messages
                                 val intent = Intent("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             } else if (topic.startsWith("emergency/custom/")) {
                                 Log.i(TAG, "💬 Custom message received on topic: $topic")
                                 // Handle custom messages
                                 val intent = Intent("com.example.cc.CUSTOM_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             } else if (topic.startsWith("emergency/")) {
                                 Log.i(TAG, "📨 General emergency message received on topic: $topic")
                                 // Handle other emergency messages
                                 val intent = Intent("com.example.cc.GENERAL_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             } else {
                                 Log.i(TAG, "📨 General message received on topic: $topic")
                                 // Handle other messages
                                 val intent = Intent("com.example.cc.GENERAL_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             }
                         } catch (e: Exception) {
@@ -490,42 +621,56 @@ class MqttService : Service() {
                 }
             })
             
-            mqttClient.connect(options, null, object : IMqttActionListener {
-                override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    Log.i(TAG, "✅ Successfully connected to MQTT broker!")
-                    isConnected = true
-                    connectionState.postValue(ConnectionState.CONNECTED)
-                    reconnectAttempts = 0
-                    isReconnecting = false
-                    
-                    // Retry any queued messages
-                    retryQueuedMessages()
-                    
-                    // Subscribe for pending role if any
-                    pendingRole?.let { role ->
-                        subscribeForRole(role, pendingIncidentId)
-                    }
-                }
+                                      mqttClient.connect(options, null, object : IMqttActionListener {
+                 override fun onSuccess(asyncActionToken: IMqttToken?) {
+                     Log.i(TAG, "✅ Successfully connected to MQTT broker!")
+                     isConnected = true
+                     connectionState.postValue(ConnectionState.CONNECTED)
+                     reconnectAttempts = 0
+                     isReconnecting = false
+                     
+                     // Send broadcast to notify UI of successful connection
+                     val intent = Intent("com.example.cc.CONNECTION_STATUS")
+                     intent.putExtra("status", "CONNECTED")
+                     sendBroadcast(intent)
+                     
+                     // Verify connection is working
+                     verifyConnection()
+                     
+                     // Retry any queued messages
+                     retryQueuedMessages()
+                     
+                     // Subscribe for pending role if any
+                     pendingRole?.let { role ->
+                         subscribeForRole(role, pendingIncidentId)
+                     }
+                 }
                 
-                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    Log.e(TAG, "❌ Failed to connect to MQTT broker: ${exception?.message}")
-                    isConnected = false
-                    connectionState.postValue(ConnectionState.DISCONNECTED)
-                    isReconnecting = false
-                    
-                    // Increment reconnect attempts
-                    reconnectAttempts++
-                    
-                    // Try to reconnect if we haven't exceeded max attempts
-                    if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS && isMqttEnabled) {
-                        Log.i(TAG, "Reconnect attempt $reconnectAttempts of ${MqttConfig.MAX_RECONNECT_ATTEMPTS}")
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            connect()
-                        }, MqttConfig.RECONNECT_DELAY)
-                    } else {
-                        Log.w(TAG, "Max reconnect attempts reached or MQTT disabled")
-                    }
-                }
+                                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                     Log.e(TAG, "❌ Failed to connect to MQTT broker: ${exception?.message}")
+                     isConnected = false
+                     connectionState.postValue(ConnectionState.DISCONNECTED)
+                     isReconnecting = false
+                     
+                     // Send broadcast to notify UI of connection failure
+                     val intent = Intent("com.example.cc.CONNECTION_STATUS")
+                     intent.putExtra("status", "DISCONNECTED")
+                     intent.putExtra("error", "Failed to connect: ${exception?.message ?: "Unknown error"}")
+                     sendBroadcast(intent)
+                     
+                     // Increment reconnect attempts
+                     reconnectAttempts++
+                     
+                     // Try to reconnect if we haven't exceeded max attempts
+                     if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS && isMqttEnabled) {
+                         Log.i(TAG, "Reconnect attempt $reconnectAttempts of ${MqttConfig.MAX_RECONNECT_ATTEMPTS}")
+                         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                             connect()
+                         }, MqttConfig.RECONNECT_DELAY)
+                     } else {
+                         Log.w(TAG, "Max reconnect attempts reached or MQTT disabled")
+                     }
+                 }
             })
             
         } catch (e: Exception) {
@@ -597,10 +742,30 @@ class MqttService : Service() {
                     val qos = inIntent.getIntExtra(EXTRA_QOS, 1)
                     val retained = inIntent.getBooleanExtra(EXTRA_RETAINED, false)
                     if (!topic.isNullOrEmpty() && payload != null) {
+                        Log.i(TAG, "📤 Publishing message via service intent: $topic")
                         publish(topic, payload, qos, retained)
                     } else {
                         Log.w(TAG, "Invalid topic or payload for publishing")
                     }
+                }
+                "com.example.cc.RUN_TESTS" -> {
+                    Log.i(TAG, "🧪 Running comprehensive MQTT tests via service intent")
+                    // Run tests in background thread
+                    Thread {
+                        try {
+                            val testReport = runComprehensiveTests()
+                            Log.i(TAG, "🧪 Test results: $testReport")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error running tests: ${e.message}", e)
+                        }
+                    }.start()
+                }
+                "com.example.cc.GET_SETTINGS" -> {
+                    Log.i(TAG, "📋 Getting MQTT settings via service intent")
+                    val brokerConfig = getBrokerConfiguration()
+                    val networkTest = testNetworkConnectivity()
+                    Log.i(TAG, "📋 Broker config: $brokerConfig")
+                    Log.i(TAG, "📋 Network test: $networkTest")
                 }
                 ACTION_UPDATE_SETTINGS -> {
                     Log.i(TAG, "Settings updated, reconnecting with new broker configuration")
@@ -711,5 +876,429 @@ class MqttService : Service() {
         isReconnecting = false
         reconnectAttempts = 0
         isConnected = false
+    }
+
+    /**
+     * Get current broker information and connection status
+     */
+    fun getBrokerInfo(): String {
+        return try {
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            val isConnected = if (::mqttClient.isInitialized) mqttClient.isConnected() else false
+            
+            "Broker: $ip:$port\n" +
+            "URL: $brokerUrl\n" +
+            "Connected: $isConnected\n" +
+            "MQTT Enabled: $isMqttEnabled\n" +
+            "Reconnect Attempts: $reconnectAttempts"
+        } catch (e: Exception) {
+            "Error getting broker info: ${e.message}"
+        }
+    }
+    
+    /**
+     * Check if we can connect to the current broker configuration
+     */
+    fun canConnectToBroker(): Boolean {
+        return try {
+            testBrokerConnectivity() && isNetworkAvailable()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error checking broker connectivity: ${e.message}")
+            false
+        }
+    }
+    
+    /**
+     * Update broker settings and reconnect
+     */
+    fun updateBrokerSettings(newIp: String, newPort: Int) {
+        try {
+            Log.i(TAG, "Updating broker settings to $newIp:$newPort")
+            
+            // Validate new settings
+            if (!MqttConfig.isValidIpAddress(newIp)) {
+                Log.e(TAG, "Invalid IP address: $newIp")
+                return
+            }
+            
+            if (!MqttConfig.isValidPort(newPort)) {
+                Log.e(TAG, "Invalid port: $newPort")
+                return
+            }
+            
+            // Update configuration
+            MqttConfig.updateBrokerSettings(newIp, newPort)
+            
+            // Disconnect current connection if any
+            if (::mqttClient.isInitialized && mqttClient.isConnected()) {
+                Log.i(TAG, "Disconnecting from current broker to apply new settings")
+                mqttClient.disconnect()
+            }
+            
+            // Reinitialize client with new settings
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            if (brokerUrl != null) {
+                val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
+                mqttClient = AndroidXMqttClient(applicationContext, brokerUrl, clientId)
+                Log.i(TAG, "MQTT client reinitialized with new broker: $brokerUrl")
+                
+                // Attempt to connect if MQTT is enabled
+                if (isMqttEnabled) {
+                    connect()
+                }
+            } else {
+                Log.e(TAG, "Failed to get valid broker URL after update")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating broker settings: ${e.message}")
+        }
+    }
+    
+    /**
+     * Test message sending to verify connection functionality
+     */
+    fun testMessageSending(): Boolean {
+        return try {
+            if (!::mqttClient.isInitialized || !mqttClient.isConnected()) {
+                Log.w(TAG, "Cannot test message sending - not connected")
+                return false
+            }
+            
+            val testTopic = "emergency/test/message"
+            val testPayload = "Test message - ${System.currentTimeMillis()}"
+            
+            Log.i(TAG, "🧪 Testing message sending to topic: $testTopic")
+            
+            val message = MqttMessage(testPayload.toByteArray()).apply {
+                this.qos = 1
+                this.isRetained = false
+            }
+            
+            var testResult = false
+            
+            mqttClient.publish(testTopic, message, null, object : IMqttActionListener {
+                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    Log.i(TAG, "✅ Message sending test successful")
+                    testResult = true
+                }
+                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    Log.e(TAG, "❌ Message sending test failed: ${exception?.message}")
+                    testResult = false
+                }
+            })
+            
+            // Wait a bit for the result
+            Thread.sleep(1000)
+            return testResult
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during message sending test: ${e.message}")
+            return false
+        }
+    }
+    
+    /**
+     * Get detailed connection diagnostics
+     */
+    fun getConnectionDiagnostics(): String {
+        return try {
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            val networkAvailable = isNetworkAvailable()
+            val brokerValid = testBrokerConnectivity()
+            val clientInitialized = ::mqttClient.isInitialized
+            val clientConnected = if (clientInitialized) mqttClient.isConnected() else false
+            val mqttEnabled = isMqttEnabled
+            val reconnectAttempts = reconnectAttempts
+            val isReconnecting = isReconnecting
+            
+            """
+            🔍 MQTT Connection Diagnostics
+            ================================
+            Broker IP: $ip
+            Broker Port: $port
+            Broker URL: $brokerUrl
+            Network Available: $networkAvailable
+            Broker Configuration Valid: $brokerValid
+            Client Initialized: $clientInitialized
+            Client Connected: $clientConnected
+            MQTT Enabled: $mqttEnabled
+            Reconnect Attempts: $reconnectAttempts
+            Currently Reconnecting: $isReconnecting
+            Connection State: ${connectionState.value}
+            ================================
+            """.trimIndent()
+            
+        } catch (e: Exception) {
+            "Error getting diagnostics: ${e.message}"
+        }
+    }
+    
+    /**
+     * Force reconnect with current settings
+     */
+    fun forceReconnect() {
+        try {
+            Log.i(TAG, "🔄 Force reconnecting to MQTT broker...")
+            
+            // Reset reconnection state
+            reconnectAttempts = 0
+            isReconnecting = false
+            
+            // Disconnect if currently connected
+            if (::mqttClient.isInitialized && mqttClient.isConnected()) {
+                Log.i(TAG, "Disconnecting from current connection")
+                mqttClient.disconnect()
+            }
+            
+            // Wait a bit for disconnect to complete
+            Thread.sleep(1000)
+            
+            // Attempt to connect
+            if (isMqttEnabled) {
+                connect()
+            } else {
+                Log.w(TAG, "MQTT is not enabled, cannot reconnect")
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during force reconnect: ${e.message}")
+        }
+    }
+    
+    /**
+     * Validate and test current broker configuration
+     */
+    fun validateAndTestBroker(): String {
+        return try {
+            val diagnostics = getConnectionDiagnostics()
+            val brokerValid = testBrokerConnectivity()
+            val networkAvailable = isNetworkAvailable()
+            
+            var result = "🔍 Broker Configuration Validation\n"
+            result += "================================\n"
+            result += "Network Available: $networkAvailable\n"
+            result += "Broker Configuration Valid: $brokerValid\n"
+            
+            if (!networkAvailable) {
+                result += "❌ Network is not available\n"
+                return result
+            }
+            
+            if (!brokerValid) {
+                result += "❌ Broker configuration is invalid\n"
+                return result
+            }
+            
+            // Test connection if not already connected
+            if (!::mqttClient.isInitialized || !mqttClient.isConnected()) {
+                result += "⚠️ MQTT client not connected, attempting test connection...\n"
+                
+                // Try to connect temporarily for testing
+                val testClient = AndroidXMqttClient(applicationContext, MqttConfig.getBrokerUrlSafe()!!, "test_client_${System.currentTimeMillis()}")
+                
+                val options = MqttConnectOptions().apply {
+                    isAutomaticReconnect = false
+                    isCleanSession = true
+                    connectionTimeout = 10 // Short timeout for testing
+                    keepAliveInterval = 30
+                }
+                
+                var connectionTestResult = false
+                testClient.connect(options, null, object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        connectionTestResult = true
+                    }
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                        connectionTestResult = false
+                    }
+                })
+                
+                // Wait for connection test
+                Thread.sleep(2000)
+                
+                if (connectionTestResult) {
+                    result += "✅ Test connection successful - broker is reachable\n"
+                    // Disconnect test client
+                    testClient.disconnect()
+                } else {
+                    result += "❌ Test connection failed - broker is not reachable\n"
+                }
+            } else {
+                result += "✅ MQTT client is already connected\n"
+                
+                // Test message sending
+                if (testMessageSending()) {
+                    result += "✅ Message sending test successful\n"
+                } else {
+                    result += "❌ Message sending test failed\n"
+                }
+            }
+            
+            result += "\n" + diagnostics
+            result
+            
+        } catch (e: Exception) {
+            "Error during broker validation: ${e.message}"
+        }
+    }
+    
+    /**
+     * Get current broker configuration details
+     */
+    fun getBrokerConfiguration(): String {
+        return try {
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            val ipValid = MqttConfig.isValidIpAddress(ip)
+            val portValid = MqttConfig.isValidPort(port)
+            
+            """
+            📋 Broker Configuration Details
+            ================================
+            IP Address: $ip (${if (ipValid) "✅ Valid" else "❌ Invalid"})
+            Port: $port (${if (portValid) "✅ Valid" else "❌ Invalid"})
+            Broker URL: $brokerUrl
+            Configuration Valid: ${if (ipValid && portValid) "✅ Yes" else "❌ No"}
+            ================================
+            """.trimIndent()
+            
+        } catch (e: Exception) {
+            "Error getting broker configuration: ${e.message}"
+        }
+    }
+    
+    /**
+     * Test network connectivity to broker using socket connection
+     */
+    fun testNetworkConnectivity(): String {
+        return try {
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            
+            if (!MqttConfig.isValidIpAddress(ip)) {
+                return "❌ Invalid IP address: $ip"
+            }
+            
+            if (!MqttConfig.isValidPort(port)) {
+                return "❌ Invalid port: $port"
+            }
+            
+            var result = "🌐 Network Connectivity Test\n"
+            result += "============================\n"
+            result += "Testing connection to $ip:$port\n"
+            
+            // Test network connectivity using socket
+            val socket = java.net.Socket()
+            val timeout = 5000 // 5 seconds timeout
+            
+            try {
+                socket.connect(java.net.InetSocketAddress(ip, port), timeout)
+                result += "✅ Network connectivity successful\n"
+                result += "✅ Broker is reachable at $ip:$port\n"
+                socket.close()
+            } catch (e: Exception) {
+                result += "❌ Network connectivity failed\n"
+                result += "❌ Cannot reach broker at $ip:$port\n"
+                result += "Error: ${e.message}\n"
+            }
+            
+            result += "============================\n"
+            result
+            
+        } catch (e: Exception) {
+            "Error during network connectivity test: ${e.message}"
+        }
+    }
+    
+    /**
+     * Run comprehensive MQTT connection tests and provide status report
+     */
+    fun runComprehensiveTests(): String {
+        return try {
+            var report = "🔍 MQTT Comprehensive Connection Test Report\n"
+            report += "==============================================\n\n"
+            
+            // 1. Broker Configuration Test
+            report += "1. BROKER CONFIGURATION TEST\n"
+            report += "-----------------------------\n"
+            report += getBrokerConfiguration()
+            report += "\n\n"
+            
+            // 2. Network Connectivity Test
+            report += "2. NETWORK CONNECTIVITY TEST\n"
+            report += "-----------------------------\n"
+            report += testNetworkConnectivity()
+            report += "\n\n"
+            
+            // 3. MQTT Connection Test
+            report += "3. MQTT CONNECTION TEST\n"
+            report += "-----------------------\n"
+            report += validateAndTestBroker()
+            report += "\n\n"
+            
+            // 4. Current Status Summary
+            report += "4. CURRENT STATUS SUMMARY\n"
+            report += "-------------------------\n"
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            val networkAvailable = isNetworkAvailable()
+            val brokerValid = testBrokerConnectivity()
+            val clientInitialized = ::mqttClient.isInitialized
+            val clientConnected = if (clientInitialized) mqttClient.isConnected() else false
+            val mqttEnabled = isMqttEnabled
+            
+            report += "Broker IP: $ip\n"
+            report += "Broker Port: $port\n"
+            report += "Broker URL: $brokerUrl\n"
+            report += "Network Available: ${if (networkAvailable) "✅ Yes" else "❌ No"}\n"
+            report += "Broker Config Valid: ${if (brokerValid) "✅ Yes" else "❌ No"}\n"
+            report += "Client Initialized: ${if (clientInitialized) "✅ Yes" else "❌ No"}\n"
+            report += "Client Connected: ${if (clientConnected) "✅ Yes" else "❌ No"}\n"
+            report += "MQTT Enabled: ${if (mqttEnabled) "✅ Yes" else "❌ No"}\n"
+            report += "Connection State: ${connectionState.value}\n"
+            
+            // 5. Recommendations
+            report += "\n5. RECOMMENDATIONS\n"
+            report += "------------------\n"
+            
+            if (!networkAvailable) {
+                report += "❌ Check network connection\n"
+            }
+            
+            if (!brokerValid) {
+                report += "❌ Verify broker IP and port configuration\n"
+            }
+            
+            if (!clientInitialized) {
+                report += "❌ MQTT client not initialized - restart service\n"
+            }
+            
+            if (!clientConnected && networkAvailable && brokerValid) {
+                report += "⚠️ Try reconnecting to MQTT broker\n"
+            }
+            
+            if (!mqttEnabled) {
+                report += "⚠️ Enable MQTT service to connect\n"
+            }
+            
+            if (clientConnected) {
+                report += "✅ MQTT connection is working properly\n"
+            }
+            
+            report += "\n==============================================\n"
+            report += "Test completed at: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}\n"
+            
+            report
+            
+        } catch (e: Exception) {
+            "Error during comprehensive tests: ${e.message}"
+        }
     }
 }

@@ -127,6 +127,15 @@
                         android:textColor="@color/text_primary"
                         android:layout_marginBottom="8dp" />
 
+                    <TextView
+                        android:id="@+id/tvDescription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Description: Emergency assistance needed"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="8dp" />
+
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>

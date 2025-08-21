@@ -254,7 +254,7 @@ class MqttSettingsViewModel : ViewModel() {
     private fun updateMqttConfig(ip: String, port: Int) {
         try {
             // Update the MqttConfig object with new settings
-            MqttConfig.setCustomBroker(ip, port)
+            MqttConfig.updateBrokerSettings(ip, port)
             Log.i("MqttSettingsViewModel", "Notified MQTT service of settings change")
         } catch (e: Exception) {
             Log.e("MqttSettingsViewModel", "Error updating MQTT config: ${e.message}")

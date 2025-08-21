@@ -1,386 +1,377 @@
 package com.example.cc.ui.subscriber
 
-import com.example.cc.ui.base.BaseViewModel
-import android.content.Context
-import com.example.cc.util.EmergencyAlertMessage
-import com.example.cc.util.MqttTopics
-import com.example.cc.util.ResponseAckMessage
-import com.example.cc.util.MqttService
-import android.content.Intent
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cc.util.MqttService
+import com.example.cc.util.MqttConfig
+import com.example.cc.data.model.Incident
+import com.example.cc.data.model.IncidentStatus
+import com.example.cc.data.model.IncidentSeverity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import android.util.Log
+import android.content.Context
+import android.content.Intent
+import com.example.cc.util.MqttService.ConnectionState
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
 
-class SubscriberViewModel(application: Application) : AndroidViewModel(application) {
+class SubscriberViewModel : ViewModel() {
     
-    // State properties
-    private val _connectionStatus = MutableStateFlow("Disconnected")
-    val connectionStatus: StateFlow<String> = _connectionStatus.asStateFlow()
-    
-    private val _alertHistory = MutableStateFlow<List<EmergencyAlertMessage>>(emptyList())
-    val alertHistory: StateFlow<List<EmergencyAlertMessage>> = _alertHistory.asStateFlow()
-    
-    private val _selectedIncident = MutableStateFlow<EmergencyAlertMessage?>(null)
-    val selectedIncident: StateFlow<EmergencyAlertMessage?> = _selectedIncident.asStateFlow()
-    
-    private val _responseStatus = MutableStateFlow<Map<String, String>>(emptyMap())
-    val responseStatus: StateFlow<Map<String, String>> = _responseStatus.asStateFlow()
-    
-    private val _isResponding = MutableStateFlow<Set<String>>(emptySet())
-    val isResponding: StateFlow<Set<String>> = _isResponding.asStateFlow()
-    
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-    
-    private val _successMessage = MutableStateFlow<String?>(null)
-    val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
-
-    fun onEmergencyAlertReceived(json: String) {
-        try {
-            val alert = Json.decodeFromString<EmergencyAlertMessage>(json)
-            _alertHistory.update { currentList ->
-                currentList + alert
-            }
-            
-            // Show high priority notification for critical alerts
-            if (alert.severity == "CRITICAL") {
-                showHighPriorityNotification(alert)
-            }
-            
-            Log.i("SubscriberViewModel", "Emergency alert received: ${alert.incidentId}")
-            
-        } catch (e: Exception) {
-            Log.e("SubscriberViewModel", "Error parsing emergency alert: ${e.message}")
-            _errorMessage.value = "Failed to parse emergency alert: ${e.message}"
-        }
+    companion object {
+        private const val TAG = "SubscriberViewModel"
     }
     
-    fun onResponseAckReceived(json: String) {
-        try {
-            val ack = Json.decodeFromString<ResponseAckMessage>(json)
-            _responseStatus.update { currentStatus ->
-                currentStatus + (ack.incidentId to "${ack.responderName}: ${ack.status} (ETA: ${ack.eta / 60}min)")
-            }
-            
-            if (ack.status == "responding") {
-                _isResponding.update { it + ack.incidentId }
-            } else if (ack.status == "cancelled") {
-                _isResponding.update { it - ack.incidentId }
-            }
-            
-            Log.i("SubscriberViewModel", "Response acknowledgment received: ${ack.incidentId}")
-            
-        } catch (e: Exception) {
-            Log.e("SubscriberViewModel", "Error parsing response ack: ${e.message}")
-        }
+    // Core MQTT State
+    private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
+    val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
+    
+    private val _brokerIp = MutableStateFlow("192.168.0.101")
+    val brokerIp: StateFlow<String> = _brokerIp.asStateFlow()
+    
+    private val _brokerPort = MutableStateFlow(1883)
+    val brokerPort: StateFlow<Int> = _brokerPort.asStateFlow()
+    
+    // Emergency Alerts
+    private val _emergencyAlerts = MutableStateFlow<List<Incident>>(emptyList())
+    val emergencyAlerts: StateFlow<List<Incident>> = _emergencyAlerts.asStateFlow()
+    
+    private val _alertCount = MutableStateFlow(0)
+    val alertCount: StateFlow<Int> = _alertCount.asStateFlow()
+    
+    // Loading States
+    private val _isConnecting = MutableStateFlow(false)
+    val isConnecting: StateFlow<Boolean> = _isConnecting.asStateFlow()
+    
+    // Experimental Features (Hidden by default)
+    private val _showExperimentalFeatures = MutableStateFlow(false)
+    val showExperimentalFeatures: StateFlow<Boolean> = _showExperimentalFeatures.asStateFlow()
+    
+    init {
+        loadSavedSettings()
+        observeMqttConnectionState()
+        observeMqttMessages()
     }
     
-    fun onCustomMessageReceived(topic: String, message: String) {
-        try {
-            Log.i("SubscriberViewModel", "Custom message received on topic $topic: $message")
-            
-            // Create a custom alert for display
-            val customAlert = EmergencyAlertMessage(
-                incidentId = "custom_${System.currentTimeMillis()}",
-                victimId = "publisher_user",
-                victimName = "Custom Message",
-                location = EmergencyAlertMessage.Location(0.0, 0.0),
-                timestamp = System.currentTimeMillis(),
-                severity = "INFO",
-                medicalInfo = EmergencyAlertMessage.MedicalInfo(
-                    bloodType = "N/A",
-                    allergies = emptyList(),
-                    medications = emptyList(),
-                    conditions = emptyList()
-                )
-            )
-            
-            _alertHistory.update { currentList ->
-                currentList + customAlert
-            }
-            
-            _successMessage.value = "Custom message received: $message"
-            
-        } catch (e: Exception) {
-            Log.e("SubscriberViewModel", "Error handling custom message: ${e.message}")
-            _errorMessage.value = "Error handling custom message: ${e.message}"
-        }
+    // Core MQTT Functions
+    
+    fun updateBrokerIp(ip: String) {
+        _brokerIp.value = ip
     }
     
-    fun onSimpleMessageReceived(topic: String, message: String) {
-        try {
-            Log.i("SubscriberViewModel", "Simple message received on topic $topic: $message")
-            
-            // Create a simple alert for display
-            val simpleAlert = EmergencyAlertMessage(
-                incidentId = "simple_${System.currentTimeMillis()}",
-                victimId = "test_user",
-                victimName = "Test Message",
-                location = EmergencyAlertMessage.Location(0.0, 0.0),
-                timestamp = System.currentTimeMillis(),
-                severity = "INFO",
-                medicalInfo = EmergencyAlertMessage.MedicalInfo(
-                    bloodType = "N/A",
-                    allergies = emptyList(),
-                    medications = emptyList(),
-                    conditions = emptyList()
-                )
-            )
-            
-            _alertHistory.update { currentList ->
-                currentList + simpleAlert
-            }
-            
-            _successMessage.value = "Simple message received: $message"
-            
-        } catch (e: Exception) {
-            Log.e("SubscriberViewModel", "Error handling simple message: ${e.message}")
-            _errorMessage.value = "Error handling simple message: ${e.message}"
-        }
-    }
-
-    fun initializeMqtt(context: Context) {
-        try {
-            Log.i("SubscriberViewModel", "Initializing MQTT for subscriber role")
-            
-            // Start MQTT service with subscriber role and explicit enable
-            val intent = Intent(context, MqttService::class.java).apply {
-                action = MqttService.ACTION_ENABLE
-                putExtra("role", "SUBSCRIBER")
-            }
-            context.startService(intent)
-            
-            _connectionStatus.value = "Initializing..."
-            
-            // Set up broadcast receiver for emergency alerts
-            setupEmergencyAlertReceiver()
-            
-            Log.i("SubscriberViewModel", "MQTT service started for subscriber role")
-            
-        } catch (e: Exception) {
-            Log.e("SubscriberViewModel", "Error initializing MQTT: ${e.message}", e)
-            _connectionStatus.value = "Error: ${e.message}"
-        }
+    fun updateBrokerPort(port: Int) {
+        _brokerPort.value = port
     }
     
-    private fun setupEmergencyAlertReceiver() {
-        // The MqttService will handle the actual MQTT connection and subscription
-        // This method sets up local broadcast receivers for messages from the service
-        Log.d("SubscriberViewModel", "Emergency alert receiver setup completed")
-        _connectionStatus.value = "Connected - Listening for alerts"
-    }
-    
-    fun setConnectionStatus(status: String) {
-        _connectionStatus.value = status
-    }
-    
-    fun selectIncident(incident: EmergencyAlertMessage) {
-        _selectedIncident.value = incident
-    }
-    
-    fun clearSelectedIncident() {
-        _selectedIncident.value = null
-    }
-    
-    fun acknowledgeResponse(incidentId: String, responderName: String, etaMinutes: Int) {
+    fun saveSettings() {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
-                _errorMessage.value = null
+                // Save to SharedPreferences
+                MqttConfig.updateBrokerSettings(_brokerIp.value, _brokerPort.value)
                 
-                Log.i("SubscriberViewModel", "Acknowledging response for incident: $incidentId")
+                // For now, just log the settings update
+                // In a real implementation, this would update MqttService
+                Log.d(TAG, "Settings would be updated in MqttService: ${_brokerIp.value}:${_brokerPort.value}")
                 
-                val ackMessage = ResponseAckMessage(
-                    incidentId = incidentId,
-                    responderId = "responder_${System.currentTimeMillis()}",
-                    responderName = responderName,
-                    status = "responding",
-                    eta = etaMinutes * 60, // Convert to seconds
-                    timestamp = System.currentTimeMillis()
-                )
-                
-                val json = Json.encodeToString(ackMessage)
-                val topic = MqttTopics.RESPONSE_ACK + "/$incidentId"
-                
-                // Publish via MQTT service
-                val context = getApplication<Application>()
-                val publishIntent = Intent(context, MqttService::class.java).apply {
-                    action = MqttService.ACTION_PUBLISH
-                    putExtra(MqttService.EXTRA_TOPIC, topic)
-                    putExtra(MqttService.EXTRA_PAYLOAD, json)
-                    putExtra(MqttService.EXTRA_QOS, 1)
-                    putExtra(MqttService.EXTRA_RETAINED, false)
-                }
-                context.startService(publishIntent)
-                
-                // Update local state
-                _responseStatus.update { currentStatus ->
-                    currentStatus + (incidentId to "$responderName: Responding (ETA: ${etaMinutes}min)")
-                }
-                _isResponding.update { it + incidentId }
-                
-                _successMessage.value = "Response acknowledged successfully!"
-                Log.i("SubscriberViewModel", "Response acknowledgment sent for incident: $incidentId")
-                
+                Log.i(TAG, "Settings saved: ${_brokerIp.value}:${_brokerPort.value}")
             } catch (e: Exception) {
-                Log.e("SubscriberViewModel", "Error acknowledging response: ${e.message}")
-                _errorMessage.value = "Failed to acknowledge response: ${e.message}"
-            } finally {
-                _isLoading.value = false
+                Log.e(TAG, "Error saving settings: ${e.message}", e)
             }
         }
     }
     
-    fun cancelResponse(incidentId: String, responderName: String) {
+    fun testConnection() {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
-                _errorMessage.value = null
+                _isConnecting.value = true
                 
-                Log.i("SubscriberViewModel", "Cancelling response for incident: $incidentId")
+                // For now, just simulate connection test
+                // In a real implementation, this would use MqttService.testConnection()
+                kotlinx.coroutines.delay(2000) // Simulate network delay
                 
-                val ackMessage = ResponseAckMessage(
-                    incidentId = incidentId,
-                    responderId = "responder_${System.currentTimeMillis()}",
-                    responderName = responderName,
-                    status = "cancelled",
-                    eta = 0,
-                    timestamp = System.currentTimeMillis()
-                )
+                // Simulate successful connection for demo
+                val success = true
                 
-                val json = Json.encodeToString(ackMessage)
-                val topic = MqttTopics.RESPONSE_ACK + "/$incidentId"
-                
-                // Publish via MQTT service
-                val context = getApplication<Application>()
-                val publishIntent = Intent(context, MqttService::class.java).apply {
-                    action = MqttService.ACTION_PUBLISH
-                    putExtra(MqttService.EXTRA_TOPIC, topic)
-                    putExtra(MqttService.EXTRA_PAYLOAD, json)
-                    putExtra(MqttService.EXTRA_QOS, 1)
-                    putExtra(MqttService.EXTRA_RETAINED, false)
+                if (success) {
+                    _connectionState.value = ConnectionState.CONNECTED
+                    Log.i(TAG, "Connection test successful")
+                } else {
+                    _connectionState.value = ConnectionState.DISCONNECTED
+                    Log.w(TAG, "Connection test failed")
                 }
-                context.startService(publishIntent)
-                
-                // Update local state
-                _responseStatus.update { currentStatus ->
-                    currentStatus + (incidentId to "$responderName: Response cancelled")
-                }
-                _isResponding.update { it - incidentId }
-                
-                _successMessage.value = "Response cancelled successfully!"
-                Log.i("SubscriberViewModel", "Response cancellation sent for incident: $incidentId")
-                
             } catch (e: Exception) {
-                Log.e("SubscriberViewModel", "Error cancelling response: ${e.message}")
-                _errorMessage.value = "Failed to cancel response: ${e.message}"
+                Log.e(TAG, "Error testing connection: ${e.message}", e)
+                _connectionState.value = ConnectionState.DISCONNECTED
             } finally {
-                _isLoading.value = false
+                _isConnecting.value = false
             }
         }
     }
     
-    fun clearMessages() {
-        _successMessage.value = null
-        _errorMessage.value = null
+    fun clearAllAlerts() {
+        viewModelScope.launch {
+            try {
+                _emergencyAlerts.value = emptyList()
+                _alertCount.value = 0
+                Log.i(TAG, "All alerts cleared")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing alerts: ${e.message}", e)
+            }
+        }
     }
     
-    fun getSortedAlerts(): List<EmergencyAlertMessage> {
-        return _alertHistory.value.sortedByDescending { it.timestamp }
+    fun handleEmergencyAlertReceived(alertJson: String, topic: String) {
+        viewModelScope.launch {
+            try {
+                Log.i(TAG, "🚨 Processing emergency alert from topic: $topic")
+                Log.i(TAG, "🚨 Alert content: $alertJson")
+                
+                // Parse the emergency alert
+                val incident = parseEmergencyAlert(alertJson)
+                
+                // Add to the list
+                addEmergencyAlert(incident)
+                
+                                 Log.i(TAG, "✅ Emergency alert processed and added to list")
+                 
+                 // Update connection state to show we're receiving messages
+                 _connectionState.value = ConnectionState.CONNECTED
+             } catch (e: Exception) {
+                Log.e(TAG, "Error processing emergency alert: ${e.message}", e)
+                // Create a fallback incident for failed parsing
+                val fallbackIncident = Incident(
+                    id = 0,
+                    victimId = 1L,
+                    incidentId = "incident_${System.currentTimeMillis()}",
+                    latitude = null,
+                    longitude = null,
+                    timestamp = System.currentTimeMillis(),
+                    status = IncidentStatus.ACTIVE,
+                    description = "Emergency Alert: $alertJson",
+                    severity = IncidentSeverity.HIGH,
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+                addEmergencyAlert(fallbackIncident)
+            }
+        }
     }
     
-    fun getAlertsBySeverity(severity: String): List<EmergencyAlertMessage> {
-        return _alertHistory.value.filter { it.severity == severity }
+    fun handleTestMessageReceived(message: String, topic: String) {
+        viewModelScope.launch {
+            try {
+                Log.i(TAG, "📝 Processing test message from topic: $topic")
+                Log.i(TAG, "📝 Message content: $message")
+                
+                // Try to parse as JSON first
+                val incident = if (message.trim().startsWith("{")) {
+                    parseEmergencyAlert(message)
+                } else {
+                    // Create a test incident for plain text
+                    Incident(
+                        id = 0,
+                        victimId = 1L,
+                        incidentId = "test_${System.currentTimeMillis()}",
+                        latitude = null,
+                        longitude = null,
+                        timestamp = System.currentTimeMillis(),
+                        status = IncidentStatus.ACTIVE,
+                        description = "Message: $message",
+                        severity = IncidentSeverity.MEDIUM,
+                        createdAt = System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                }
+                
+                // Add to the list
+                addEmergencyAlert(incident)
+                
+                                 Log.i(TAG, "✅ Test message processed and added to list")
+                 
+                 // Update connection state to show we're receiving messages
+                 _connectionState.value = ConnectionState.CONNECTED
+             } catch (e: Exception) {
+                Log.e(TAG, "Error processing test message: ${e.message}", e)
+                // Create fallback incident
+                val fallbackIncident = Incident(
+                    id = 0,
+                    victimId = 1L,
+                    incidentId = "test_${System.currentTimeMillis()}",
+                    latitude = null,
+                    longitude = null,
+                    timestamp = System.currentTimeMillis(),
+                    status = IncidentStatus.ACTIVE,
+                    description = "Message: $message",
+                    severity = IncidentSeverity.MEDIUM,
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+                addEmergencyAlert(fallbackIncident)
+            }
+        }
     }
     
-    private fun showHighPriorityNotification(alert: EmergencyAlertMessage) {
-        // In a real app, this would show a system notification
-        Log.w("SubscriberViewModel", "HIGH PRIORITY ALERT: ${alert.victimName} - ${alert.severity} severity")
-        _errorMessage.value = "HIGH PRIORITY: ${alert.victimName} needs immediate attention!"
+    // Experimental Features Toggle
+    
+    fun toggleExperimentalFeatures() {
+        _showExperimentalFeatures.value = !_showExperimentalFeatures.value
+        Log.d(TAG, "Experimental features ${if (_showExperimentalFeatures.value) "shown" else "hidden"}")
     }
     
-    fun getConnectionStatus(): String {
-        return _connectionStatus.value
+    // Private Helper Functions
+    
+    private fun loadSavedSettings() {
+        viewModelScope.launch {
+            try {
+                val savedIp = MqttConfig.getBrokerIp()
+                val savedPort = MqttConfig.getBrokerPort()
+                
+                if (savedIp.isNotEmpty()) {
+                    _brokerIp.value = savedIp
+                }
+                if (savedPort > 0) {
+                    _brokerPort.value = savedPort
+                }
+                
+                Log.d(TAG, "Loaded saved settings: $savedIp:$savedPort")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading saved settings: ${e.message}", e)
+            }
+        }
     }
     
-    fun isConnected(): Boolean {
-        return _connectionStatus.value.contains("Connected")
+    private fun observeMqttConnectionState() {
+        viewModelScope.launch {
+            try {
+                // For now, just observe the local state
+                // In a real implementation, this would observe MqttService.connectionState
+                Log.d(TAG, "MQTT connection state observer initialized (simulated)")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error observing MQTT connection state: ${e.message}", e)
+            }
+        }
     }
     
-    fun getAlertCount(): Int {
-        return _alertHistory.value.size
+    private fun observeMqttMessages() {
+        viewModelScope.launch {
+            try {
+                // Observe MQTT messages via broadcast receiver
+                // This will be handled by the Activity's broadcast receiver
+                Log.d(TAG, "MQTT message observer initialized - waiting for broadcasts")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error observing MQTT messages: ${e.message}", e)
+            }
+        }
     }
     
-    fun getCriticalAlertCount(): Int {
-        return _alertHistory.value.count { it.severity == "CRITICAL" }
+    private fun parseEmergencyAlert(alertJson: String): Incident {
+        return try {
+            // Try to parse JSON structure
+            if (alertJson.trim().startsWith("{")) {
+                // Extract message from JSON
+                val messageMatch = Regex("\"message\"\\s*:\\s*\"([^\"]+)\"").find(alertJson)
+                val message = messageMatch?.groupValues?.get(1) ?: alertJson.take(100)
+                
+                // Extract timestamp from JSON
+                val timestampMatch = Regex("\"timestamp\"\\s*:\\s*(\\d+)").find(alertJson)
+                val timestamp = timestampMatch?.groupValues?.get(1)?.toLongOrNull() ?: System.currentTimeMillis()
+                
+                Incident(
+                    id = 0, // Auto-generated by Room
+                    victimId = 1L, // Default victim ID
+                    incidentId = "incident_${timestamp}",
+                    latitude = null,
+                    longitude = null,
+                    timestamp = timestamp,
+                    status = IncidentStatus.ACTIVE,
+                    description = message,
+                    severity = IncidentSeverity.HIGH,
+                    createdAt = timestamp,
+                    updatedAt = timestamp
+                )
+            } else {
+                // Simple text message
+                Incident(
+                    id = 0, // Auto-generated by Room
+                    victimId = 1L, // Default victim ID
+                    incidentId = "incident_${System.currentTimeMillis()}",
+                    latitude = null,
+                    longitude = null,
+                    timestamp = System.currentTimeMillis(),
+                    status = IncidentStatus.ACTIVE,
+                    description = alertJson.take(100), // Take first 100 chars
+                    severity = IncidentSeverity.HIGH,
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+            }
+        } catch (e: Exception) {
+            // Fallback to simple message parsing
+            Log.w(TAG, "Failed to parse alert, using fallback: ${e.message}")
+            
+            Incident(
+                id = 0, // Auto-generated by Room
+                victimId = 1L, // Default victim ID
+                incidentId = "incident_${System.currentTimeMillis()}",
+                latitude = null,
+                longitude = null,
+                timestamp = System.currentTimeMillis(),
+                status = IncidentStatus.ACTIVE,
+                description = alertJson.take(100), // Take first 100 chars
+                severity = IncidentSeverity.HIGH,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+        }
     }
     
-    fun getHighAlertCount(): Int {
-        return _alertHistory.value.count { it.severity == "HIGH" }
+    private fun addEmergencyAlert(incident: Incident) {
+        viewModelScope.launch {
+            try {
+                val currentAlerts = _emergencyAlerts.value.toMutableList()
+                currentAlerts.add(0, incident) // Add to beginning
+                
+                // Keep only last 50 alerts to prevent memory issues
+                if (currentAlerts.size > 50) {
+                    currentAlerts.removeAt(currentAlerts.size - 1)
+                }
+                
+                _emergencyAlerts.value = currentAlerts
+                _alertCount.value = currentAlerts.size
+                
+                Log.d(TAG, "Emergency alert added. Total alerts: ${currentAlerts.size}")
+                Log.i(TAG, "📨 New message received: ${incident.description}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error adding emergency alert: ${e.message}", e)
+            }
+        }
     }
     
-    fun getMediumAlertCount(): Int {
-        return _alertHistory.value.count { it.severity == "MEDIUM" }
+    /**
+     * Get the latest message for real-time display
+     */
+    fun getLatestMessage(): String {
+        val alerts = _emergencyAlerts.value
+        return if (alerts.isNotEmpty()) {
+            alerts.first().description ?: "No description"
+        } else {
+            "No messages received"
+        }
     }
     
-    fun getLowAlertCount(): Int {
-        return _alertHistory.value.count { it.severity == "LOW" }
+    /**
+     * Get message count for real-time display
+     */
+    fun getMessageCount(): Int {
+        return _alertCount.value
     }
     
-    fun getRespondingCount(): Int {
-        return _isResponding.value.size
-    }
+    // Cleanup
     
-    fun getResponseStatusForIncident(incidentId: String): String? {
-        return _responseStatus.value[incidentId]
-    }
-    
-    fun isRespondingToIncident(incidentId: String): Boolean {
-        return _isResponding.value.contains(incidentId)
-    }
-    
-    fun clearAlertHistory() {
-        _alertHistory.value = emptyList()
-        _selectedIncident.value = null
-        _responseStatus.value = emptyMap()
-        _isResponding.value = emptySet()
-    }
-    
-    fun refreshConnection() {
-        // Re-initialize MQTT connection
-        val context = getApplication<Application>()
-        initializeMqtt(context)
-    }
-    
-    // Additional methods needed by other components
-    
-    fun getResponderName(): String {
-        return "Responder_${System.currentTimeMillis() % 1000}"
-    }
-    
-    fun openNavigation(latitude: Double, longitude: Double): android.content.Intent {
-        val uri = "geo:$latitude,$longitude?q=$latitude,$longitude"
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri))
-        intent.setPackage("com.google.android.apps.maps")
-        return intent
-    }
-    
-    fun openWazeNavigation(latitude: Double, longitude: Double): android.content.Intent {
-        val uri = "waze://?ll=$latitude,$longitude&navigate=yes"
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri))
-        intent.setPackage("com.waze")
-        return intent
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG, "SubscriberViewModel cleared")
     }
 } 

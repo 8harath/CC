@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.cc.R
 import com.example.cc.databinding.FragmentProductionDashboardBinding
+import com.example.cc.databinding.*
 import com.example.cc.production.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
