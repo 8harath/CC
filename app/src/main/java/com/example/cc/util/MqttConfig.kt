@@ -4,6 +4,7 @@ import android.util.Log
 
 object MqttConfig {
     // Local broker IP as requested by user
+
     const val BROKER_URL_LOCAL = "tcp://10.0.0.208:1883"
     
     // Public MQTT broker for fallback

@@ -345,7 +345,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                     medicalInfo = medicalInfo
                 )
                 val json = Json.encodeToString(message)
-                val topic = MqttTopics.alertIncident(incidentId)
+                val topic = "emergency/alerts/$incidentId"
 
                 // Prefer publishing via background service to leverage retry queue
                 val ctx = getApplication<Application>()
@@ -405,7 +405,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 )
                 
                 val json = Json.encodeToString(message)
-                val topic = MqttTopics.alertIncident(incidentId)
+                val topic = "emergency/alerts/$incidentId"
                 
                 Log.i("PublisherViewModel", "Sending test message: $json")
                 
@@ -424,7 +424,7 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 
             } catch (e: Exception) {
                 _errorMessage.value = "Failed to send test message: ${e.message}"
-                Log.e("PublisherViewModel", "Failed to send test message", e)
+                Log.e("PublisherViewModel", "Failed to send test message: ${e.message}")
             } finally {
                 _isLoading.value = false
             }
