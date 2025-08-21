@@ -548,41 +548,45 @@ class MqttService : Service() {
                 }
                 
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    Log.i(TAG, "📨 Message arrived: $topic -> ${message?.toString()}")
+                    Log.i(TAG, "📨 Message arrived: $topic -> ${String(message?.payload ?: ByteArray(0))}")
                     if (topic != null && message != null) {
                         try {
+                            val payload = String(message.payload)
+                            Log.i(TAG, "📨 Message payload: $payload")
+                            
                             if (topic.startsWith("emergency/alerts/")) {
                                 Log.i(TAG, "🚨 Emergency alert received on topic: $topic")
                                 val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                                intent.putExtra("alert_json", message.toString())
+                                intent.putExtra("alert_json", payload)
+                                intent.putExtra("topic", topic)
                                 sendBroadcast(intent)
                             } else if (topic.startsWith("emergency/test/")) {
                                 Log.i(TAG, "📝 Test message received on topic: $topic")
                                 // Handle test messages
                                 val intent = Intent("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             } else if (topic.startsWith("emergency/custom/")) {
                                 Log.i(TAG, "💬 Custom message received on topic: $topic")
                                 // Handle custom messages
                                 val intent = Intent("com.example.cc.CUSTOM_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             } else if (topic.startsWith("emergency/")) {
                                 Log.i(TAG, "📨 General emergency message received on topic: $topic")
                                 // Handle other emergency messages
                                 val intent = Intent("com.example.cc.GENERAL_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             } else {
                                 Log.i(TAG, "📨 General message received on topic: $topic")
                                 // Handle other messages
                                 val intent = Intent("com.example.cc.GENERAL_MESSAGE_RECEIVED")
                                 intent.putExtra("topic", topic)
-                                intent.putExtra("message", message.toString())
+                                intent.putExtra("message", payload)
                                 sendBroadcast(intent)
                             }
                         } catch (e: Exception) {

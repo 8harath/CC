@@ -109,13 +109,19 @@ class PublisherViewModel : ViewModel() {
                 // Prepare emergency message
                 val emergencyMessage = buildEmergencyMessage()
                 
-                // For now, just simulate sending
-                kotlinx.coroutines.delay(1500) // Simulate network delay
+                // Send via MQTT service
+                val topic = "emergency/alerts/alert"
+                Log.i(TAG, "📤 Publishing emergency alert to topic: $topic")
+                Log.i(TAG, "📤 Message content: $emergencyMessage")
                 
-                // Simulate successful send
+                // Use MqttService to publish the message
+                val mqttService = MqttService()
+                mqttService.publish(topic, emergencyMessage, 1, false)
+                
+                // Show success message
                 _messageStatus.value = "✅ Emergency alert sent successfully!"
                 _showMessageStatus.value = true
-                Log.i(TAG, "Emergency alert sent successfully")
+                Log.i(TAG, "Emergency alert sent successfully via MQTT")
                 
                 // Hide message status after 5 seconds
                 kotlinx.coroutines.delay(5000)

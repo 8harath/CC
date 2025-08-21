@@ -16,6 +16,8 @@ import android.content.Intent
 import android.content.Context
 import android.content.ClipboardManager
 import android.content.ClipData
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import androidx.appcompat.app.AlertDialog
 import com.example.cc.databinding.ActivitySubscriberBinding
 import com.google.android.material.snackbar.Snackbar
@@ -28,6 +30,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
     private val viewModel: SubscriberViewModel by viewModels()
     private lateinit var alertAdapter: AlertHistoryAdapter
+    private lateinit var messageReceiver: BroadcastReceiver
     
     override fun getViewBinding(): ActivitySubscriberBinding = ActivitySubscriberBinding.inflate(layoutInflater)
     
@@ -44,6 +47,9 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
                 putExtra("role", "SUBSCRIBER")
             }
             startService(serviceIntent)
+            
+            // Setup message receiver
+            setupMessageReceiver()
             
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate: ${e.message}", e)
@@ -272,6 +278,50 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         binding.tvConnectionStatus.text = text
     }
     
+    private fun setupMessageReceiver() {
+        messageReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    "com.example.cc.EMERGENCY_ALERT_RECEIVED" -> {
+                        val alertJson = intent.getStringExtra("alert_json") ?: ""
+                        val topic = intent.getStringExtra("topic") ?: ""
+                        Log.i(TAG, "🚨 Received emergency alert broadcast: $topic")
+                        viewModel.handleEmergencyAlertReceived(alertJson, topic)
+                    }
+                    "com.example.cc.SIMPLE_MESSAGE_RECEIVED" -> {
+                        val message = intent.getStringExtra("message") ?: ""
+                        val topic = intent.getStringExtra("topic") ?: ""
+                        Log.i(TAG, "📝 Received test message broadcast: $topic")
+                        viewModel.handleTestMessageReceived(message, topic)
+                    }
+                    "com.example.cc.CUSTOM_MESSAGE_RECEIVED" -> {
+                        val message = intent.getStringExtra("message") ?: ""
+                        val topic = intent.getStringExtra("topic") ?: ""
+                        Log.i(TAG, "💬 Received custom message broadcast: $topic")
+                        viewModel.handleTestMessageReceived(message, topic)
+                    }
+                    "com.example.cc.GENERAL_MESSAGE_RECEIVED" -> {
+                        val message = intent.getStringExtra("message") ?: ""
+                        val topic = intent.getStringExtra("topic") ?: ""
+                        Log.i(TAG, "📨 Received general message broadcast: $topic")
+                        viewModel.handleTestMessageReceived(message, topic)
+                    }
+                }
+            }
+        }
+        
+        // Register the receiver
+        val filter = IntentFilter().apply {
+            addAction("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+            addAction("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
+            addAction("com.example.cc.CUSTOM_MESSAGE_RECEIVED")
+            addAction("com.example.cc.GENERAL_MESSAGE_RECEIVED")
+        }
+        registerReceiver(messageReceiver, filter)
+        
+        Log.i(TAG, "📡 Message receiver registered for MQTT broadcasts")
+    }
+    
     private fun updateAlertsList(alerts: List<com.example.cc.data.model.Incident>) {
         if (alerts.isEmpty()) {
             binding.tvNoAlerts.visibility = View.VISIBLE
@@ -283,5 +333,16 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         }
     }
     
-
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            // Unregister the message receiver
+            if (::messageReceiver.isInitialized) {
+                unregisterReceiver(messageReceiver)
+                Log.i(TAG, "📡 Message receiver unregistered")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error unregistering message receiver: ${e.message}", e)
+        }
+    }
 } 

@@ -122,6 +122,56 @@ class SubscriberViewModel : ViewModel() {
         }
     }
     
+    fun handleEmergencyAlertReceived(alertJson: String, topic: String) {
+        viewModelScope.launch {
+            try {
+                Log.i(TAG, "🚨 Processing emergency alert from topic: $topic")
+                Log.i(TAG, "🚨 Alert content: $alertJson")
+                
+                // Parse the emergency alert
+                val incident = parseEmergencyAlert(alertJson)
+                
+                // Add to the list
+                addEmergencyAlert(incident)
+                
+                Log.i(TAG, "✅ Emergency alert processed and added to list")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing emergency alert: ${e.message}", e)
+            }
+        }
+    }
+    
+    fun handleTestMessageReceived(message: String, topic: String) {
+        viewModelScope.launch {
+            try {
+                Log.i(TAG, "📝 Processing test message from topic: $topic")
+                Log.i(TAG, "📝 Message content: $message")
+                
+                // Create a test incident
+                val incident = Incident(
+                    id = 0,
+                    victimId = 1L,
+                    incidentId = "test_${System.currentTimeMillis()}",
+                    latitude = null,
+                    longitude = null,
+                    timestamp = System.currentTimeMillis(),
+                    status = IncidentStatus.ACTIVE,
+                    description = "Test Message: $message",
+                    severity = IncidentSeverity.MEDIUM,
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+                
+                // Add to the list
+                addEmergencyAlert(incident)
+                
+                Log.i(TAG, "✅ Test message processed and added to list")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing test message: ${e.message}", e)
+            }
+        }
+    }
+    
     // Experimental Features Toggle
     
     fun toggleExperimentalFeatures() {
@@ -166,9 +216,9 @@ class SubscriberViewModel : ViewModel() {
     private fun observeMqttMessages() {
         viewModelScope.launch {
             try {
-                // For now, just simulate receiving alerts
-                // In a real implementation, this would observe MqttService.observeEmergencyAlerts()
-                Log.d(TAG, "MQTT message observer initialized (simulated)")
+                // Observe MQTT messages via broadcast receiver
+                // This will be handled by the Activity's broadcast receiver
+                Log.d(TAG, "MQTT message observer initialized - waiting for broadcasts")
             } catch (e: Exception) {
                 Log.e(TAG, "Error observing MQTT messages: ${e.message}", e)
             }
