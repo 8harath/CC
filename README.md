@@ -123,35 +123,35 @@ const val CLIENT_ID = "android_client_${System.currentTimeMillis()}"
 ### MQTT Testing
 ```bash
 # Test local broker
-test_mqtt_local_broker.bat
+scripts/test_mqtt_local_broker.bat
 
 # Test connection
-test_mqtt_connection.bat
+scripts/test_mqtt_connection.bat
 
 # Test communication
-diagnose_mqtt_communication.bat
+scripts/diagnose_mqtt_communication.bat
 ```
 
 ### Bluetooth Testing
 ```bash
 # Test ESP32 setup
-test_bluetooth_setup.bat
+scripts/test_bluetooth_setup.bat
 ```
 
 ### Python Test Scripts
-- `test_mqtt_broker.py`: MQTT broker connectivity
-- `test_local_broker.py`: Local broker testing
-- `test_ip_validation_and_messaging.py`: Network validation
+- `scripts/test_mqtt_broker.py`: MQTT broker connectivity
+- `scripts/test_local_broker.py`: Local broker testing
+- `scripts/test_ip_validation_and_messaging.py`: Network validation
 
 ## 🚀 Production Deployment
 
 ### Building Production APK
 ```bash
 # Windows
-build_production.bat
+scripts/build_production.bat
 
 # Linux/Mac
-./build_production.sh
+./scripts/build_production.sh
 
 # Manual
 ./gradlew assembleRelease
