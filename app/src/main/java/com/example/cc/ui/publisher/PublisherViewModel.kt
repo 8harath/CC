@@ -507,7 +507,8 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
      */
     fun sendSimpleTestMessage() {
         val topic = "emergency/test/message"
-        val message = "Hello from Publisher! Test message at ${System.currentTimeMillis()}"
+        val timestamp = System.currentTimeMillis()
+        val message = "Hello from Publisher! Test message at $timestamp"
         sendSimpleMessage(topic, message)
     }
     
