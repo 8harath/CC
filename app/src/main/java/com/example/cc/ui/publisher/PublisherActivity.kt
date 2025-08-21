@@ -157,7 +157,7 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         
         binding.btnSaveSettings.setOnClickListener {
             viewModel.saveSettings()
-            showToast("Settings saved successfully")
+            Snackbar.make(binding.root, "Settings saved successfully", Snackbar.LENGTH_SHORT).show()
         }
     }
     
@@ -180,11 +180,11 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         
         // Setup experimental feature buttons if they exist
         binding.btnConnectEsp32?.setOnClickListener {
-            showToast("ESP32 connection feature coming soon")
+            Snackbar.make(binding.root, "ESP32 connection feature coming soon", Snackbar.LENGTH_SHORT).show()
         }
         
         binding.btnTestBluetooth?.setOnClickListener {
-            showToast("Bluetooth testing feature coming soon")
+            Snackbar.make(binding.root, "Bluetooth testing feature coming soon", Snackbar.LENGTH_SHORT).show()
         }
         
         binding.btnMedicalProfile?.setOnClickListener {
