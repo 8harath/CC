@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import androidx.appcompat.app.AlertDialog
 import com.example.cc.databinding.ActivitySubscriberBinding
+import com.example.cc.databinding.*
 import com.google.android.material.snackbar.Snackbar
 
 class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {

@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.cc.data.model.Incident
 import com.example.cc.data.model.IncidentSeverity
 import com.example.cc.databinding.ItemAlertCardBinding
+import com.example.cc.databinding.*
 import java.text.SimpleDateFormat
 import java.util.*
 

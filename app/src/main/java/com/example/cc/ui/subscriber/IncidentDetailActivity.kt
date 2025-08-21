@@ -6,6 +6,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.cc.ui.base.BaseActivity
 import com.example.cc.data.model.Incident
 import com.example.cc.databinding.ActivityIncidentDetailBinding
+import com.example.cc.databinding.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.util.Log
