@@ -429,9 +429,14 @@ class MqttService : Service() {
                 isCleanSession = true
                 connectionTimeout = MqttConfig.CONNECTION_TIMEOUT
                 keepAliveInterval = MqttConfig.KEEP_ALIVE_INTERVAL
-                if (MqttConfig.USERNAME.isNotEmpty()) {
-                    userName = MqttConfig.USERNAME
-                    password = MqttConfig.PASSWORD.toCharArray()
+                // Authentication is handled through MqttConfig methods
+                val username = MqttConfig.getUsername()
+                val password = MqttConfig.getPassword()
+                if (!username.isNullOrEmpty()) {
+                    userName = username
+                    password?.let { pwd ->
+                        password = pwd.toCharArray()
+                    }
                 }
             }
             
