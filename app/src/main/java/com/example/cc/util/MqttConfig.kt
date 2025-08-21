@@ -4,13 +4,13 @@ import android.util.Log
 
 object MqttConfig {
     // Local broker IP as requested by user
-    const val BROKER_URL_LOCAL = "tcp://192.168.0.101:1883"
+    const val BROKER_URL_LOCAL = "tcp://10.0.0.208:1883"
     
     // Public MQTT broker for fallback
     const val BROKER_URL_PUBLIC = "tcp://broker.hivemq.com:1883"
     
     // Legacy local Mosquitto broker for academic demonstration
-    const val BROKER_URL = "tcp://192.168.1.100:1883" // Change this to your laptop's IP address
+    const val BROKER_URL = "tcp://10.0.0.208:1883" // Updated to user's broker IP
     const val BROKER_URL_LOCALHOST = "tcp://localhost:1883" // For testing on same device
     const val CLIENT_ID_PREFIX = "car_crash_client_"
     const val USERNAME = "" // No authentication for local broker
@@ -26,7 +26,7 @@ object MqttConfig {
     private var useLocalBroker: Boolean = true // Default to local broker as requested
     
     // For SSL/TLS (if needed later)
-    // const val BROKER_URL_SSL = "ssl://192.168.0.101:8883"
+    // const val BROKER_URL_SSL = "ssl://10.0.0.208:8883"
     
     // Set custom broker configuration
     fun setCustomBroker(ip: String, port: Int) {
@@ -69,7 +69,7 @@ object MqttConfig {
         return try {
             val prefs = context.getSharedPreferences("mqtt_settings", android.content.Context.MODE_PRIVATE)
             val useLocal = prefs.getBoolean("use_local_broker", true) // Default to local broker
-            val ip = prefs.getString("broker_ip", "192.168.0.101") ?: "192.168.0.101" // Default to requested IP
+            val ip = prefs.getString("broker_ip", "10.0.0.208") ?: "10.0.0.208" // Updated default IP
             val port = prefs.getInt("broker_port", 1883)
             
             // If local broker is preferred, use it
