@@ -632,7 +632,6 @@ class MqttService : Service() {
                      // Send broadcast to notify UI of successful connection
                      val intent = Intent("com.example.cc.CONNECTION_STATUS")
                      intent.putExtra("status", "CONNECTED")
-                     intent.putExtra("error", null)
                      sendBroadcast(intent)
                      
                      // Verify connection is working

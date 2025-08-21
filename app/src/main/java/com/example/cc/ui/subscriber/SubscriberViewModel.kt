@@ -134,8 +134,11 @@ class SubscriberViewModel : ViewModel() {
                 // Add to the list
                 addEmergencyAlert(incident)
                 
-                Log.i(TAG, "✅ Emergency alert processed and added to list")
-            } catch (e: Exception) {
+                                 Log.i(TAG, "✅ Emergency alert processed and added to list")
+                 
+                 // Update connection state to show we're receiving messages
+                 _connectionState.value = ConnectionState.CONNECTED
+             } catch (e: Exception) {
                 Log.e(TAG, "Error processing emergency alert: ${e.message}", e)
                 // Create a fallback incident for failed parsing
                 val fallbackIncident = Incident(
@@ -185,8 +188,11 @@ class SubscriberViewModel : ViewModel() {
                 // Add to the list
                 addEmergencyAlert(incident)
                 
-                Log.i(TAG, "✅ Test message processed and added to list")
-            } catch (e: Exception) {
+                                 Log.i(TAG, "✅ Test message processed and added to list")
+                 
+                 // Update connection state to show we're receiving messages
+                 _connectionState.value = ConnectionState.CONNECTED
+             } catch (e: Exception) {
                 Log.e(TAG, "Error processing test message: ${e.message}", e)
                 // Create fallback incident
                 val fallbackIncident = Incident(

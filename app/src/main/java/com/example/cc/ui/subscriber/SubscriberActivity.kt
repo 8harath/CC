@@ -380,14 +380,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
          Log.i(TAG, "📡 Connection status receiver registered")
      }
      
-     private fun showNewMessageNotification(title: String, message: String) {
-         Snackbar.make(binding.root, "$title: $message", Snackbar.LENGTH_LONG)
-             .setAction("View") {
-                 // Scroll to the latest message
-                 binding.rvAlerts.smoothScrollToPosition(0)
-             }
-             .show()
-     }
+
     
     private fun updateAlertsList(alerts: List<com.example.cc.data.model.Incident>) {
         if (alerts.isEmpty()) {
@@ -418,8 +411,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             snackbar.show()
             
             // Also update the alert count text
-            val count = viewModel.getMessageCount()
-            binding.tvAlertCount.text = "$count alerts received"
+            binding.tvAlertCount.text = "${viewModel.alertCount.value} alerts received"
             
         } catch (e: Exception) {
             Log.e(TAG, "Error showing message notification: ${e.message}", e)
