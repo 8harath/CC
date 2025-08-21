@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cc.data.model.Incident
+import com.example.cc.data.model.IncidentSeverity
 import com.example.cc.databinding.ItemAlertCardBinding
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,18 +36,21 @@ class AlertHistoryAdapter(
         fun bind(incident: Incident) {
             binding.root.setOnClickListener { onItemClick(incident) }
             
-            binding.tvVictimName.text = incident.message
-            binding.tvLocation.text = incident.location
+            binding.tvVictimName.text = incident.description ?: "Emergency Alert"
+            binding.tvLocation.text = if (incident.latitude != null && incident.longitude != null) {
+                "Lat: %.4f, Lng: %.4f".format(incident.latitude, incident.longitude)
+            } else {
+                "Location: Unknown"
+            }
             binding.tvTime.text = formatTimestamp(incident.timestamp)
-            binding.tvSeverity.text = incident.severity
+            binding.tvSeverity.text = incident.severity.name
             
             // Set severity color
-            val severityColor = when (incident.severity.uppercase()) {
-                "CRITICAL" -> android.graphics.Color.RED
-                "HIGH" -> android.graphics.Color.parseColor("#FF6B35")
-                "MEDIUM" -> android.graphics.Color.parseColor("#FFA500")
-                "LOW" -> android.graphics.Color.parseColor("#4CAF50")
-                else -> android.graphics.Color.GRAY
+            val severityColor = when (incident.severity) {
+                IncidentSeverity.CRITICAL -> android.graphics.Color.RED
+                IncidentSeverity.HIGH -> android.graphics.Color.parseColor("#FF6B35")
+                IncidentSeverity.MEDIUM -> android.graphics.Color.parseColor("#FFA500")
+                IncidentSeverity.LOW -> android.graphics.Color.parseColor("#4CAF50")
             }
             
             binding.tvSeverity.setTextColor(severityColor)
