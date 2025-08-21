@@ -5,9 +5,6 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
@@ -723,10 +720,15 @@ class MqttService : Service() {
                 }
                 "com.example.cc.RUN_TESTS" -> {
                     Log.i(TAG, "🧪 Running comprehensive MQTT tests via service intent")
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        val testReport = runComprehensiveTests()
-                        Log.i(TAG, "🧪 Test results: $testReport")
-                    }
+                    // Run tests in background thread
+                    Thread {
+                        try {
+                            val testReport = runComprehensiveTests()
+                            Log.i(TAG, "🧪 Test results: $testReport")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error running tests: ${e.message}", e)
+                        }
+                    }.start()
                 }
                 "com.example.cc.GET_SETTINGS" -> {
                     Log.i(TAG, "📋 Getting MQTT settings via service intent")
