@@ -169,16 +169,84 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         
         // Setup experimental feature buttons if they exist
         binding.btnTestMqttConnection?.setOnClickListener {
-            Snackbar.make(binding.root, "MQTT testing feature coming soon", Snackbar.LENGTH_SHORT).show()
+            runComprehensiveMqttTests()
         }
         
         binding.btnSendTestMessage?.setOnClickListener {
-            Snackbar.make(binding.root, "Test message feature coming soon", Snackbar.LENGTH_SHORT).show()
+            sendTestMessage()
         }
         
         binding.btnMqttSettings?.setOnClickListener {
-            Snackbar.make(binding.root, "MQTT settings feature coming soon", Snackbar.LENGTH_SHORT).show()
+            showMqttSettings()
         }
+    }
+    
+    private fun runComprehensiveMqttTests() {
+        try {
+            // Run comprehensive tests in background
+            lifecycleScope.launch(Dispatchers.IO) {
+                val testReport = MqttService().runComprehensiveTests()
+                
+                // Show results on main thread
+                withContext(Dispatchers.Main) {
+                    showTestResultsDialog(testReport)
+                }
+            }
+        } catch (e: Exception) {
+            Snackbar.make(binding.root, "Error running tests: ${e.message}", Snackbar.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun sendTestMessage() {
+        try {
+            // Send a test message
+            val testTopic = "emergency/test/message"
+            val testPayload = "Test message from SubscriberActivity - ${System.currentTimeMillis()}"
+            
+            MqttService().publish(testTopic, testPayload, 1, false)
+            Snackbar.make(binding.root, "Test message sent to $testTopic", Snackbar.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Snackbar.make(binding.root, "Error sending test message: ${e.message}", Snackbar.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun showMqttSettings() {
+        try {
+            val brokerConfig = MqttService().getBrokerConfiguration()
+            val networkTest = MqttService().testNetworkConnectivity()
+            
+            val settingsInfo = """
+                MQTT Settings Information
+                =========================
+                
+                $brokerConfig
+                
+                $networkTest
+            """.trimIndent()
+            
+            showTestResultsDialog(settingsInfo)
+        } catch (e: Exception) {
+            Snackbar.make(binding.root, "Error getting MQTT settings: ${e.message}", Snackbar.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun showTestResultsDialog(content: String) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("MQTT Test Results")
+            .setMessage(content)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setNegativeButton("Copy to Clipboard") { dialog, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("MQTT Test Results", content)
+                clipboard.setPrimaryClip(clip)
+                Snackbar.make(binding.root, "Results copied to clipboard", Snackbar.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .create()
+        
+        dialog.show()
     }
     
     private fun updateConnectionStatus(state: MqttService.ConnectionState) {
