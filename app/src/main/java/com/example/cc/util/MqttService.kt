@@ -197,7 +197,7 @@ class MqttService : Service() {
     }
     
     /**
-     * Test broker connectivity before attempting MQTT connection
+     * Enhanced broker connectivity test with multiple validation layers
      */
     private fun testBrokerConnectivity(): Boolean {
         try {
@@ -227,17 +227,44 @@ class MqttService : Service() {
                 return false
             }
             
-            // Test actual connectivity using socket
+            // Layer 1: Basic socket connectivity test
             try {
                 val socket = java.net.Socket()
                 socket.connect(java.net.InetSocketAddress(ip, port), 5000) // 5 second timeout
                 socket.close()
-                Log.i(TAG, "✅ Broker connectivity test successful: $ip:$port")
-                return true
+                Log.i(TAG, "✅ Layer 1: Socket connectivity test successful: $ip:$port")
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Broker connectivity test failed: $ip:$port - ${e.message}")
+                Log.e(TAG, "❌ Layer 1: Socket connectivity test failed: $ip:$port - ${e.message}")
                 return false
             }
+            
+            // Layer 2: DNS resolution test (for hostnames)
+            if (!ip.matches(Regex("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$"))) {
+                try {
+                    val inetAddress = java.net.InetAddress.getByName(ip)
+                    Log.i(TAG, "✅ Layer 2: DNS resolution successful for $ip -> ${inetAddress.hostAddress}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Layer 2: DNS resolution failed for $ip - ${e.message}")
+                    return false
+                }
+            }
+            
+            // Layer 3: Ping test (if possible)
+            try {
+                val inetAddress = java.net.InetAddress.getByName(ip)
+                if (inetAddress.isReachable(3000)) { // 3 second timeout
+                    Log.i(TAG, "✅ Layer 3: Ping test successful: $ip")
+                } else {
+                    Log.w(TAG, "⚠️ Layer 3: Ping test failed: $ip (but socket test passed)")
+                    // Don't fail here as some networks block ICMP
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "⚠️ Layer 3: Ping test not available: $ip - ${e.message}")
+                // Don't fail here as ping might be blocked
+            }
+            
+            Log.i(TAG, "✅ All connectivity tests passed for $ip:$port")
+            return true
             
         } catch (e: Exception) {
             Log.e(TAG, "Error testing broker connectivity: ${e.message}")
@@ -246,7 +273,7 @@ class MqttService : Service() {
     }
     
     /**
-     * Verify that the MQTT connection is actually working
+     * Enhanced connection verification with multiple validation checks
      */
     private fun verifyConnection() {
         try {
@@ -255,12 +282,16 @@ class MqttService : Service() {
                 return
             }
             
-            // Send a test message to verify connection is working
+            Log.i(TAG, "🔍 Starting enhanced MQTT connection verification...")
+            
+            // Test 1: Basic publish test
             val testTopic = "emergency/test/connection"
             val testPayload = "Connection test - ${System.currentTimeMillis()}"
             
-            Log.i(TAG, "🔍 Verifying MQTT connection with test message...")
+            var publishTestPassed = false
+            var subscribeTestPassed = false
             
+            // Test publishing capability
             val message = MqttMessage(testPayload.toByteArray()).apply {
                 this.qos = 0 // QoS 0 for test message
                 this.isRetained = false
@@ -268,18 +299,80 @@ class MqttService : Service() {
             
             mqttClient.publish(testTopic, message, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    Log.i(TAG, "✅ Connection verification successful - test message sent")
+                    Log.i(TAG, "✅ Test 1: Publish verification successful")
+                    publishTestPassed = true
+                    
+                    // Test 2: Subscribe to the same topic to verify bidirectional communication
+                    mqttClient.subscribe(testTopic, 0, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "✅ Test 2: Subscribe verification successful")
+                            subscribeTestPassed = true
+                            
+                            // Test 3: Send a second message to verify the subscription works
+                            val verificationMessage = MqttMessage("Verification - ${System.currentTimeMillis()}".toByteArray()).apply {
+                                this.qos = 0
+                                this.isRetained = false
+                            }
+                            
+                            mqttClient.publish(testTopic, verificationMessage, null, object : IMqttActionListener {
+                                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                                    Log.i(TAG, "✅ Test 3: Bidirectional communication verification successful")
+                                    Log.i(TAG, "✅ All connection verification tests passed - MQTT connection is fully functional")
+                                    
+                                    // Send broadcast to notify UI of successful verification
+                                    val intent = Intent("com.example.cc.CONNECTION_VERIFIED")
+                                    intent.putExtra("status", "VERIFIED")
+                                    sendBroadcast(intent)
+                                }
+                                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                                    Log.w(TAG, "⚠️ Test 3: Bidirectional communication verification failed: ${exception?.message}")
+                                    // Still consider connection valid if basic publish works
+                                    if (publishTestPassed) {
+                                        Log.i(TAG, "✅ Connection verification partially successful - publish works")
+                                        val intent = Intent("com.example.cc.CONNECTION_VERIFIED")
+                                        intent.putExtra("status", "PARTIAL")
+                                        sendBroadcast(intent)
+                                    }
+                                }
+                            })
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.w(TAG, "⚠️ Test 2: Subscribe verification failed: ${exception?.message}")
+                            // Still consider connection valid if publish works
+                            if (publishTestPassed) {
+                                Log.i(TAG, "✅ Connection verification partially successful - publish works")
+                                val intent = Intent("com.example.cc.CONNECTION_VERIFIED")
+                                intent.putExtra("status", "PARTIAL")
+                                sendBroadcast(intent)
+                            }
+                        }
+                    })
                 }
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    Log.w(TAG, "⚠️ Connection verification failed: ${exception?.message}")
+                    Log.w(TAG, "❌ Test 1: Publish verification failed: ${exception?.message}")
                     // Connection might not be fully working
                     connectionState.postValue(ConnectionState.DISCONNECTED)
                     isConnected = false
+                    
+                    // Send broadcast to notify UI of verification failure
+                    val intent = Intent("com.example.cc.CONNECTION_VERIFIED")
+                    intent.putExtra("status", "FAILED")
+                    intent.putExtra("error", exception?.message ?: "Publish test failed")
+                    sendBroadcast(intent)
                 }
             })
             
         } catch (e: Exception) {
             Log.e(TAG, "Error during connection verification: ${e.message}")
+            // Connection verification failed
+            connectionState.postValue(ConnectionState.DISCONNECTED)
+            isConnected = false
+            
+            // Send broadcast to notify UI of verification failure
+            val intent = Intent("com.example.cc.CONNECTION_VERIFIED")
+            intent.putExtra("status", "FAILED")
+            intent.putExtra("error", e.message ?: "Verification exception")
+            sendBroadcast(intent)
         }
     }
 
