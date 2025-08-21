@@ -222,12 +222,21 @@ class MqttService : Service() {
                 return false
             }
             
-            if (!MqttConfig.isValidIpAddress(ip)) {
-                Log.e(TAG, "Invalid broker IP address: $ip")
+            // Use improved IP validation
+            if (!NetworkHelper.isValidIpAddress(ip)) {
+                val error = NetworkHelper.getIpValidationError(ip)
+                Log.e(TAG, "Invalid broker IP address: $ip - $error")
                 return false
             }
             
-            Log.i(TAG, "✅ Broker configuration validated: $ip:$port")
+            // Test actual connectivity
+            val testResult = NetworkHelper.testBrokerConnectivity(ip, port, 5000)
+            if (!testResult.isSuccess) {
+                Log.e(TAG, "Broker connectivity test failed: ${testResult.message}")
+                return false
+            }
+            
+            Log.i(TAG, "✅ Broker configuration validated and connectivity confirmed: $ip:$port")
             return true
             
         } catch (e: Exception) {
@@ -491,6 +500,11 @@ class MqttService : Service() {
         if (!isNetworkAvailable()) {
             Log.w(TAG, "Network not available, cannot connect to MQTT")
             connectionState.postValue(ConnectionState.DISCONNECTED)
+            // Send broadcast to notify UI of network error
+            val intent = Intent("com.example.cc.CONNECTION_STATUS")
+            intent.putExtra("status", "DISCONNECTED")
+            intent.putExtra("error", "Network not available")
+            sendBroadcast(intent)
             return
         }
         
@@ -498,6 +512,11 @@ class MqttService : Service() {
         if (!testBrokerConnectivity()) {
             Log.e(TAG, "Broker connectivity test failed - cannot connect")
             connectionState.postValue(ConnectionState.DISCONNECTED)
+            // Send broadcast to notify UI of invalid IP error
+            val intent = Intent("com.example.cc.CONNECTION_STATUS")
+            intent.putExtra("status", "DISCONNECTED")
+            intent.putExtra("error", "Invalid IP address or port")
+            sendBroadcast(intent)
             return
         }
         
@@ -602,25 +621,31 @@ class MqttService : Service() {
                 }
             })
             
-            mqttClient.connect(options, null, object : IMqttActionListener {
-                override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    Log.i(TAG, "✅ Successfully connected to MQTT broker!")
-                    isConnected = true
-                    connectionState.postValue(ConnectionState.CONNECTED)
-                    reconnectAttempts = 0
-                    isReconnecting = false
-                    
-                    // Verify connection is working
-                    verifyConnection()
-                    
-                    // Retry any queued messages
-                    retryQueuedMessages()
-                    
-                    // Subscribe for pending role if any
-                    pendingRole?.let { role ->
-                        subscribeForRole(role, pendingIncidentId)
-                    }
-                }
+                         mqttClient.connect(options, null, object : IMqttActionListener {
+                 override fun onSuccess(asyncActionToken: IMqttToken?) {
+                     Log.i(TAG, "✅ Successfully connected to MQTT broker!")
+                     isConnected = true
+                     connectionState.postValue(ConnectionState.CONNECTED)
+                     reconnectAttempts = 0
+                     isReconnecting = false
+                     
+                     // Send broadcast to notify UI of successful connection
+                     val intent = Intent("com.example.cc.CONNECTION_STATUS")
+                     intent.putExtra("status", "CONNECTED")
+                     intent.putExtra("error", null)
+                     sendBroadcast(intent)
+                     
+                     // Verify connection is working
+                     verifyConnection()
+                     
+                     // Retry any queued messages
+                     retryQueuedMessages()
+                     
+                     // Subscribe for pending role if any
+                     pendingRole?.let { role ->
+                         subscribeForRole(role, pendingIncidentId)
+                     }
+                 }
                 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
                     Log.e(TAG, "❌ Failed to connect to MQTT broker: ${exception?.message}")

@@ -195,18 +195,7 @@ object MqttConfig {
      * Validate IP address format
      */
     fun isValidIpAddress(ip: String): Boolean {
-        if (ip.isEmpty()) return false
-        
-        // Check if it's a valid IPv4 address
-        val ipv4Pattern = Regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
-        if (ipv4Pattern.matches(ip)) return true
-        
-        // Check if it's localhost
-        if (ip == "localhost" || ip == "127.0.0.1") return true
-        
-        // Check if it's a valid hostname (basic validation)
-        val hostnamePattern = Regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*$")
-        return hostnamePattern.matches(ip)
+        return NetworkHelper.isValidIpAddress(ip)
     }
     
     /**

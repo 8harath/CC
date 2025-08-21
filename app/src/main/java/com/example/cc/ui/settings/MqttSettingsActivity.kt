@@ -66,6 +66,27 @@ class MqttSettingsActivity : AppCompatActivity() {
         autoDetectButton.setOnClickListener {
             autoDetectBroker()
         }
+        
+        // Add real-time IP validation
+        brokerIpInput.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                validateIpAddress()
+            }
+        }
+    }
+    
+    private fun validateIpAddress() {
+        val ip = brokerIpInput.text.toString().trim()
+        if (ip.isNotEmpty()) {
+            val error = NetworkHelper.getIpValidationError(ip)
+            if (error != null) {
+                brokerIpInput.error = error
+                statusText.text = "Status: ❌ $error"
+            } else {
+                brokerIpInput.error = null
+                statusText.text = "Status: ✅ Valid IP address format"
+            }
+        }
     }
     
     private fun saveSettings() {
@@ -74,6 +95,14 @@ class MqttSettingsActivity : AppCompatActivity() {
         
         if (ip.isEmpty()) {
             Toast.makeText(this, "Please enter a broker IP address", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Validate IP address
+        val ipError = NetworkHelper.getIpValidationError(ip)
+        if (ipError != null) {
+            Toast.makeText(this, ipError, Toast.LENGTH_LONG).show()
+            brokerIpInput.error = ipError
             return
         }
         
@@ -113,6 +142,14 @@ class MqttSettingsActivity : AppCompatActivity() {
             return
         }
         
+        // Validate IP address first
+        val ipError = NetworkHelper.getIpValidationError(ip)
+        if (ipError != null) {
+            Toast.makeText(this, ipError, Toast.LENGTH_LONG).show()
+            brokerIpInput.error = ipError
+            return
+        }
+        
         val port = try {
             portStr.toInt()
         } catch (e: NumberFormatException) {
@@ -120,23 +157,29 @@ class MqttSettingsActivity : AppCompatActivity() {
             return
         }
         
+        if (port <= 0 || port > 65535) {
+            Toast.makeText(this, "Port must be between 1 and 65535", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
         testButton.isEnabled = false
         testButton.text = "Testing..."
+        statusText.text = "Status: 🔄 Testing connection..."
         
         // Test connection in background
         Thread {
-            val isConnected = NetworkHelper.testBrokerConnectivity(ip, port, 5000)
+            val result = NetworkHelper.testBrokerConnectivity(ip, port, 5000)
             
             runOnUiThread {
                 testButton.isEnabled = true
                 testButton.text = "Test Connection"
                 
-                if (isConnected) {
-                    Toast.makeText(this, "✅ Connection successful!", Toast.LENGTH_LONG).show()
-                    statusText.text = "Status: ✅ Connected to $ip:$port"
+                if (result.isSuccess) {
+                    Toast.makeText(this, "✅ ${result.message}", Toast.LENGTH_LONG).show()
+                    statusText.text = "Status: ✅ ${result.message}"
                 } else {
-                    Toast.makeText(this, "❌ Connection failed", Toast.LENGTH_LONG).show()
-                    statusText.text = "Status: ❌ Failed to connect to $ip:$port"
+                    Toast.makeText(this, "❌ ${result.message}", Toast.LENGTH_LONG).show()
+                    statusText.text = "Status: ❌ ${result.message}"
                 }
             }
         }.start()
@@ -155,9 +198,12 @@ class MqttSettingsActivity : AppCompatActivity() {
                 
                 if (localIp != null) {
                     brokerIpInput.setText(localIp)
+                    brokerIpInput.error = null
                     Toast.makeText(this, "Auto-detected IP: $localIp", Toast.LENGTH_SHORT).show()
+                    statusText.text = "Status: ✅ Auto-detected IP: $localIp"
                 } else {
                     Toast.makeText(this, "Could not auto-detect IP address", Toast.LENGTH_SHORT).show()
+                    statusText.text = "Status: ❌ Could not auto-detect IP address"
                 }
             }
         }.start()
@@ -171,7 +217,12 @@ class MqttSettingsActivity : AppCompatActivity() {
         if (ip.isEmpty()) {
             statusText.text = "Status: No broker configured"
         } else {
-            statusText.text = "Status: Configured for $ip:$port"
+            val ipError = NetworkHelper.getIpValidationError(ip)
+            if (ipError != null) {
+                statusText.text = "Status: ❌ $ipError"
+            } else {
+                statusText.text = "Status: Configured for $ip:$port"
+            }
         }
     }
     

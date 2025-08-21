@@ -9,9 +9,65 @@ import java.net.NetworkInterface
 import java.net.InetAddress
 import java.net.Socket
 import java.net.InetSocketAddress
+import java.util.regex.Pattern
 
 object NetworkHelper {
     private const val TAG = "NetworkHelper"
+    
+    // IP address validation patterns
+    private val IPV4_PATTERN = Pattern.compile(
+        "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    )
+    private val HOSTNAME_PATTERN = Pattern.compile(
+        "^[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*$"
+    )
+    
+    /**
+     * Comprehensive IP address validation
+     */
+    fun isValidIpAddress(ip: String): Boolean {
+        if (ip.isEmpty()) return false
+        
+        // Check for localhost
+        if (ip.equals("localhost", ignoreCase = true) || ip == "127.0.0.1") {
+            return true
+        }
+        
+        // Check for valid IPv4 address
+        if (IPV4_PATTERN.matcher(ip).matches()) {
+            return true
+        }
+        
+        // Check for valid hostname (basic validation)
+        if (HOSTNAME_PATTERN.matcher(ip).matches()) {
+            return true
+        }
+        
+        return false
+    }
+    
+    /**
+     * Get validation error message for IP address
+     */
+    fun getIpValidationError(ip: String): String? {
+        if (ip.isEmpty()) {
+            return "IP address cannot be empty"
+        }
+        
+        if (ip.equals("localhost", ignoreCase = true) || ip == "127.0.0.1") {
+            return null // Valid
+        }
+        
+        if (IPV4_PATTERN.matcher(ip).matches()) {
+            return null // Valid
+        }
+        
+        if (HOSTNAME_PATTERN.matcher(ip).matches()) {
+            return null // Valid
+        }
+        
+        return "Invalid IP address format. Please enter a valid IPv4 address (e.g., 192.168.1.100) or hostname"
+    }
     
     /**
      * Get the device's local IP address
@@ -42,20 +98,55 @@ object NetworkHelper {
     }
     
     /**
-     * Test MQTT broker connectivity
+     * Test MQTT broker connectivity with detailed error reporting
      */
-    fun testBrokerConnectivity(host: String, port: Int, timeout: Int = 5000): Boolean {
+    fun testBrokerConnectivity(host: String, port: Int, timeout: Int = 5000): BrokerTestResult {
         return try {
+            // First validate the IP address
+            if (!isValidIpAddress(host)) {
+                val error = getIpValidationError(host)
+                return BrokerTestResult(false, "Invalid IP Address", error ?: "Invalid IP address format")
+            }
+            
+            // Validate port
+            if (port <= 0 || port > 65535) {
+                return BrokerTestResult(false, "Invalid Port", "Port must be between 1 and 65535")
+            }
+            
+            // Test network connectivity
             val socket = Socket()
             socket.connect(InetSocketAddress(host, port), timeout)
             socket.close()
+            
             Log.i(TAG, "Broker connectivity test successful: $host:$port")
-            true
+            BrokerTestResult(true, "Connected", "Successfully connected to $host:$port")
+            
         } catch (e: Exception) {
+            val errorMessage = when {
+                e.message?.contains("timeout", ignoreCase = true) == true -> 
+                    "Connection timeout. Please check if the MQTT broker is running on $host:$port"
+                e.message?.contains("refused", ignoreCase = true) == true -> 
+                    "Connection refused. No MQTT broker listening on $host:$port"
+                e.message?.contains("unreachable", ignoreCase = true) == true -> 
+                    "Host unreachable. Please check the IP address and network connection"
+                e.message?.contains("no route", ignoreCase = true) == true -> 
+                    "No route to host. Please check your network configuration"
+                else -> "Connection failed: ${e.message}"
+            }
+            
             Log.w(TAG, "Broker connectivity test failed: $host:$port - ${e.message}")
-            false
+            BrokerTestResult(false, "Connection Failed", errorMessage)
         }
     }
+    
+    /**
+     * Result class for broker connectivity tests
+     */
+    data class BrokerTestResult(
+        val isSuccess: Boolean,
+        val status: String,
+        val message: String
+    )
     
     /**
      * Get recommended broker URL based on network configuration
