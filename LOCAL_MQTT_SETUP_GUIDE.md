@@ -1,293 +1,258 @@
-# Local MQTT Setup Guide for Smartphone Communication
+# Local MQTT Broker Setup Guide
 
-This guide will help you set up MQTT communication between two smartphones (Crash Victim and Emergency Responder) using a local Mosquitto broker running on your laptop.
+This guide will help you set up and run an MQTT broker locally on your system for development and testing.
 
-## 🎯 Overview
+## Prerequisites
 
-**Smartphone A (Crash Victim)**: Publishes emergency alerts when a crash is detected  
-**Smartphone B (Emergency Responder)**: Subscribes to emergency alerts and responds  
-**Laptop**: Runs Mosquitto MQTT broker to facilitate communication
+- **Operating System**: Windows, macOS, or Linux
+- **Network Access**: Port 1883 should be available
+- **Python** (optional, for testing): Python 3.6+ with paho-mqtt
 
-## 📋 Prerequisites
+## Step 1: Install Mosquitto MQTT Broker
 
-1. **Laptop with Mosquitto MQTT Broker** installed and running
-2. **Two Android smartphones** with the Car Crash Detection App installed
-3. **Same WiFi network** for all devices
-4. **Network connectivity** between devices
+### Windows Installation
 
-## 🔧 Step 1: Install and Configure Mosquitto Broker
+#### Option A: Using Chocolatey (Recommended)
+```powershell
+# Run PowerShell as Administrator
+# Install Chocolatey first if you don't have it
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-### Windows Installation:
-```cmd
-# Download and install Mosquitto from https://mosquitto.org/download/
-# Start the service
-net start mosquitto
-
-# Check if it's running
-netstat -an | findstr 1883
+# Install Mosquitto
+choco install mosquitto
 ```
 
-### Linux Installation:
+#### Option B: Manual Installation
+1. Download from: https://mosquitto.org/download/
+2. Extract to `C:\mosquitto`
+3. Add `C:\mosquitto` to your PATH environment variable
+4. Restart your terminal/command prompt
+
+### macOS Installation
+```bash
+brew install mosquitto
+```
+
+### Ubuntu/Debian Installation
 ```bash
 sudo apt update
 sudo apt install mosquitto mosquitto-clients
-sudo systemctl enable mosquitto
-sudo systemctl start mosquitto
-
-# Check status
-sudo systemctl status mosquitto
 ```
 
-### macOS Installation:
+### Other Linux Distributions
 ```bash
-brew install mosquitto
-brew services start mosquitto
+# CentOS/RHEL
+sudo yum install mosquitto
 
-# Check status
-brew services list | grep mosquitto
+# Arch Linux
+sudo pacman -S mosquitto
 ```
 
-## 🌐 Step 2: Configure Network Settings
+## Step 2: Verify Installation
 
-### Find Your Laptop's IP Address:
-
-**Windows:**
-```cmd
-ipconfig
-# Look for "IPv4 Address" under your WiFi adapter (usually 192.168.x.x)
-```
-
-**Linux/macOS:**
+Check if Mosquitto is installed correctly:
 ```bash
-ifconfig
-# Look for "inet" followed by your IP address (usually 192.168.x.x)
+# Check version
+mosquitto --version
+
+# Check if command is available
+which mosquitto  # Linux/macOS
+where mosquitto  # Windows
 ```
 
-### Configure Firewall:
-Ensure port 1883 is open on your laptop:
+## Step 3: Start the Local MQTT Broker
 
-**Windows:**
-```cmd
-# Open Windows Defender Firewall
-# Add inbound rule for port 1883 (TCP)
-netsh advfirewall firewall add rule name="MQTT" dir=in action=allow protocol=TCP localport=1883
-```
-
-**Linux:**
+### Windows
 ```bash
-sudo ufw allow 1883
+# Double-click the batch file
+start_mosquitto.bat
+
+# Or run manually
+mosquitto -c mosquitto_local.conf -v
 ```
 
-**macOS:**
+### Linux/macOS
 ```bash
-# macOS firewall should allow local connections by default
+# Make script executable
+chmod +x start_mosquitto.sh
+
+# Run the script
+./start_mosquitto.sh
+
+# Or run manually
+mosquitto -c mosquitto_local.conf -v
 ```
 
-## 📱 Step 3: Configure Smartphone A (Crash Victim)
-
-1. **Install the App**: Install the Car Crash Detection App on Smartphone A
-2. **Open MQTT Settings**:
-   - Launch the app
-   - Go to Settings → MQTT Settings
-   - Enter your laptop's IP address (e.g., `192.168.1.100`)
-   - Set port to `1883`
-   - Click "Test Connection" to verify connectivity
-   - Click "Save Settings"
-
-3. **Enable MQTT Service**:
-   - Click "Enable MQTT Service"
-   - Wait for "MQTT Service Enabled" confirmation
-
-4. **Set Role as Publisher**:
-   - Go back to main screen
-   - Select "Publisher" mode
-   - This phone will now act as the crash victim
-
-## 📱 Step 4: Configure Smartphone B (Emergency Responder)
-
-1. **Install the App**: Install the Car Crash Detection App on Smartphone B
-2. **Open MQTT Settings**:
-   - Launch the app
-   - Go to Settings → MQTT Settings
-   - Enter the SAME laptop IP address as Smartphone A
-   - Set port to `1883`
-   - Click "Test Connection" to verify connectivity
-   - Click "Save Settings"
-
-3. **Enable MQTT Service**:
-   - Click "Enable MQTT Service"
-   - Wait for "MQTT Service Enabled" confirmation
-
-4. **Set Role as Subscriber**:
-   - Go back to main screen
-   - Select "Subscriber" mode
-   - This phone will now act as the emergency responder
-
-## 🧪 Step 5: Test Communication
-
-### Test 1: Basic Connectivity
-1. **On Smartphone A (Publisher)**:
-   - Go to "Publisher" mode
-   - Click "Test MQTT Connection"
-   - Should show "✅ MQTT broker is accessible!"
-
-2. **On Smartphone B (Subscriber)**:
-   - Go to "Subscriber" mode
-   - Click "Test MQTT Connection"
-   - Should show "✅ MQTT broker is accessible!"
-
-### Test 2: Send Test Alert
-1. **On Smartphone A (Publisher)**:
-   - Go to "Publisher" mode
-   - Click "Send Test Emergency Alert"
-   - Should show "✅ Test emergency alert sent!"
-
-2. **On Smartphone B (Subscriber)**:
-   - Go to "Subscriber" mode
-   - Should receive the test alert in the alert history
-   - Alert should appear with victim information
-
-### Test 3: Real Emergency Scenario
-1. **On Smartphone A (Publisher)**:
-   - Go to "Publisher" mode
-   - Click "Send Emergency Alert" (or simulate crash detection)
-   - Fill in emergency details
-   - Send the alert
-
-2. **On Smartphone B (Subscriber)**:
-   - Should receive immediate notification
-   - Alert should appear in incident list
-   - Can view incident details and respond
-
-## 🔍 Troubleshooting
-
-### Issue 1: "MQTT broker is not accessible"
-**Solutions:**
-- Verify Mosquitto is running: `netstat -an | findstr 1883`
-- Check firewall settings
-- Ensure all devices are on same WiFi network
-- Try using `localhost` instead of IP address if testing on same device
-
-### Issue 2: "Connection refused"
-**Solutions:**
-- Restart Mosquitto service
-- Check if port 1883 is already in use
-- Verify IP address is correct
-- Check network connectivity
-
-### Issue 3: "No messages received"
-**Solutions:**
-- Verify both phones have MQTT service enabled
-- Check that roles are set correctly (Publisher/Subscriber)
-- Ensure topics are properly configured
-- Check app logs for error messages
-
-### Issue 4: "Network unavailable"
-**Solutions:**
-- Check WiFi connection on both phones
-- Ensure laptop is connected to same network
-- Try reconnecting to WiFi
-- Check if network has restrictions
-
-## 📊 Monitoring and Debugging
-
-### Check Mosquitto Logs:
+### Manual Start
 ```bash
-# Windows
-# Check Event Viewer for Mosquitto logs
+# Create data directory
+mkdir -p mosquitto_data
 
-# Linux
-sudo journalctl -u mosquitto -f
-
-# macOS
-tail -f /usr/local/var/log/mosquitto.log
+# Start broker with configuration
+mosquitto -c mosquitto_local.conf -v
 ```
 
-### Test with Command Line Tools:
+## Step 4: Test the Local Broker
+
+### Using Python Test Script
 ```bash
-# Subscribe to all emergency topics
-mosquitto_sub -h localhost -t "emergency/#" -v
+# Install paho-mqtt if you don't have it
+pip install paho-mqtt
 
-# Publish test message
-mosquitto_pub -h localhost -t "emergency/alerts/test" -m "Test message"
+# Run the test script
+python test_local_broker.py
 ```
 
-### App Debug Information:
-- Use the "MQTT Test" activity in the app
-- Check logcat for detailed error messages
-- Use "Check Network Status" to verify connectivity
+### Using Command Line Tools
+```bash
+# Subscribe to a topic (in one terminal)
+mosquitto_sub -h localhost -t "emergency/test" -v
 
-## 🔧 Advanced Configuration
+# Publish a message (in another terminal)
+mosquitto_pub -h localhost -t "emergency/test" -m "Hello from command line!"
+```
 
-### Enable MQTT Authentication (Optional):
-1. **Create password file**:
-   ```bash
-   mosquitto_passwd -c /etc/mosquitto/passwd android_user
-   ```
+## Step 5: Test with Android App
 
-2. **Update mosquitto.conf**:
-   ```conf
-   allow_anonymous false
-   password_file /etc/mosquitto/passwd
-   ```
+1. **Build and install** the updated Android app
+2. **Open Publisher mode** and enable MQTT
+3. **Send test messages** - they should work with localhost:1883
+4. **Open Subscriber mode** and enable MQTT
+5. **Receive messages** from the publisher
 
-3. **Update app settings** with username/password
+## Configuration Details
 
-### Enable SSL/TLS (Optional):
-1. **Generate certificates**
-2. **Configure mosquitto.conf for SSL**
-3. **Update app to use port 8883**
+### Broker Settings
+- **Port**: 1883 (standard MQTT port)
+- **Authentication**: Disabled for local development
+- **Logging**: Full logging to `mosquitto_local.log`
+- **Persistence**: Enabled with data stored in `mosquitto_data/`
 
-## 📱 App Features for Testing
+### Topic Structure
+The app uses these MQTT topics:
+- `emergency/alerts/#` - Emergency alerts
+- `emergency/test/#` - Test messages
+- `emergency/custom/#` - Custom messages
+- `emergency/response/#` - Response messages
 
-### Publisher Mode (Smartphone A):
-- ✅ Send emergency alerts
-- ✅ Include GPS location
-- ✅ Add medical information
-- ✅ Test MQTT connection
-- ✅ View connection status
+## Troubleshooting
 
-### Subscriber Mode (Smartphone B):
-- ✅ Receive emergency alerts
-- ✅ View incident details
-- ✅ Send response acknowledgments
-- ✅ Alert history
-- ✅ Connection monitoring
+### Issue: "Port 1883 already in use"
+```bash
+# Check what's using port 1883
+netstat -an | grep 1883  # Linux/macOS
+netstat -an | findstr 1883  # Windows
 
-## 🎯 Expected Behavior
+# Kill the process if needed
+sudo lsof -ti:1883 | xargs kill -9  # Linux/macOS
+# For Windows, use Task Manager or Resource Monitor
+```
 
-### When Communication Works:
-1. **Publisher sends alert** → **Subscriber receives immediately**
-2. **Subscriber responds** → **Publisher receives acknowledgment**
-3. **Real-time updates** on both devices
-4. **Connection status** shows "Connected" on both phones
-5. **Alert history** populated with all communications
+### Issue: "Permission denied"
+```bash
+# Make sure you have write permissions
+chmod 755 mosquitto_data
+chmod 644 mosquitto_local.conf
+```
 
-### Success Indicators:
-- ✅ Both phones show "MQTT: Connected" status
-- ✅ Test alerts are received immediately
-- ✅ Emergency alerts trigger notifications
-- ✅ Response acknowledgments work
-- ✅ No connection timeouts or errors
+### Issue: "Firewall blocking connection"
+- **Windows**: Check Windows Firewall settings
+- **macOS**: Check System Preferences > Security & Privacy > Firewall
+- **Linux**: Check iptables/ufw settings
 
-## 🚀 Next Steps
+### Issue: "Configuration file not found"
+```bash
+# Make sure you're in the correct directory
+ls -la mosquitto_local.conf
 
-Once basic communication is working:
-1. **Test with real crash scenarios**
-2. **Add multiple responders**
-3. **Test network interruption recovery**
-4. **Implement advanced features**
-5. **Deploy in production environment**
+# Or specify full path
+mosquitto -c /full/path/to/mosquitto_local.conf -v
+```
 
-## 📞 Support
+## Advanced Configuration
+
+### Enable WebSocket Support
+Uncomment these lines in `mosquitto_local.conf`:
+```conf
+listener 9001
+protocol websockets
+```
+
+### Enable SSL/TLS
+```conf
+listener 8883
+certfile /path/to/cert.pem
+keyfile /path/to/key.pem
+```
+
+### Set up Authentication
+```conf
+password_file mosquitto_passwd
+acl_file mosquitto_acl
+```
+
+## Monitoring and Logs
+
+### View Real-time Logs
+```bash
+# Follow log file
+tail -f mosquitto_local.log
+
+# Filter for specific topics
+grep "emergency" mosquitto_local.log
+```
+
+### Check Broker Status
+```bash
+# Check if broker is running
+ps aux | grep mosquitto
+
+# Check network connections
+netstat -an | grep 1883
+```
+
+## Switching Between Brokers
+
+### Use Local Broker (Default)
+```kotlin
+// In your Android app
+MqttConfig.setUseLocalBroker(true)
+```
+
+### Use Network Broker
+```kotlin
+// In your Android app
+MqttConfig.setUseNetworkBroker(true)
+```
+
+### Use Custom Broker
+```kotlin
+// In your Android app
+MqttConfig.setCustomBroker("192.168.1.100", 1883)
+```
+
+## Success Indicators
+
+✅ **Broker Running**: `mosquitto -c mosquitto_local.conf -v` shows startup messages
+✅ **Port Listening**: `netstat -an | grep 1883` shows port 1883 in LISTEN state
+✅ **Test Script**: `python test_local_broker.py` completes successfully
+✅ **Android App**: Connects and sends/receives messages
+✅ **Logs**: `mosquitto_local.log` shows connection and message activity
+
+## Next Steps
+
+Once your local MQTT broker is working:
+1. Test with multiple Android devices
+2. Test message persistence and delivery
+3. Test with different QoS levels
+4. Test emergency alert scenarios
+5. Test custom message functionality
+
+## Support
 
 If you encounter issues:
-1. Check this troubleshooting guide
-2. Verify all prerequisites are met
-3. Test with command line tools first
-4. Check app logs and Mosquitto logs
-5. Ensure network connectivity is stable
-
----
-
-**🎯 Goal**: Establish reliable MQTT communication between crash victim and emergency responder smartphones through local Mosquitto broker for academic demonstration and testing.
+1. Check the logs in `mosquitto_local.log`
+2. Verify network connectivity
+3. Check firewall settings
+4. Ensure port 1883 is available
+5. Verify configuration file syntax
