@@ -143,14 +143,14 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         
         binding.btnSaveSettings.setOnClickListener {
             viewModel.saveSettings()
-            showToast("Settings saved successfully")
+            Snackbar.make(binding.root, "Settings saved successfully", Snackbar.LENGTH_SHORT).show()
         }
     }
     
     private fun setupAlertsList() {
         binding.btnClearAlerts.setOnClickListener {
             viewModel.clearAllAlerts()
-            showToast("All alerts cleared")
+            Snackbar.make(binding.root, "All alerts cleared", Snackbar.LENGTH_SHORT).show()
         }
         
         // Setup RecyclerView
@@ -209,8 +209,5 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         }
     }
     
-    private fun showToast(message: String) {
-        // Use Snackbar instead of overriding BaseActivity method
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
-    }
+
 } 
