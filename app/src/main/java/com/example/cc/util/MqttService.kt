@@ -511,49 +511,44 @@ class MqttService : Service() {
                     })
                 }
                 "SUBSCRIBER" -> {
-                    // Subscriber subscribes to emergency alerts
-                    val alertTopic = "emergency/alerts/#"
-                    mqttClient.subscribe(alertTopic, 1, null, object : IMqttActionListener {
-                        override fun onSuccess(asyncActionToken: IMqttToken?) {
-                            Log.i(TAG, "Subscribed to alert topic: $alertTopic")
-                        }
-                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                            Log.e(TAG, "Failed to subscribe to alert topic: ${exception?.message}")
-                        }
-                    })
+                    // Subscriber subscribes to ALL emergency topics to ensure no messages are missed
+                    val allEmergencyTopics = listOf(
+                        "emergency/alerts/#",           // Emergency alerts
+                        "emergency/test/#",             // Test messages  
+                        "emergency/custom/#",           // Custom messages
+                        "emergency/response/#",         // Response messages
+                        "emergency/status/#",           // Status messages
+                        "emergency/#"                   // Catch-all for any emergency topic
+                    )
                     
-                    // Also subscribe to test messages
-                    val testTopic = "emergency/test/#"
-                    mqttClient.subscribe(testTopic, 1, null, object : IMqttActionListener {
-                        override fun onSuccess(asyncActionToken: IMqttToken?) {
-                            Log.i(TAG, "Subscribed to test topic: $testTopic")
-                        }
-                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                            Log.e(TAG, "Failed to subscribe to test topic: ${exception?.message}")
-                        }
-                    })
+                    allEmergencyTopics.forEach { topic ->
+                        mqttClient.subscribe(topic, 1, null, object : IMqttActionListener {
+                            override fun onSuccess(asyncActionToken: IMqttToken?) {
+                                Log.i(TAG, "✅ Successfully subscribed to: $topic")
+                            }
+                            override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                                Log.e(TAG, "❌ Failed to subscribe to $topic: ${exception?.message}")
+                            }
+                        })
+                    }
                     
-                    // Subscribe to custom messages
-                    val customTopic = "emergency/custom/#"
-                    mqttClient.subscribe(customTopic, 1, null, object : IMqttActionListener {
-                        override fun onSuccess(asyncActionToken: IMqttToken?) {
-                            Log.i(TAG, "Subscribed to custom message topic: $customTopic")
-                        }
-                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                            Log.e(TAG, "Failed to subscribe to custom message topic: ${exception?.message}")
-                        }
-                    })
+                    // Also subscribe to specific topics that publisher might use
+                    val specificTopics = listOf(
+                        "emergency/alerts/broadcast",
+                        "emergency/custom/message", 
+                        "emergency/test/connection"
+                    )
                     
-                    // Subscribe to response acknowledgments
-                    val ackTopic = "emergency/response/ack/#"
-                    mqttClient.subscribe(ackTopic, 1, null, object : IMqttActionListener {
-                        override fun onSuccess(asyncActionToken: IMqttToken?) {
-                            Log.i(TAG, "Subscribed to response ack topic: $ackTopic")
-                        }
-                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                            Log.e(TAG, "Failed to subscribe to response ack topic: ${exception?.message}")
-                        }
-                    })
+                    specificTopics.forEach { topic ->
+                        mqttClient.subscribe(topic, 1, null, object : IMqttActionListener {
+                            override fun onSuccess(asyncActionToken: IMqttToken?) {
+                                Log.i(TAG, "✅ Successfully subscribed to specific topic: $topic")
+                            }
+                            override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                                Log.e(TAG, "❌ Failed to subscribe to specific topic $topic: ${exception?.message}")
+                            }
+                        })
+                    }
                 }
                 else -> {
                     Log.w(TAG, "Unknown role: $role")
