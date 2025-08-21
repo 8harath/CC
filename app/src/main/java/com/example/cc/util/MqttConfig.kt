@@ -10,25 +10,23 @@ import android.util.Log
  */
 object MqttConfig {
     
-    companion object {
-        private const val TAG = "MqttConfig"
-        private const val PREFS_NAME = "mqtt_settings"
-        private const val KEY_BROKER_IP = "broker_ip"
-        private const val KEY_BROKER_PORT = "broker_port"
-        private const val KEY_CLIENT_ID = "client_id"
-        private const val KEY_USERNAME = "username"
-        private const val KEY_PASSWORD = "password"
-        private const val KEY_KEEP_ALIVE = "keep_alive"
-        private const val KEY_CONNECTION_TIMEOUT = "connection_timeout"
-        
-        // Default values
-        private const val DEFAULT_BROKER_IP = "192.168.0.101"
-        private const val DEFAULT_BROKER_PORT = 1883
-        private const val DEFAULT_KEEP_ALIVE = 60
-        private const val DEFAULT_CONNECTION_TIMEOUT = 30
-        
-        private var prefs: SharedPreferences? = null
-    }
+    private const val TAG = "MqttConfig"
+    private const val PREFS_NAME = "mqtt_settings"
+    private const val KEY_BROKER_IP = "broker_ip"
+    private const val KEY_BROKER_PORT = "broker_port"
+    private const val KEY_CLIENT_ID = "client_id"
+    private const val KEY_USERNAME = "username"
+    private const val KEY_PASSWORD = "password"
+    private const val KEY_KEEP_ALIVE = "keep_alive"
+    private const val KEY_CONNECTION_TIMEOUT = "connection_timeout"
+    
+    // Default values
+    private const val DEFAULT_BROKER_IP = "192.168.0.101"
+    private const val DEFAULT_BROKER_PORT = 1883
+    private const val DEFAULT_KEEP_ALIVE = 60
+    private const val DEFAULT_CONNECTION_TIMEOUT = 30
+    
+    private var prefs: SharedPreferences? = null
     
     /**
      * Initialize the configuration manager
