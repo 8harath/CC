@@ -23,7 +23,7 @@ This Android application serves as a dual-mode communication interface for a car
 2. **Configure MQTT Broker**
    - Install Mosquitto MQTT broker
    - Update broker URL in `app/src/main/java/com/example/cc/util/MqttConfig.kt`
-   - Run `setup_local_mqtt.bat` (Windows) or `setup_local_mqtt.sh` (Linux/Mac)
+   - Run `scripts/setup_local_mqtt.bat` (Windows) or `scripts/setup_local_mqtt.sh` (Linux/Mac)
 
 3. **Build and Run**
    ```bash
@@ -169,7 +169,7 @@ scripts/build_production.bat
 ### Common Issues
 
 1. **MQTT Connection Fails**
-   - Verify broker is running: `check_mosquitto.bat`
+   - Verify broker is running: `scripts/check_mosquitto.bat`
    - Check network connectivity
    - Verify broker URL in MqttConfig.kt
 
