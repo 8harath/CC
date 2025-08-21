@@ -1161,4 +1161,90 @@ class MqttService : Service() {
             "Error during network connectivity test: ${e.message}"
         }
     }
+    
+    /**
+     * Run comprehensive MQTT connection tests and provide status report
+     */
+    fun runComprehensiveTests(): String {
+        return try {
+            var report = "🔍 MQTT Comprehensive Connection Test Report\n"
+            report += "==============================================\n\n"
+            
+            // 1. Broker Configuration Test
+            report += "1. BROKER CONFIGURATION TEST\n"
+            report += "-----------------------------\n"
+            report += getBrokerConfiguration()
+            report += "\n\n"
+            
+            // 2. Network Connectivity Test
+            report += "2. NETWORK CONNECTIVITY TEST\n"
+            report += "-----------------------------\n"
+            report += testNetworkConnectivity()
+            report += "\n\n"
+            
+            // 3. MQTT Connection Test
+            report += "3. MQTT CONNECTION TEST\n"
+            report += "-----------------------\n"
+            report += validateAndTestBroker()
+            report += "\n\n"
+            
+            // 4. Current Status Summary
+            report += "4. CURRENT STATUS SUMMARY\n"
+            report += "-------------------------\n"
+            val brokerUrl = MqttConfig.getBrokerUrlSafe()
+            val ip = MqttConfig.getBrokerIp()
+            val port = MqttConfig.getBrokerPort()
+            val networkAvailable = isNetworkAvailable()
+            val brokerValid = testBrokerConnectivity()
+            val clientInitialized = ::mqttClient.isInitialized
+            val clientConnected = if (clientInitialized) mqttClient.isConnected() else false
+            val mqttEnabled = isMqttEnabled
+            
+            report += "Broker IP: $ip\n"
+            report += "Broker Port: $port\n"
+            report += "Broker URL: $brokerUrl\n"
+            report += "Network Available: ${if (networkAvailable) "✅ Yes" else "❌ No"}\n"
+            report += "Broker Config Valid: ${if (brokerValid) "✅ Yes" else "❌ No"}\n"
+            report += "Client Initialized: ${if (clientInitialized) "✅ Yes" else "❌ No"}\n"
+            report += "Client Connected: ${if (clientConnected) "✅ Yes" else "❌ No"}\n"
+            report += "MQTT Enabled: ${if (mqttEnabled) "✅ Yes" else "❌ No"}\n"
+            report += "Connection State: ${connectionState.value}\n"
+            
+            // 5. Recommendations
+            report += "\n5. RECOMMENDATIONS\n"
+            report += "------------------\n"
+            
+            if (!networkAvailable) {
+                report += "❌ Check network connection\n"
+            }
+            
+            if (!brokerValid) {
+                report += "❌ Verify broker IP and port configuration\n"
+            }
+            
+            if (!clientInitialized) {
+                report += "❌ MQTT client not initialized - restart service\n"
+            }
+            
+            if (!clientConnected && networkAvailable && brokerValid) {
+                report += "⚠️ Try reconnecting to MQTT broker\n"
+            }
+            
+            if (!mqttEnabled) {
+                report += "⚠️ Enable MQTT service to connect\n"
+            }
+            
+            if (clientConnected) {
+                report += "✅ MQTT connection is working properly\n"
+            }
+            
+            report += "\n==============================================\n"
+            report += "Test completed at: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}\n"
+            
+            report
+            
+        } catch (e: Exception) {
+            "Error during comprehensive tests: ${e.message}"
+        }
+    }
 }
