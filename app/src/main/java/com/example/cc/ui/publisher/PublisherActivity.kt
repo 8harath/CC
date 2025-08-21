@@ -169,7 +169,59 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         }
         
         binding.btnSendEmergency.setOnClickListener {
+            // First update the message in ViewModel
+            viewModel.updateCustomMessage(binding.etCustomMessage.text.toString())
+            
+            // Then send the emergency alert
             viewModel.sendEmergencyAlert()
+            
+            // Send the actual MQTT message via the service
+            sendEmergencyAlertViaMqtt()
+        }
+    }
+    
+    private fun sendEmergencyAlertViaMqtt() {
+        try {
+            val customMessage = binding.etCustomMessage.text.toString().trim()
+            val emergencyMessage = if (customMessage.isNotEmpty()) {
+                """
+                {
+                    "type": "emergency_alert",
+                    "timestamp": ${System.currentTimeMillis()},
+                    "message": "$customMessage",
+                    "location": "auto-detected",
+                    "device_id": "android_device"
+                }
+                """.trimIndent()
+            } else {
+                """
+                {
+                    "type": "emergency_alert",
+                    "timestamp": ${System.currentTimeMillis()},
+                    "message": "Emergency assistance needed",
+                    "location": "auto-detected",
+                    "device_id": "android_device"
+                }
+                """.trimIndent()
+            }
+            
+            val topic = "emergency/alerts/alert"
+            Log.i(TAG, "📤 Sending emergency alert via MQTT service: $topic")
+            
+            // Send via MQTT service using Intent
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_PUBLISH
+                putExtra(MqttService.EXTRA_TOPIC, topic)
+                putExtra(MqttService.EXTRA_PAYLOAD, emergencyMessage)
+                putExtra(MqttService.EXTRA_QOS, 1)
+                putExtra(MqttService.EXTRA_RETAINED, false)
+            }
+            startService(serviceIntent)
+            
+            Log.i(TAG, "📤 Emergency alert intent sent to MQTT service")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending emergency alert via MQTT: ${e.message}", e)
         }
     }
     

@@ -195,15 +195,13 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
     private fun runComprehensiveMqttTests() {
         try {
-            // Run comprehensive tests in background
-            lifecycleScope.launch(Dispatchers.IO) {
-                val testReport = MqttService().runComprehensiveTests()
-                
-                // Show results on main thread
-                withContext(Dispatchers.Main) {
-                    showTestResultsDialog(testReport)
-                }
+            // Send intent to MQTT service to run tests
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = "com.example.cc.RUN_TESTS"
             }
+            startService(serviceIntent)
+            
+            Snackbar.make(binding.root, "Running MQTT tests... Check logs for results", Snackbar.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Snackbar.make(binding.root, "Error running tests: ${e.message}", Snackbar.LENGTH_LONG).show()
         }
@@ -211,11 +209,19 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
     private fun sendTestMessage() {
         try {
-            // Send a test message
+            // Send a test message via MQTT service
             val testTopic = "emergency/test/message"
             val testPayload = "Test message from SubscriberActivity - ${System.currentTimeMillis()}"
             
-            MqttService().publish(testTopic, testPayload, 1, false)
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_PUBLISH
+                putExtra(MqttService.EXTRA_TOPIC, testTopic)
+                putExtra(MqttService.EXTRA_PAYLOAD, testPayload)
+                putExtra(MqttService.EXTRA_QOS, 1)
+                putExtra(MqttService.EXTRA_RETAINED, false)
+            }
+            startService(serviceIntent)
+            
             Snackbar.make(binding.root, "Test message sent to $testTopic", Snackbar.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Snackbar.make(binding.root, "Error sending test message: ${e.message}", Snackbar.LENGTH_LONG).show()
@@ -224,19 +230,13 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     
     private fun showMqttSettings() {
         try {
-            val brokerConfig = MqttService().getBrokerConfiguration()
-            val networkTest = MqttService().testNetworkConnectivity()
+            // Send intent to MQTT service to get settings info
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = "com.example.cc.GET_SETTINGS"
+            }
+            startService(serviceIntent)
             
-            val settingsInfo = """
-                MQTT Settings Information
-                =========================
-                
-                $brokerConfig
-                
-                $networkTest
-            """.trimIndent()
-            
-            showTestResultsDialog(settingsInfo)
+            Snackbar.make(binding.root, "Getting MQTT settings... Check logs for results", Snackbar.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Snackbar.make(binding.root, "Error getting MQTT settings: ${e.message}", Snackbar.LENGTH_LONG).show()
         }

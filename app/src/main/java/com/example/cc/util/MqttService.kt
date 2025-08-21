@@ -712,10 +712,25 @@ class MqttService : Service() {
                     val qos = inIntent.getIntExtra(EXTRA_QOS, 1)
                     val retained = inIntent.getBooleanExtra(EXTRA_RETAINED, false)
                     if (!topic.isNullOrEmpty() && payload != null) {
+                        Log.i(TAG, "📤 Publishing message via service intent: $topic")
                         publish(topic, payload, qos, retained)
                     } else {
                         Log.w(TAG, "Invalid topic or payload for publishing")
                     }
+                }
+                "com.example.cc.RUN_TESTS" -> {
+                    Log.i(TAG, "🧪 Running comprehensive MQTT tests via service intent")
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val testReport = runComprehensiveTests()
+                        Log.i(TAG, "🧪 Test results: $testReport")
+                    }
+                }
+                "com.example.cc.GET_SETTINGS" -> {
+                    Log.i(TAG, "📋 Getting MQTT settings via service intent")
+                    val brokerConfig = getBrokerConfiguration()
+                    val networkTest = testNetworkConnectivity()
+                    Log.i(TAG, "📋 Broker config: $brokerConfig")
+                    Log.i(TAG, "📋 Network test: $networkTest")
                 }
                 ACTION_UPDATE_SETTINGS -> {
                     Log.i(TAG, "Settings updated, reconnecting with new broker configuration")

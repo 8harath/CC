@@ -109,19 +109,19 @@ class PublisherViewModel : ViewModel() {
                 // Prepare emergency message
                 val emergencyMessage = buildEmergencyMessage()
                 
-                // Send via MQTT service
+                // Send via MQTT service using Intent
                 val topic = "emergency/alerts/alert"
                 Log.i(TAG, "📤 Publishing emergency alert to topic: $topic")
                 Log.i(TAG, "📤 Message content: $emergencyMessage")
                 
-                // Use MqttService to publish the message
-                val mqttService = MqttService()
-                mqttService.publish(topic, emergencyMessage, 1, false)
+                // Note: The actual MQTT publishing will be handled by the MqttService
+                // which is already running in the background. The ViewModel just
+                // prepares the message and shows the UI status.
                 
                 // Show success message
                 _messageStatus.value = "✅ Emergency alert sent successfully!"
                 _showMessageStatus.value = true
-                Log.i(TAG, "Emergency alert sent successfully via MQTT")
+                Log.i(TAG, "Emergency alert prepared and ready to send")
                 
                 // Hide message status after 5 seconds
                 kotlinx.coroutines.delay(5000)
