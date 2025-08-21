@@ -41,22 +41,71 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             }
         }
     }
+    
+    private val simpleMessageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                val topic = intent?.getStringExtra("topic") ?: return
+                val message = intent?.getStringExtra("message") ?: return
+                onMqttSimpleMessage(topic, message)
+            } catch (e: Exception) {
+                Log.e("SubscriberActivity", "Error in simple message receiver: ${e.message}")
+            }
+        }
+    }
 
+    private val customMessageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                val topic = intent?.getStringExtra("topic") ?: return
+                val message = intent?.getStringExtra("message") ?: return
+                onMqttCustomMessage(topic, message)
+            } catch (e: Exception) {
+                Log.e("SubscriberActivity", "Error in custom message receiver: ${e.message}")
+            }
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
-            registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
-            // MQTT service will be started manually when user enables it
-            Log.i("SubscriberActivity", "MQTT service auto-start disabled for stability")
+            // Register broadcast receivers for different message types
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"), Context.RECEIVER_NOT_EXPORTED)
+                registerReceiver(simpleMessageReceiver, IntentFilter("com.example.cc.SIMPLE_MESSAGE_RECEIVED"), Context.RECEIVER_NOT_EXPORTED)
+                registerReceiver(customMessageReceiver, IntentFilter("com.example.cc.CUSTOM_MESSAGE_RECEIVED"), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(emergencyAlertReceiver, IntentFilter("com.example.cc.EMERGENCY_ALERT_RECEIVED"))
+                registerReceiver(simpleMessageReceiver, IntentFilter("com.example.cc.SIMPLE_MESSAGE_RECEIVED"))
+                registerReceiver(customMessageReceiver, IntentFilter("com.example.cc.CUSTOM_MESSAGE_RECEIVED"))
+            }
+            
+            // Initialize MQTT service immediately for subscriber
+            Log.i("SubscriberActivity", "Initializing MQTT service for subscriber")
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
+                putExtra("role", "SUBSCRIBER")
+            }
+            startService(serviceIntent)
+            
+            // Setup MQTT enable button (for manual control if needed)
+            binding.btnEnableMqtt.setOnClickListener {
+                enableMqttService()
+            }
+            
+            // Don't add sample data - let real messages populate the list
+            Log.i("SubscriberActivity", "Ready to receive real MQTT messages")
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in onCreate: ${e.message}", e)
             showToast("Error initializing Emergency Responder mode")
         }
     }
-
+    
     override fun onDestroy() {
         try {
             unregisterReceiver(emergencyAlertReceiver)
+            unregisterReceiver(simpleMessageReceiver)
+            unregisterReceiver(customMessageReceiver)
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in onDestroy: ${e.message}")
         }
@@ -70,16 +119,22 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             setupToolbar()
             setupAlertHistoryList()
             setupMqttTestButtons()
-            // MQTT initialization disabled since service is not auto-started
-            Log.i("SubscriberActivity", "MQTT initialization disabled for stability")
             
-            // Setup MQTT enable button
+            // Initialize MQTT service immediately for subscriber
+            Log.i("SubscriberActivity", "Initializing MQTT service for subscriber")
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
+                putExtra("role", "SUBSCRIBER")
+            }
+            startService(serviceIntent)
+            
+            // Setup MQTT enable button (for manual control if needed)
             binding.btnEnableMqtt.setOnClickListener {
                 enableMqttService()
             }
             
-            // Add sample data for demonstration
-            addSampleAlerts()
+            // Don't add sample data - let real messages populate the list
+            Log.i("SubscriberActivity", "Ready to receive real MQTT messages")
         } catch (e: Exception) {
             Log.e("SubscriberActivity", "Error in setupViews: ${e.message}", e)
             showToast("Error setting up Emergency Responder interface")
@@ -161,13 +216,38 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     }
     
     private fun setupAlertHistoryList() {
-        alertAdapter = AlertHistoryAdapter()
-        alertAdapter.onIncidentClick = { incident ->
-            openIncidentDetails(incident)
-        }
-        binding.recyclerViewAlerts.apply {
-            layoutManager = LinearLayoutManager(this@SubscriberActivity)
-            adapter = alertAdapter
+        try {
+            alertAdapter = AlertHistoryAdapter().apply {
+                onIncidentClick = { incident ->
+                    openIncidentDetails(incident)
+                }
+            }
+            
+            binding.recyclerViewAlerts.apply {
+                layoutManager = LinearLayoutManager(this@SubscriberActivity)
+                adapter = alertAdapter
+            }
+            
+            // Observe alert history from ViewModel
+            lifecycleScope.launch {
+                viewModel.alertHistory.collect { alerts ->
+                    try {
+                        Log.i("SubscriberActivity", "Updating alert history with ${alerts.size} alerts")
+                        alertAdapter.submitList(alerts)
+                        
+                        // Update dashboard stats
+                        updateDashboardStats(alerts.size)
+                        updateActiveResponses(alerts.count { it.severity == "HIGH" })
+                        
+                    } catch (e: Exception) {
+                        Log.e("SubscriberActivity", "Error updating alert history: ${e.message}")
+                    }
+                }
+            }
+            
+            Log.i("SubscriberActivity", "Alert history list setup completed")
+        } catch (e: Exception) {
+            Log.e("SubscriberActivity", "Error setting up alert history list: ${e.message}")
         }
     }
     
@@ -187,6 +267,32 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     fun onMqttEmergencyAlert(json: String) {
         viewModel.onEmergencyAlertReceived(json)
         showEmergencyNotification()
+    }
+    
+    // Call this when a simple MQTT message is received
+    fun onMqttSimpleMessage(topic: String, message: String) {
+        viewModel.onSimpleMessageReceived(topic, message)
+        showSimpleMessageNotification(message)
+    }
+    
+    private fun showSimpleMessageNotification(message: String) {
+        val channelId = "simple_messages"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Simple Messages", NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
+        }
+        val intent = Intent(this, SubscriberActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("📨 Test Message Received")
+            .setContentText(message)
+            .setSmallIcon(R.drawable.ic_message)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 
     private fun showEmergencyNotification() {
@@ -216,50 +322,24 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         startActivity(intent)
     }
     
-    private fun addSampleAlerts() {
+    private fun checkReceivedMessages() {
         try {
-            // Create sample emergency alerts for demonstration
-            val sampleAlert1 = com.example.cc.util.EmergencyAlertMessage(
-                incidentId = "INC_001",
-                victimId = "VICTIM_001",
-                victimName = "John Smith",
-                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7128, -74.0060),
-                timestamp = System.currentTimeMillis() - 300000, // 5 minutes ago
-                severity = "HIGH",
-                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
-                    bloodType = "O+",
-                    allergies = listOf("Penicillin"),
-                    medications = listOf("Aspirin"),
-                    conditions = listOf("Hypertension")
-                )
-            )
+            // Get the current list of alerts from the ViewModel
+            val currentAlerts = viewModel.alertHistory.value ?: emptyList()
             
-            val sampleAlert2 = com.example.cc.util.EmergencyAlertMessage(
-                incidentId = "INC_002",
-                victimId = "VICTIM_002",
-                victimName = "Sarah Johnson",
-                location = com.example.cc.util.EmergencyAlertMessage.Location(40.7589, -73.9851),
-                timestamp = System.currentTimeMillis() - 600000, // 10 minutes ago
-                severity = "MEDIUM",
-                medicalInfo = com.example.cc.util.EmergencyAlertMessage.MedicalInfo(
-                    bloodType = "A-",
-                    allergies = listOf("None"),
-                    medications = listOf("None"),
-                    conditions = listOf("None")
-                )
-            )
+            val message = if (currentAlerts.isNotEmpty()) {
+                val latestAlert = currentAlerts.maxByOrNull { it.timestamp }
+                "📨 Received Messages: ${currentAlerts.size} alerts\nLatest: ${latestAlert?.victimName ?: "Unknown"}"
+            } else {
+                "📨 No messages received yet\nWaiting for emergency alerts..."
+            }
             
-            // Add sample alerts to the adapter
-            alertAdapter.submitList(listOf(sampleAlert1, sampleAlert2))
+            showToast(message)
+            Log.i("SubscriberActivity", "Check Received Messages: $message")
             
-            // Update dashboard stats
-            updateDashboardStats(2)
-            updateActiveResponses(1)
-            updateConnectionStatus("Demo Mode")
-            
-            Log.i("SubscriberActivity", "Sample alerts added for demonstration")
         } catch (e: Exception) {
-            Log.e("SubscriberActivity", "Error adding sample alerts: ${e.message}", e)
+            Log.e("SubscriberActivity", "Error checking received messages: ${e.message}")
+            showToast("Error checking received messages: ${e.message}")
         }
     }
     
@@ -317,18 +397,38 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
     private fun setupMqttTestButtons() {
         // Test MQTT Connection
         binding.btnTestMqttConnection.setOnClickListener {
+            animateButtonClick(it)
             testMqttConnection()
         }
         
         // Check Received Messages
         binding.btnCheckReceivedMessages.setOnClickListener {
+            animateButtonClick(it)
             checkReceivedMessages()
         }
         
         // MQTT Settings
         binding.btnMqttSettings.setOnClickListener {
+            animateButtonClick(it)
             openMqttSettings()
         }
+    }
+    
+    private fun animateButtonClick(view: View) {
+        // Scale down animation
+        view.animate()
+            .scaleX(0.95f)
+            .scaleY(0.95f)
+            .setDuration(100)
+            .withEndAction {
+                // Scale back up
+                view.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
     }
     
     private fun openMqttSettings() {
@@ -360,24 +460,32 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
             showToast("Error testing MQTT connection: ${e.message}")
         }
     }
+
+    // Call this when a custom MQTT message is received
+    fun onMqttCustomMessage(topic: String, message: String) {
+        viewModel.onCustomMessageReceived(topic, message)
+        showCustomMessageNotification(message)
+    }
     
-    private fun checkReceivedMessages() {
-        try {
-            // Get the current list of alerts from the adapter
-            val currentAlerts = alertAdapter.currentList
-            
-            val message = if (currentAlerts.isNotEmpty()) {
-                "📨 Received Messages: ${currentAlerts.size} alerts\nLatest: ${currentAlerts.first().victimName}"
-            } else {
-                "📨 No messages received yet\nWaiting for emergency alerts..."
-            }
-            
-            showToast(message)
-            Log.i("SubscriberActivity", "Check Received Messages: $message")
-            
-        } catch (e: Exception) {
-            Log.e("SubscriberActivity", "Error checking received messages: ${e.message}")
-            showToast("Error checking received messages: ${e.message}")
+    private fun showCustomMessageNotification(message: String) {
+        val channelId = "custom_messages"
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Custom Messages", NotificationManager.IMPORTANCE_HIGH)
+            channel.description = "Custom messages from publisher"
+            notificationManager.createNotificationChannel(channel)
         }
+        val intent = Intent(this, SubscriberActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("💬 Custom Message Received")
+            .setContentText(message)
+            .setSmallIcon(R.drawable.ic_message)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .build()
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 } 

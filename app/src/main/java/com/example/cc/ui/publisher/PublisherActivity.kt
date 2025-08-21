@@ -22,10 +22,60 @@ import android.util.Log
 import com.example.cc.databinding.ActivityPublisherBinding
 import android.content.res.ColorStateList
 import androidx.core.content.ContextCompat
+import android.content.Context
+import android.graphics.Color
+import android.content.IntentFilter
+import android.content.BroadcastReceiver
+import android.view.LayoutInflater
+import android.widget.EditText
 
 class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     
     private val viewModel: PublisherViewModel by viewModels()
+    
+    private val messagePublishReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            try {
+                val topic = intent?.getStringExtra("topic") ?: return
+                val success = intent.getBooleanExtra("success", false)
+                val error = intent.getStringExtra("error")
+                val payload = intent.getStringExtra("payload")
+                
+                if (success) {
+                    Log.i("PublisherActivity", "✅ Message published successfully to $topic")
+                    showToast("✅ Message sent successfully to $topic")
+                } else {
+                    Log.e("PublisherActivity", "❌ Failed to publish message to $topic: $error")
+                    showToast("❌ Failed to send message: $error")
+                }
+            } catch (e: Exception) {
+                Log.e("PublisherActivity", "Error in message publish receiver: ${e.message}")
+            }
+        }
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        try {
+            // Register broadcast receiver for message publish feedback
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(messagePublishReceiver, IntentFilter("com.example.cc.MESSAGE_PUBLISHED"), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(messagePublishReceiver, IntentFilter("com.example.cc.MESSAGE_PUBLISHED"))
+            }
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error in onCreate: ${e.message}", e)
+        }
+    }
+    
+    override fun onDestroy() {
+        try {
+            unregisterReceiver(messagePublishReceiver)
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error in onDestroy: ${e.message}")
+        }
+        super.onDestroy()
+    }
     
     override fun getViewBinding(): ActivityPublisherBinding = ActivityPublisherBinding.inflate(layoutInflater)
     
@@ -37,15 +87,21 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
             setupMedicalProfileButton()
             setupEmergencyModeButtons()
             setupMqttTestButtons()
-            viewModel.initializeMqtt(this)
+            
+            // Initialize MQTT service immediately
+            Log.i("PublisherActivity", "Initializing MQTT service for publisher")
+            val serviceIntent = Intent(this, MqttService::class.java).apply {
+                action = MqttService.ACTION_ENABLE
+                putExtra("role", "PUBLISHER")
+            }
+            startService(serviceIntent)
             
             // Start GPS updates if permissions are granted
             if (PermissionManager.hasRequiredPermissions(this)) {
                 viewModel.startGpsUpdates()
             }
             
-            // MQTT service will be started manually when user enables it
-            Log.i("PublisherActivity", "MQTT service auto-start disabled for stability")
+            Log.i("PublisherActivity", "MQTT service started for publisher role")
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error setting up views: ${e.message}", e)
             showToast("Error setting up app: ${e.message}")
@@ -432,6 +488,8 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                     // Enable/disable MQTT test buttons based on connection state
                     binding.btnTestMqttConnection.isEnabled = state == ConnectionState.CONNECTED
                     binding.btnSendTestMessage.isEnabled = state == ConnectionState.CONNECTED
+                    binding.btnSendSimpleMessage.isEnabled = state == ConnectionState.CONNECTED
+                    binding.btnSendCustomMessage.isEnabled = state == ConnectionState.CONNECTED
                 } catch (e: Exception) {
                     Log.e("PublisherActivity", "Error updating MQTT status: ${e.message}")
                 }
@@ -448,17 +506,81 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     private fun setupMqttTestButtons() {
         // Test MQTT Connection
         binding.btnTestMqttConnection.setOnClickListener {
+            animateButtonClick(it)
             testMqttConnection()
         }
         
         // Send Test Message
         binding.btnSendTestMessage.setOnClickListener {
+            animateButtonClick(it)
             sendTestMessage()
+        }
+        
+        // Send Simple Message
+        binding.btnSendSimpleMessage.setOnClickListener {
+            animateButtonClick(it)
+            sendSimpleMessage()
+        }
+        
+        // Send Custom Message
+        binding.btnSendCustomMessage.setOnClickListener {
+            animateButtonClick(it)
+            showCustomMessageDialog()
         }
         
         // MQTT Settings
         binding.btnMqttSettings.setOnClickListener {
+            animateButtonClick(it)
             openMqttSettings()
+        }
+    }
+    
+    private fun animateButtonClick(view: View) {
+        // Scale down animation
+        view.animate()
+            .scaleX(0.95f)
+            .scaleY(0.95f)
+            .setDuration(100)
+            .withEndAction {
+                // Scale back up
+                view.animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(100)
+                    .start()
+            }
+            .start()
+    }
+    
+    private fun showCustomMessageDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom_message, null)
+        val messageInput = dialogView.findViewById<EditText>(R.id.etCustomMessage)
+        
+        // Set default message
+        messageInput.setText("Custom message from Publisher at ${System.currentTimeMillis()}")
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle("📝 Send Custom Message")
+            .setView(dialogView)
+            .setPositiveButton("Send") { _, _ ->
+                val customMessage = messageInput.text.toString()
+                if (customMessage.isNotEmpty()) {
+                    sendCustomMessage(customMessage)
+                } else {
+                    showToast("Please enter a message")
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun sendCustomMessage(message: String) {
+        try {
+            viewModel.sendCustomMessage(message)
+            Log.i("PublisherActivity", "Custom message sent: $message")
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error sending custom message: ${e.message}")
+            showToast("Error sending custom message: ${e.message}")
         }
     }
     
@@ -502,6 +624,19 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         } catch (e: Exception) {
             Log.e("PublisherActivity", "Error sending test message: ${e.message}")
             showToast("Error sending test message: ${e.message}")
+        }
+    }
+    
+    private fun sendSimpleMessage() {
+        try {
+            // Use the ViewModel's sendSimpleTestMessage function
+            viewModel.sendSimpleTestMessage()
+            
+            Log.i("PublisherActivity", "Simple message sent via ViewModel")
+            
+        } catch (e: Exception) {
+            Log.e("PublisherActivity", "Error sending simple message: ${e.message}")
+            showToast("Error sending simple message: ${e.message}")
         }
     }
 } 

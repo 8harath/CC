@@ -453,15 +453,58 @@ class PublisherViewModel(application: Application) : AndroidViewModel(applicatio
                 }
                 ctx.startService(publishIntent)
                 
-                _successMessage.value = "Message sent to $topic"
+                _successMessage.value = "Simple message sent to $topic"
                 
             } catch (e: Exception) {
-                _errorMessage.value = "Failed to send message: ${e.message}"
+                _errorMessage.value = "Failed to send simple message: ${e.message}"
                 Log.e("PublisherViewModel", "Failed to send simple message", e)
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+    
+    /**
+     * Send a custom message entered by the user
+     */
+    fun sendCustomMessage(message: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _errorMessage.value = null
+                
+                Log.i("PublisherViewModel", "Sending custom message: $message")
+                
+                // Send via MQTT service to custom topic
+                val topic = "emergency/custom/message"
+                val ctx = getApplication<Application>()
+                val publishIntent = Intent(ctx, MqttService::class.java).apply {
+                    action = MqttService.ACTION_PUBLISH
+                    putExtra(MqttService.EXTRA_TOPIC, topic)
+                    putExtra(MqttService.EXTRA_PAYLOAD, message)
+                    putExtra(MqttService.EXTRA_QOS, 1)
+                    putExtra(MqttService.EXTRA_RETAINED, false)
+                }
+                ctx.startService(publishIntent)
+                
+                _successMessage.value = "Custom message sent successfully!"
+                
+            } catch (e: Exception) {
+                _errorMessage.value = "Failed to send custom message: ${e.message}"
+                Log.e("PublisherViewModel", "Failed to send custom message", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Send a simple test message for publisher-subscriber communication
+     */
+    fun sendSimpleTestMessage() {
+        val topic = "emergency/test/message"
+        val message = "Hello from Publisher! Test message at ${System.currentTimeMillis()}"
+        sendSimpleMessage(topic, message)
     }
     
     override fun onCleared() {

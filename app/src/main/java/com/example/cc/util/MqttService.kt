@@ -154,15 +154,19 @@ class MqttService : Service() {
             // Generate unique client ID
             val clientId = MqttConfig.CLIENT_ID_PREFIX + System.currentTimeMillis() + "_" + Random().nextInt(1000)
             
-            // Try to find a working broker URL
-            val brokerUrl = MqttConfig.findWorkingBrokerUrl() ?: MqttConfig.getBestBrokerUrl()
-            Log.i(TAG, "Using broker URL: $brokerUrl")
+            // Use the local broker as requested (192.168.0.101:1883)
+            val brokerUrl = MqttConfig.BROKER_URL_LOCAL
+            Log.i(TAG, "Using local broker URL: $brokerUrl")
             
             // Initialize MQTT client
             mqttClient = AndroidXMqttClient(applicationContext, brokerUrl, clientId)
             
             // Register network receiver
-            registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(networkReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+            }
             
             // Set initial connection state - DISCONNECTED until user explicitly enables
             connectionState.postValue(ConnectionState.DISCONNECTED)
@@ -182,11 +186,23 @@ class MqttService : Service() {
     fun publish(topic: String, payload: String, qos: Int = 1, retained: Boolean = false) {
         if (!isValidTopic(topic)) {
             Log.e(TAG, "Invalid topic: $topic")
+            // Send broadcast to notify UI of invalid topic
+            val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+            intent.putExtra("topic", topic)
+            intent.putExtra("success", false)
+            intent.putExtra("error", "Invalid topic: $topic")
+            sendBroadcast(intent)
             return
         }
         
         if (!isMqttEnabled) {
             Log.w(TAG, "MQTT is not enabled by user, cannot publish message to: $topic")
+            // Send broadcast to notify UI that MQTT is not enabled
+            val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+            intent.putExtra("topic", topic)
+            intent.putExtra("success", false)
+            intent.putExtra("error", "MQTT not enabled")
+            sendBroadcast(intent)
             return
         }
         
@@ -197,23 +213,47 @@ class MqttService : Service() {
         
         if (::mqttClient.isInitialized && mqttClient.isConnected()) {
             try {
-                Log.d(TAG, "Publishing message to $topic: $payload")
+                Log.i(TAG, "📤 Publishing message to $topic: $payload")
                 mqttClient.publish(topic, message, null, object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
-                        Log.d(TAG, "Message published successfully to $topic")
+                        Log.i(TAG, "✅ Message published successfully to $topic")
+                        // Send broadcast to notify UI of successful publish
+                        val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+                        intent.putExtra("topic", topic)
+                        intent.putExtra("success", true)
+                        intent.putExtra("payload", payload)
+                        sendBroadcast(intent)
                     }
                     override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                        Log.e(TAG, "Publish failed, enqueuing: ${exception?.message}")
+                        Log.e(TAG, "❌ Publish failed for $topic: ${exception?.message}")
                         MqttMessageQueue.enqueue(topic, payload, qos, retained)
+                        // Send broadcast to notify UI of failed publish
+                        val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+                        intent.putExtra("topic", topic)
+                        intent.putExtra("success", false)
+                        intent.putExtra("error", exception?.message ?: "Unknown error")
+                        sendBroadcast(intent)
                     }
                 })
             } catch (e: Exception) {
-                Log.e(TAG, "Publish exception, enqueuing: ${e.message}")
+                Log.e(TAG, "❌ Publish exception for $topic: ${e.message}")
                 MqttMessageQueue.enqueue(topic, payload, qos, retained)
+                // Send broadcast to notify UI of failed publish
+                val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+                intent.putExtra("topic", topic)
+                intent.putExtra("success", false)
+                intent.putExtra("error", e.message ?: "Unknown exception")
+                sendBroadcast(intent)
             }
         } else {
-            Log.w(TAG, "Not connected, enqueuing message for $topic")
+            Log.w(TAG, "❌ Not connected, enqueuing message for $topic")
             MqttMessageQueue.enqueue(topic, payload, qos, retained)
+            // Send broadcast to notify UI that message was queued
+            val intent = Intent("com.example.cc.MESSAGE_PUBLISHED")
+            intent.putExtra("topic", topic)
+            intent.putExtra("success", false)
+            intent.putExtra("error", "MQTT not connected - message queued")
+            sendBroadcast(intent)
         }
     }
 
@@ -277,6 +317,17 @@ class MqttService : Service() {
                             Log.e(TAG, "Failed to subscribe to alert topic: ${exception?.message}")
                         }
                     })
+                    
+                    // Also subscribe to test messages
+                    val testTopic = "emergency/test/#"
+                    mqttClient.subscribe(testTopic, 1, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.i(TAG, "Subscribed to test topic: $testTopic")
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e(TAG, "Failed to subscribe to test topic: ${exception?.message}")
+                        }
+                    })
                 }
                 else -> {
                     Log.w(TAG, "Unknown role: $role")
@@ -326,9 +377,9 @@ class MqttService : Service() {
                 return
             }
             
-            // Get current broker settings - use the best available URL
-            val brokerUrl = MqttConfig.getBestBrokerUrl()
-            Log.i(TAG, "Attempting to connect to MQTT broker: $brokerUrl")
+            // Use the local broker URL directly as requested
+            val brokerUrl = MqttConfig.BROKER_URL_LOCAL
+            Log.i(TAG, "Attempting to connect to local MQTT broker: $brokerUrl")
             connectionState.postValue(ConnectionState.CONNECTING)
             isReconnecting = true
             
@@ -356,11 +407,41 @@ class MqttService : Service() {
                 }
                 
                 override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    Log.d(TAG, "Message arrived: $topic -> ${message?.toString()}")
-                    if (topic != null && topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
-                        val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
-                        intent.putExtra("alert_json", message.toString())
-                        sendBroadcast(intent)
+                    Log.i(TAG, "📨 Message arrived: $topic -> ${message?.toString()}")
+                    if (topic != null && message != null) {
+                        try {
+                            if (topic.startsWith(MqttTopics.EMERGENCY_ALERTS)) {
+                                Log.i(TAG, "🚨 Emergency alert received on topic: $topic")
+                                val intent = Intent("com.example.cc.EMERGENCY_ALERT_RECEIVED")
+                                intent.putExtra("alert_json", message.toString())
+                                sendBroadcast(intent)
+                            } else if (topic.startsWith("emergency/test/")) {
+                                Log.i(TAG, "📝 Simple test message received on topic: $topic")
+                                // Handle simple test messages
+                                val intent = Intent("com.example.cc.SIMPLE_MESSAGE_RECEIVED")
+                                intent.putExtra("topic", topic)
+                                intent.putExtra("message", message.toString())
+                                sendBroadcast(intent)
+                            } else if (topic.startsWith("emergency/custom/")) {
+                                Log.i(TAG, "💬 Custom message received on topic: $topic")
+                                // Handle custom messages
+                                val intent = Intent("com.example.cc.CUSTOM_MESSAGE_RECEIVED")
+                                intent.putExtra("topic", topic)
+                                intent.putExtra("message", message.toString())
+                                sendBroadcast(intent)
+                            } else {
+                                Log.i(TAG, "📨 General message received on topic: $topic")
+                                // Handle other messages
+                                val intent = Intent("com.example.cc.GENERAL_MESSAGE_RECEIVED")
+                                intent.putExtra("topic", topic)
+                                intent.putExtra("message", message.toString())
+                                sendBroadcast(intent)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Error processing received message on topic $topic: ${e.message}")
+                        }
+                    } else {
+                        Log.w(TAG, "⚠️ Received message with null topic or payload")
                     }
                 }
                 
@@ -371,7 +452,7 @@ class MqttService : Service() {
             
             mqttClient.connect(options, null, object : IMqttActionListener {
                 override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    Log.i(TAG, "Successfully connected to MQTT broker!")
+                    Log.i(TAG, "✅ Successfully connected to local MQTT broker!")
                     isConnected = true
                     connectionState.postValue(ConnectionState.CONNECTED)
                     reconnectAttempts = 0
@@ -387,7 +468,7 @@ class MqttService : Service() {
                 }
                 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    Log.e(TAG, "Failed to connect to MQTT broker: ${exception?.message}")
+                    Log.e(TAG, "❌ Failed to connect to local MQTT broker: ${exception?.message}")
                     isConnected = false
                     connectionState.postValue(ConnectionState.DISCONNECTED)
                     isReconnecting = false
@@ -463,7 +544,7 @@ class MqttService : Service() {
                     Log.i(TAG, "User explicitly enabled MQTT service")
                     isMqttEnabled = true
                     setMqttEnabled(true)
-                    // Now attempt to connect
+                    // Now attempt to connect automatically
                     connect()
                 }
                 ACTION_DISABLE -> {
@@ -500,20 +581,19 @@ class MqttService : Service() {
                         pendingRole = role
                         pendingIncidentId = incidentId
                         
-                        // Only connect if MQTT is enabled
-                        if (isMqttEnabled) {
-                            if (::mqttClient.isInitialized && mqttClient.isConnected()) {
-                                Log.i(TAG, "Received start with role=$role, subscribing immediately")
-                                subscribeForRole(role, incidentId)
-                            } else {
-                                Log.i(TAG, "Received start with role=$role, attempting to connect")
-                                connect()
-                            }
+                        // Automatically connect when role is specified
+                        if (!isMqttEnabled) {
+                            Log.i(TAG, "Auto-enabling MQTT for role: $role")
+                            isMqttEnabled = true
+                            setMqttEnabled(true)
+                        }
+                        
+                        if (::mqttClient.isInitialized && mqttClient.isConnected()) {
+                            Log.i(TAG, "Received start with role=$role, subscribing immediately")
+                            subscribeForRole(role, incidentId)
                         } else {
-                            Log.i(TAG, "MQTT not enabled, storing role for later: $role")
-                            // Store the role and incident ID for when MQTT is enabled
-                            pendingRole = role
-                            pendingIncidentId = incidentId
+                            Log.i(TAG, "Received start with role=$role, attempting to connect")
+                            connect()
                         }
                     } else {
                         Log.w(TAG, "No role provided in intent")
