@@ -157,7 +157,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         binding.rvAlerts.layoutManager = LinearLayoutManager(this)
         alertAdapter = AlertHistoryAdapter { incident ->
             // Handle incident click - could open detail view
-            showToast("Alert: ${incident.message}")
+            Snackbar.make(binding.root, "Alert: ${incident.message}", Snackbar.LENGTH_SHORT).show()
         }
         binding.rvAlerts.adapter = alertAdapter
     }
@@ -169,15 +169,15 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         
         // Setup experimental feature buttons if they exist
         binding.btnTestMqttConnection?.setOnClickListener {
-            showToast("MQTT testing feature coming soon")
+            Snackbar.make(binding.root, "MQTT testing feature coming soon", Snackbar.LENGTH_SHORT).show()
         }
         
         binding.btnSendTestMessage?.setOnClickListener {
-            showToast("Test message feature coming soon")
+            Snackbar.make(binding.root, "Test message feature coming soon", Snackbar.LENGTH_SHORT).show()
         }
         
         binding.btnMqttSettings?.setOnClickListener {
-            showToast("MQTT settings feature coming soon")
+            Snackbar.make(binding.root, "MQTT settings feature coming soon", Snackbar.LENGTH_SHORT).show()
         }
     }
     
