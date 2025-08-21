@@ -157,7 +157,7 @@ class SubscriberActivity : BaseActivity<ActivitySubscriberBinding>() {
         binding.rvAlerts.layoutManager = LinearLayoutManager(this)
         alertAdapter = AlertHistoryAdapter { incident ->
             // Handle incident click - could open detail view
-            Snackbar.make(binding.root, "Alert: ${incident.message}", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Alert: ${incident.description ?: "Emergency Alert"}", Snackbar.LENGTH_SHORT).show()
         }
         binding.rvAlerts.adapter = alertAdapter
     }
