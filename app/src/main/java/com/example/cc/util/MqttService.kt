@@ -435,7 +435,7 @@ class MqttService : Service() {
                 if (!username.isNullOrEmpty()) {
                     userName = username
                     password?.let { pwd ->
-                        password = pwd.toCharArray()
+                        this.password = pwd.toCharArray()
                     }
                 }
             }

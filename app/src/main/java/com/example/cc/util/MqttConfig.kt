@@ -26,6 +26,14 @@ object MqttConfig {
     private const val DEFAULT_KEEP_ALIVE = 60
     private const val DEFAULT_CONNECTION_TIMEOUT = 30
     
+    // Constants for MqttService
+    const val CLIENT_ID_PREFIX = "android_client_"
+    const val BROKER_URL_LOCAL = "tcp://192.168.0.101:1883"
+    const val CONNECTION_TIMEOUT = 30
+    const val KEEP_ALIVE_INTERVAL = 60
+    const val MAX_RECONNECT_ATTEMPTS = 5
+    const val RECONNECT_DELAY = 5000L
+    
     private var prefs: SharedPreferences? = null
     
     /**
