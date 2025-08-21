@@ -1,76 +1,68 @@
-# Car Crash Detection MQTT System - Phase 2
+# Car Crash Detection MQTT System
 
 ## Overview
-This Android application serves as a dual-mode communication interface for a car crash detection system using MQTT protocol. The app operates in Publisher mode (crash victims) and Subscriber mode (emergency responders).
+This Android application serves as a dual-mode communication interface for a car crash detection system using MQTT protocol. The app operates in Publisher mode (crash victims) and Subscriber mode (emergency responders), integrating with ESP32 hardware and a local MQTT broker for academic demonstration purposes.
 
-## Phase 2 Implementation Status ✅
-
-### ✅ Completed Features
-- **Project Structure**: MVVM architecture with Repository pattern
-- **Base Activities/Fragments**: MainActivity, role selection, basic navigation
-- **Data Layer**: Room database setup with User, MedicalProfile, and Incident entities
-- **Dependency Injection**: Simple manual DI implementation
-- **Basic UI Framework**: Material Design theming and base layouts
-- **Role Selection System**: Complete UI for choosing between Publisher and Subscriber modes
-- **Database Operations**: Full CRUD operations for all entities
-- **Navigation**: Seamless flow between role selection and mode-specific activities
-
-### 🏗️ Architecture Components
-- **MVVM Pattern**: ViewModels with LiveData and StateFlow
-- **Repository Pattern**: Clean separation between data sources and business logic
-- **Room Database**: Local SQLite database with type converters
-- **ViewBinding**: Type-safe view binding for all activities
-- **Coroutines**: Asynchronous operations with proper error handling
-
-### 📱 User Interface
-- **Role Selection Screen**: Clean, modern interface for choosing user role
-- **Publisher Mode**: Emergency alert interface with large SOS button
-- **Subscriber Mode**: Status display for emergency responders
-- **Material Design**: Consistent theming with custom color scheme
-- **Responsive Layout**: Works across different screen sizes
-
-### 🗄️ Data Models
-- **User**: Stores user information and role (Publisher/Subscriber)
-- **MedicalProfile**: Medical information for crash victims
-- **Incident**: Crash incident data with status tracking
-
-## Setup Instructions
+## 🚀 Quick Start
 
 ### Prerequisites
-1. **Android Studio**: Latest version (Arctic Fox or newer)
-2. **Java Development Kit**: JDK 11 or higher
-3. **Android Device/Emulator**: API level 24+ (Android 7.0+)
-4. **Mosquitto MQTT Broker**: Already installed on your laptop
+- Android Studio (latest version)
+- JDK 11 or higher
+- Android device/emulator (API level 24+)
+- Local MQTT broker (Mosquitto recommended)
 
-### Running the Application
+### Installation & Setup
 
-1. **Open Project in Android Studio**
+1. **Clone and Open Project**
    ```bash
-   # Open Android Studio and select "Open an existing project"
-   # Navigate to the project directory and select it
+   git clone <repository-url>
+   cd CC
+   # Open in Android Studio
    ```
 
-2. **Sync Project**
-   - Android Studio will automatically sync the project
-   - Wait for Gradle sync to complete
+2. **Configure MQTT Broker**
+   - Install Mosquitto MQTT broker
+   - Update broker URL in `app/src/main/java/com/example/cc/util/MqttConfig.kt`
+   - Run `scripts/setup_local_mqtt.bat` (Windows) or `scripts/setup_local_mqtt.sh` (Linux/Mac)
 
-3. **Set up Android Device/Emulator**
-   - Connect an Android device via USB (enable Developer Options and USB Debugging)
-   - OR create an Android Virtual Device (AVD) in Android Studio
+3. **Build and Run**
+   ```bash
+   # Using Android Studio
+   # Click "Run" button or use:
+   ./gradlew assembleDebug
+   ./gradlew installDebug
+   ```
 
-4. **Run the Application**
-   - Click the "Run" button (green play icon) in Android Studio
-   - Select your device/emulator
-   - The app will install and launch
+4. **First Launch**
+   - Select role: "Crash Victim" (Publisher) or "Emergency Responder" (Subscriber)
+   - Enter your name
+   - Configure MQTT settings if needed
 
-### First Run Experience
-1. **Role Selection**: Choose between "Crash Victim" or "Emergency Responder"
-2. **Name Input**: Enter your name when prompted
-3. **Mode-Specific Interface**: 
-   - **Publisher Mode**: Large SOS button; broadcasts emergency over MQTT
-   - **Subscriber Mode**: Live connection status and alert list
+## 📱 Features
 
-## Project Structure
+### Publisher Mode (Crash Victims)
+- Emergency alert system with SOS button
+- Medical profile management
+- GPS location tracking
+- ESP32 sensor integration
+- Real-time MQTT communication
+
+### Subscriber Mode (Emergency Responders)
+- Live incident monitoring
+- Alert history and details
+- Response acknowledgment system
+- Emergency contact management
+- Real-time status updates
+
+### Core Features
+- **MVVM Architecture**: Clean separation of concerns
+- **Room Database**: Local data persistence
+- **MQTT Communication**: Real-time messaging
+- **Bluetooth Integration**: ESP32 hardware communication
+- **GPS Services**: Location tracking
+- **Material Design**: Modern, accessible UI
+
+## 🏗️ Architecture
 
 ```
 app/src/main/java/com/example/cc/
@@ -83,116 +75,142 @@ app/src/main/java/com/example/cc/
 │   └── util/                        # Type converters
 ├── di/
 │   └── AppModule.kt                 # Dependency injection
-└── ui/
-    ├── base/                        # Base classes
-    ├── main/                        # Role selection
-    ├── publisher/                   # Crash victim mode
-    └── subscriber/                  # Emergency responder mode
+├── ui/
+│   ├── base/                        # Base classes
+│   ├── main/                        # Role selection
+│   ├── publisher/                   # Crash victim mode
+│   ├── subscriber/                  # Emergency responder mode
+│   ├── settings/                    # MQTT configuration
+│   └── testing/                     # MQTT testing interface
+└── util/
+    ├── MqttService.kt               # MQTT communication
+    ├── Esp32Manager.kt              # ESP32 integration
+    ├── GpsService.kt                # Location services
+    └── SystemHealthMonitor.kt       # System monitoring
 ```
 
-## Key Features Implemented
+## 🔧 Configuration
 
-### 🔐 Role-Based Access
-- Users can select between Publisher (victim) and Subscriber (responder) modes
-- Role selection persists across app sessions
-- Different UI and functionality for each role
-
-### 💾 Data Persistence
-- Room database with automatic migrations
-- User profiles stored locally
-- Medical information management ready
-- Incident tracking system in place
-
-### 🎨 Modern UI/UX
-- Material Design 3 components
-- Custom color scheme for emergency context
-- Large, accessible touch targets
-- Clear visual hierarchy
-
-### 🔧 Extensible Architecture
-- Clean separation of concerns
-- Easy to add new features
-- Prepared for MQTT integration
-- Ready for Bluetooth/WiFi integration
-
-## Next Steps (Phase 2)
-
-### MQTT Integration
-- [ ] Eclipse Paho MQTT Android library integration
-- [ ] Connection management with auto-reconnection
-- [ ] Message publishing for emergency alerts
-- [ ] Message subscription for responders
-- [ ] Topic management system
+### MQTT Settings
+Default configuration in `MqttConfig.kt`:
+```kotlin
+const val BROKER_URL = "tcp://test.mosquitto.org:1883"
+const val CLIENT_ID = "android_client_${System.currentTimeMillis()}"
+```
 
 ### ESP32 Integration
-- [ ] Bluetooth Classic and BLE communication
-- [ ] WiFi direct fallback
-- [ ] Sensor data parsing
-- [ ] Device discovery and pairing
+- Bluetooth Classic and BLE support
+- WiFi Direct fallback
+- MPU6050 sensor integration
+- Automatic device discovery
 
-### Enhanced Features
-- [ ] GPS location services
-- [ ] Medical profile management UI
-- [ ] Emergency contact system
-- [ ] Real-time incident monitoring
+### Permissions
+- `INTERNET`: MQTT communication
+- `ACCESS_NETWORK_STATE`: Network monitoring
+- `ACCESS_FINE_LOCATION`: GPS services
+- `BLUETOOTH`: ESP32 communication
+- `WAKE_LOCK`: Background operations
 
-## Troubleshooting
+## 📚 Documentation
+
+- **[Quick Start Guide](docs/QUICK_START.md)**: Get up and running quickly
+- **[Setup Guide](docs/SETUP_GUIDE.md)**: Complete ESP32 and MQTT setup
+- **[Production Guide](docs/PRODUCTION_GUIDE.md)**: Production deployment guide
+- **[Development Plan](docs/DEVELOPMENT_PLAN.md)**: Project roadmap and phases
+
+## 🧪 Testing
+
+### MQTT Testing
+```bash
+# Test local broker
+scripts/test_mqtt_local_broker.bat
+
+# Test connection
+scripts/test_mqtt_connection.bat
+
+# Test communication
+scripts/diagnose_mqtt_communication.bat
+```
+
+### Bluetooth Testing
+```bash
+# Test ESP32 setup
+scripts/test_bluetooth_setup.bat
+```
+
+### Python Test Scripts
+- `scripts/test_mqtt_broker.py`: MQTT broker connectivity
+- `scripts/test_local_broker.py`: Local broker testing
+- `scripts/test_ip_validation_and_messaging.py`: Network validation
+
+## 🚀 Production Deployment
+
+### Building Production APK
+```bash
+# Windows
+scripts/build_production.bat
+
+# Linux/Mac
+./scripts/build_production.sh
+
+# Manual
+./gradlew assembleRelease
+```
+
+### Production Features
+- Optimized performance
+- ProGuard code obfuscation
+- Release signing
+- Production monitoring dashboard
+- System health monitoring
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-1. **Gradle Sync Fails**
-   - Check internet connection
-   - Invalidate caches and restart (File → Invalidate Caches)
-   - Update Android Studio to latest version
+1. **MQTT Connection Fails**
+   - Verify broker is running: `scripts/check_mosquitto.bat`
+   - Check network connectivity
+   - Verify broker URL in MqttConfig.kt
 
-2. **Build Errors**
-   - Ensure JDK 11+ is installed and JAVA_HOME is set
-   - Clean and rebuild project (Build → Clean Project)
+2. **ESP32 Not Connecting**
+   - Ensure ESP32 is powered and in range
+   - Check Bluetooth permissions
+   - Verify ESP32 firmware is uploaded
 
-3. **App Crashes on Launch**
-   - Check logcat for specific error messages
-   - Ensure all permissions are granted
+3. **App Crashes**
+   - Check logcat for error details
    - Verify device API level compatibility
+   - Clear app data if needed
 
-### Development Tips
+### Debug Tools
+- MQTT Test Activity: Built-in MQTT testing interface
+- System Health Monitor: Real-time system status
+- Database Inspector: View Room database contents
+- Logcat: Detailed error logging
 
-1. **Database Inspection**
-   - Use Android Studio's Database Inspector to view Room database
-   - Located in View → Tool Windows → App Inspection
+## 📄 License
 
-2. **Logging**
-   - All ViewModels include error handling and logging
-   - Check logcat for detailed error messages
+This project is developed for academic demonstration purposes.
 
-3. **Testing**
-   - Test on both physical device and emulator
-   - Verify different screen sizes and orientations
+## 🤝 Contributing
 
-## Configuration
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-### MQTT Broker Settings
-Default broker is configured in `MqttConfig`:
-- `BROKER_URL = "tcp://test.mosquitto.org:1883"` (public test broker)
-- To use your local Mosquitto, set `BROKER_URL = "tcp://YOUR_LAPTOP_IP:1883"`
-- Topics:
-  - `emergency/alerts/*`
-  - `emergency/status/*`
-  - `emergency/response/*`
-
-### Permissions
-The app requests these permissions:
-- `INTERNET`: For MQTT communication
-- `ACCESS_NETWORK_STATE`: For network monitoring
-- `WAKE_LOCK`: For background MQTT operations
-
-## Support
+## 📞 Support
 
 For issues or questions:
-1. Check the troubleshooting section above
-2. Review Android Studio logcat for error details
-3. Ensure all prerequisites are properly installed
+1. Check the troubleshooting section
+2. Review Android Studio logcat
+3. Ensure all prerequisites are installed
+4. Test with provided test scripts
 
 ---
 
-**Phase 2 Status**: ✅ Complete and Ready for Testing
-**Next Phase**: Publisher/Subscriber feature expansion (Phase 3/4)
+**Status**: ✅ Production Ready  
+**Version**: 1.0.0  
+**Last Updated**: December 2024
