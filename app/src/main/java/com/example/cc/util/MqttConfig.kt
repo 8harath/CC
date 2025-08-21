@@ -28,11 +28,14 @@ object MqttConfig {
     
     // Constants for MqttService
     const val CLIENT_ID_PREFIX = "android_client_"
-    const val BROKER_URL_LOCAL = "tcp://192.168.0.101:1883"
     const val CONNECTION_TIMEOUT = 30
     const val KEEP_ALIVE_INTERVAL = 60
     const val MAX_RECONNECT_ATTEMPTS = 5
     const val RECONNECT_DELAY = 5000L
+    
+    // IP validation constants
+    private const val MIN_PORT = 1
+    private const val MAX_PORT = 65535
     
     private var prefs: SharedPreferences? = null
     
@@ -189,10 +192,60 @@ object MqttConfig {
     }
     
     /**
-     * Get broker URL
+     * Validate IP address format
+     */
+    fun isValidIpAddress(ip: String): Boolean {
+        if (ip.isEmpty()) return false
+        
+        // Check if it's a valid IPv4 address
+        val ipv4Pattern = Regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
+        if (ipv4Pattern.matches(ip)) return true
+        
+        // Check if it's localhost
+        if (ip == "localhost" || ip == "127.0.0.1") return true
+        
+        // Check if it's a valid hostname (basic validation)
+        val hostnamePattern = Regex("^[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*$")
+        return hostnamePattern.matches(ip)
+    }
+    
+    /**
+     * Validate port number
+     */
+    fun isValidPort(port: Int): Boolean {
+        return port in MIN_PORT..MAX_PORT
+    }
+    
+    /**
+     * Get broker URL with validation
      */
     fun getBrokerUrl(): String {
-        return "tcp://${getBrokerIp()}:${getBrokerPort()}"
+        val ip = getBrokerIp()
+        val port = getBrokerPort()
+        
+        if (!isValidIpAddress(ip)) {
+            Log.e(TAG, "Invalid broker IP address: $ip")
+            throw IllegalArgumentException("Invalid broker IP address: $ip")
+        }
+        
+        if (!isValidPort(port)) {
+            Log.e(TAG, "Invalid broker port: $port")
+            throw IllegalArgumentException("Invalid broker port: $port")
+        }
+        
+        return "tcp://$ip:$port"
+    }
+    
+    /**
+     * Get broker URL safely (returns null if invalid)
+     */
+    fun getBrokerUrlSafe(): String? {
+        return try {
+            getBrokerUrl()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting broker URL: ${e.message}")
+            null
+        }
     }
     
     /**
