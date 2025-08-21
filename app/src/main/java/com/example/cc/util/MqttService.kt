@@ -99,6 +99,16 @@ class MqttService : Service() {
             return isMqttEnabledGlobal && connectionState.value == ConnectionState.CONNECTED
         }
         
+        // MQTT Configuration Constants
+        private const val CLIENT_ID_PREFIX = "android_client_"
+        private const val BROKER_URL_LOCAL = "tcp://192.168.0.101:1883"
+        private const val CONNECTION_TIMEOUT = 30
+        private const val KEEP_ALIVE_INTERVAL = 60
+        private const val USERNAME = null
+        private const val PASSWORD = null
+        private const val MAX_RECONNECT_ATTEMPTS = 5
+        private const val RECONNECT_DELAY = 5000L
+        
         /**
          * Get current MQTT status as a human-readable string
          */

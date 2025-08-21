@@ -98,7 +98,7 @@ class MqttSettingsActivity : AppCompatActivity() {
         }
         
         // Update MqttConfig
-        MqttConfig.setCustomBroker(ip, port)
+        MqttConfig.updateBrokerSettings(ip, port)
         
         Toast.makeText(this, "Settings saved successfully", Toast.LENGTH_SHORT).show()
         updateStatus()
