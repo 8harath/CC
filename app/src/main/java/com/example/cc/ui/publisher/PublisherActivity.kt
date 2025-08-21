@@ -20,6 +20,8 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
     }
     
     private val viewModel: PublisherViewModel by viewModels()
+    private lateinit var messageReceiver: BroadcastReceiver
+    private lateinit var connectionStatusReceiver: BroadcastReceiver
     
     override fun getViewBinding(): ActivityPublisherBinding = ActivityPublisherBinding.inflate(layoutInflater)
     
@@ -36,6 +38,12 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
                 putExtra("role", "PUBLISHER")
             }
             startService(serviceIntent)
+            
+            // Setup message receiver for real-time status updates
+            setupMessageReceiver()
+            
+            // Setup connection status receiver
+            setupConnectionStatusReceiver()
             
         } catch (e: Exception) {
             Log.e(TAG, "Error in onCreate: ${e.message}", e)
@@ -261,5 +269,47 @@ class PublisherActivity : BaseActivity<ActivityPublisherBinding>() {
         binding.tvConnectionStatus.text = text
     }
     
-
+    private fun setupMessageReceiver() {
+        messageReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    "com.example.cc.MESSAGE_PUBLISHED" -> {
+                        val topic = intent.getStringExtra("topic") ?: ""
+                        val success = intent.getBooleanExtra("success", false)
+                        val payload = intent.getStringExtra("payload") ?: ""
+                        val error = intent.getStringExtra("error") ?: ""
+                        
+                        if (success) {
+                            Log.i(TAG, "✅ Message published successfully to $topic")
+                            Snackbar.make(binding.root, "✅ Message sent successfully!", Snackbar.LENGTH_SHORT).show()
+                        } else {
+                            Log.e(TAG, "❌ Message publish failed: $error")
+                            Snackbar.make(binding.root, "❌ Failed to send message: $error", Snackbar.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Register the receiver
+        val filter = IntentFilter().apply {
+            addAction("com.example.cc.MESSAGE_PUBLISHED")
+        }
+        registerReceiver(messageReceiver, filter)
+        
+        Log.i(TAG, "📡 Message receiver registered for publish status updates")
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            // Unregister the message receiver
+            if (::messageReceiver.isInitialized) {
+                unregisterReceiver(messageReceiver)
+                Log.i(TAG, "📡 Message receiver unregistered")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error unregistering message receiver: ${e.message}", e)
+        }
+    }
 } 

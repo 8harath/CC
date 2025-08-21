@@ -222,22 +222,22 @@ class MqttService : Service() {
                 return false
             }
             
-            // Use improved IP validation
-            if (!NetworkHelper.isValidIpAddress(ip)) {
-                val error = NetworkHelper.getIpValidationError(ip)
-                Log.e(TAG, "Invalid broker IP address: $ip - $error")
+            if (!MqttConfig.isValidIpAddress(ip)) {
+                Log.e(TAG, "Invalid broker IP address: $ip")
                 return false
             }
             
-            // Test actual connectivity
-            val testResult = NetworkHelper.testBrokerConnectivity(ip, port, 5000)
-            if (!testResult.isSuccess) {
-                Log.e(TAG, "Broker connectivity test failed: ${testResult.message}")
+            // Test actual connectivity using socket
+            try {
+                val socket = java.net.Socket()
+                socket.connect(java.net.InetSocketAddress(ip, port), 5000) // 5 second timeout
+                socket.close()
+                Log.i(TAG, "✅ Broker connectivity test successful: $ip:$port")
+                return true
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Broker connectivity test failed: $ip:$port - ${e.message}")
                 return false
             }
-            
-            Log.i(TAG, "✅ Broker configuration validated and connectivity confirmed: $ip:$port")
-            return true
             
         } catch (e: Exception) {
             Log.e(TAG, "Error testing broker connectivity: ${e.message}")
@@ -621,7 +621,7 @@ class MqttService : Service() {
                 }
             })
             
-                         mqttClient.connect(options, null, object : IMqttActionListener {
+                                      mqttClient.connect(options, null, object : IMqttActionListener {
                  override fun onSuccess(asyncActionToken: IMqttToken?) {
                      Log.i(TAG, "✅ Successfully connected to MQTT broker!")
                      isConnected = true
@@ -647,25 +647,31 @@ class MqttService : Service() {
                      }
                  }
                 
-                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    Log.e(TAG, "❌ Failed to connect to MQTT broker: ${exception?.message}")
-                    isConnected = false
-                    connectionState.postValue(ConnectionState.DISCONNECTED)
-                    isReconnecting = false
-                    
-                    // Increment reconnect attempts
-                    reconnectAttempts++
-                    
-                    // Try to reconnect if we haven't exceeded max attempts
-                    if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS && isMqttEnabled) {
-                        Log.i(TAG, "Reconnect attempt $reconnectAttempts of ${MqttConfig.MAX_RECONNECT_ATTEMPTS}")
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            connect()
-                        }, MqttConfig.RECONNECT_DELAY)
-                    } else {
-                        Log.w(TAG, "Max reconnect attempts reached or MQTT disabled")
-                    }
-                }
+                                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                     Log.e(TAG, "❌ Failed to connect to MQTT broker: ${exception?.message}")
+                     isConnected = false
+                     connectionState.postValue(ConnectionState.DISCONNECTED)
+                     isReconnecting = false
+                     
+                     // Send broadcast to notify UI of connection failure
+                     val intent = Intent("com.example.cc.CONNECTION_STATUS")
+                     intent.putExtra("status", "DISCONNECTED")
+                     intent.putExtra("error", "Failed to connect: ${exception?.message ?: "Unknown error"}")
+                     sendBroadcast(intent)
+                     
+                     // Increment reconnect attempts
+                     reconnectAttempts++
+                     
+                     // Try to reconnect if we haven't exceeded max attempts
+                     if (reconnectAttempts < MqttConfig.MAX_RECONNECT_ATTEMPTS && isMqttEnabled) {
+                         Log.i(TAG, "Reconnect attempt $reconnectAttempts of ${MqttConfig.MAX_RECONNECT_ATTEMPTS}")
+                         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                             connect()
+                         }, MqttConfig.RECONNECT_DELAY)
+                     } else {
+                         Log.w(TAG, "Max reconnect attempts reached or MQTT disabled")
+                     }
+                 }
             })
             
         } catch (e: Exception) {
